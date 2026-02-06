@@ -41,8 +41,16 @@ function parseOptionGroups(codes: string[], optionDict: Record<string, any> = {}
             return undefined;
         }
 
-        // If entry is not an array, return it directly (generic option)
+        // If entry is not an array, check for new 'variations' structure
         if (!Array.isArray(entry)) {
+            if (entry.variations && bodyGroup) {
+                const variation = entry.variations.find((v: any) =>
+                    v.body_groups && v.body_groups.includes(bodyGroup)
+                );
+                if (variation && variation.image) {
+                    return { ...entry, image: variation.image };
+                }
+            }
             return entry;
         }
 

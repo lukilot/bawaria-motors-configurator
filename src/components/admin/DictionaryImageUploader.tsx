@@ -32,27 +32,26 @@ export function DictionaryImageUploader({ currentImage, onUploadComplete, dictio
         const filePath = `${fileName}`;
 
         try {
-            // Upload
-            const { error: uploadError } = await supabase.storage
-                .from('dictionary-assets')
-                .upload(filePath, file);
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('type', dictionaryType);
+            formData.append('code', code);
 
-            if (uploadError) {
-                // Try creating bucket if it doesn't exist (only works if user has permissions, often cleaner to just try upload)
-                if (uploadError.message.includes('bucket not found')) {
-                    alert('Bucket "dictionary-assets" needs to be created in Supabase.');
-                    throw uploadError;
-                }
-                throw uploadError;
+            const res = await fetch('/api/admin/dictionary/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Upload failed');
             }
 
-            // Get Public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('dictionary-assets')
-                .getPublicUrl(filePath);
+            const data = await res.json();
 
-            setPreview(publicUrl);
-            onUploadComplete(publicUrl);
+            // Success
+            setPreview(data.url);
+            onUploadComplete(data.url);
         } catch (error: any) {
             console.error('Error uploading image:', error);
             alert('Error uploading image: ' + error.message);

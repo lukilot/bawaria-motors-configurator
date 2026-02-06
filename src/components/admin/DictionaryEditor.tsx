@@ -101,17 +101,21 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
         setIsSaving(false);
     };
 
-    const handleDelete = async (id: string) => {
-        // Removed confirm for better subagent interaction
-        const { error } = await supabase
-            .from('dictionaries')
-            .delete()
-            .eq('id', id);
+    const handleDelete = async (id: string, code: string) => {
+        if (!confirm(`Are you sure you want to delete ${code}? This will also delete any associated image.`)) return;
 
-        if (error) {
-            alert('Error deleting item: ' + error.message);
-        } else {
+        try {
+            const res = await fetch('/api/admin/dictionary/delete', {
+                method: 'POST',
+                body: JSON.stringify({ id }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!res.ok) throw new Error('Delete failed');
+
             fetchItems();
+        } catch (e: any) {
+            alert('Error deleting item: ' + e.message);
         }
     };
 
@@ -533,7 +537,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                                     <Edit className="w-4 h-4" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(item.id)}
+                                                    onClick={() => handleDelete(item.id, item.code)}
                                                     className="text-gray-300 hover:text-red-500 p-2 transition-colors"
                                                     title="Delete"
                                                 >

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense, useMemo } from 'react';
+import { useState, Suspense, useMemo, useEffect } from 'react';
 import { StockCar } from '@/types/stock';
 import { FilterSidebar } from '@/components/cars/FilterSidebar';
 import { CarGrid } from '@/components/cars/CarGrid';
@@ -20,6 +20,13 @@ interface SRPLayoutProps {
 export function SRPLayout({ cars, dictionaries }: SRPLayoutProps) {
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
     const searchParams = useSearchParams();
+
+    // Track last visited SRP URL for BackButton logic
+    useEffect(() => {
+        // We save the full path including query params
+        const url = window.location.pathname + window.location.search;
+        sessionStorage.setItem('bawaria_last_srp', url);
+    }, [searchParams]);
 
     // 0. Enrich cars with dictionary data
     const enrichedCars = useMemo(() => {

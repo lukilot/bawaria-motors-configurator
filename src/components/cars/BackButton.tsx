@@ -13,7 +13,16 @@ export function BackButton({ label = 'Back', className }: BackButtonProps) {
 
     return (
         <button
-            onClick={() => router.back()}
+            onClick={() => {
+                // Try to find the last SRP url
+                const lastSrp = sessionStorage.getItem('bawaria_last_srp');
+                if (lastSrp) {
+                    router.push(lastSrp);
+                } else {
+                    // Fallback to default filtered list (reset)
+                    router.push('/');
+                }
+            }}
             className={className}
         >
             <ArrowLeft className="w-4 h-4" />

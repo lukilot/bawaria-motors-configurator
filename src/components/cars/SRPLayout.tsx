@@ -28,6 +28,39 @@ export function SRPLayout({ cars, dictionaries }: SRPLayoutProps) {
         sessionStorage.setItem('bawaria_last_srp', url);
     }, [searchParams]);
 
+    // Handle scroll persistence
+    useEffect(() => {
+        // Restore scroll if returning to same SRP
+        const savedUrl = sessionStorage.getItem('bawaria_last_srp');
+        const currentUrl = window.location.pathname + window.location.search;
+        const savedScroll = sessionStorage.getItem('bawaria_scroll_pos');
+
+        if (savedUrl === currentUrl && savedScroll) {
+            // Small timeout to allow layout to settle
+            setTimeout(() => {
+                window.scrollTo(0, parseInt(savedScroll));
+            }, 100);
+        }
+
+        // Save scroll on change
+        const handleScroll = () => {
+            sessionStorage.setItem('bawaria_scroll_pos', window.scrollY.toString());
+        };
+
+        // Debounce scroll event
+        let timeoutId: NodeJS.Timeout;
+        const debouncedScroll = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(handleScroll, 100);
+        };
+
+        window.addEventListener('scroll', debouncedScroll);
+        return () => {
+            window.removeEventListener('scroll', debouncedScroll);
+            clearTimeout(timeoutId);
+        };
+    }, []);
+
     // 0. Enrich cars with dictionary data
     const enrichedCars = useMemo(() => {
         return cars.map(car => {

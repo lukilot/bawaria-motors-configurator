@@ -372,6 +372,7 @@ export default async function CarPage({ params }: PageProps) {
                                             return (
                                                 <Link
                                                     key={v.vin}
+                                                    replace
                                                     href={`/cars/${v.vin}`}
                                                     className="group flex items-center gap-3 px-4 py-3 bg-white border border-gray-100 rounded-sm hover:border-black hover:shadow-sm transition-all"
                                                 >

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { parseStockFile } from '@/lib/excel-parser';
 import { useStockStore } from '@/store/stock-store';
 import { FileSpreadsheet } from 'lucide-react';
@@ -104,9 +104,12 @@ export function StockUploader() {
                     )}
 
                     {/* Sync Button Area */}
-                    <div className="col-span-1 md:col-span-4 flex justify-center border-t border-gray-100 pt-8 mt-4">
+                    <div className="col-span-1 md:col-span-4 flex flex-col items-center border-t border-gray-100 pt-8 mt-4">
                         {importResult.processed > 0 ? (
-                            <SyncButton cars={importResult.cars} />
+                            <>
+                                <SyncButton cars={importResult.cars} />
+                                <SoldCarsReview importCars={importResult.cars} />
+                            </>
                         ) : (
                             <p className="text-gray-400 text-sm">No valid cars found to sync.</p>
                         )}
@@ -123,7 +126,7 @@ import { Check, Loader2, Database } from 'lucide-react';
 
 function SyncButton({ cars }: { cars: StockCar[] }) {
     const [status, setStatus] = useState<'IDLE' | 'SYNCING' | 'SUCCESS' | 'ERROR'>('IDLE');
-    const [errorMsg, setErrorMsg] = useState('');
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const handleSync = async () => {
         setStatus('SYNCING');
@@ -165,6 +168,103 @@ function SyncButton({ cars }: { cars: StockCar[] }) {
             {status === 'ERROR' && (
                 <p className="text-red-500 text-sm mt-2">Error: {errorMsg}</p>
             )}
+        </div>
+    );
+}
+
+import { analyzeStockDiff, processSoldCars } from '@/lib/stock-sync';
+import { AlertTriangle, Trash2 } from 'lucide-react';
+
+function SoldCarsReview({ importCars }: { importCars: StockCar[] }) {
+    const [missingCars, setMissingCars] = useState<StockCar[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [processing, setProcessing] = useState(false);
+    const [done, setDone] = useState(false);
+    const [purgedCount, setPurgedCount] = useState(0);
+
+    // Run analysis on mount
+    useEffect(() => {
+        let mounted = true;
+        analyzeStockDiff(importCars).then(res => {
+            if (mounted) {
+                setMissingCars(res || []);
+                setLoading(false);
+            }
+        });
+        return () => { mounted = false; };
+    }, [importCars]);
+
+    const handleConfirm = async () => {
+        if (!confirm(`This will mark ${missingCars.length} cars as SOLD and PERMANENTLY DELETE their images. Are you sure?`)) return;
+
+        setProcessing(true);
+        try {
+            const vins = missingCars.map(c => c.vin);
+            const res = await processSoldCars(vins);
+            setPurgedCount(res.purgedCount);
+            setDone(true);
+        } catch (e: any) {
+            alert('Failed to process: ' + e.message);
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    if (loading) return <div className="p-4 text-center text-gray-400 text-sm">Analyzing stock differences...</div>;
+
+    if (missingCars.length === 0) return null; // No sold cars detected
+
+    if (done) {
+        return (
+            <div className="bg-green-50 border border-green-200 p-6 rounded-sm mt-8 animate-in fade-in">
+                <div className="flex items-center gap-3 text-green-800">
+                    <Check className="w-6 h-6" />
+                    <h3 className="font-bold">Cleanup Complete</h3>
+                </div>
+                <p className="text-sm text-green-700 mt-2">
+                    Successfully marked {missingCars.length} cars as Sold and purged {purgedCount} image folders.
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-orange-50 border border-orange-200 p-6 rounded-sm mt-8 animate-in fade-in">
+            <div className="flex items-start gap-4">
+                <div className="p-2 bg-orange-100 rounded-full text-orange-600">
+                    <AlertTriangle className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                    <h3 className="text-lg font-bold text-orange-900">Potential Sold Cars Detected</h3>
+                    <p className="text-sm text-orange-800 mt-1">
+                        We found <strong>{missingCars.length}</strong> cars in the database that are missing from this new Excel file.
+                    </p>
+                    <p className="text-xs text-orange-700 mt-2 mb-4">
+                        If you confirm, these cars will be marked as <strong>SOLD</strong> and their images will be <strong>PURGED</strong> to save space.
+                    </p>
+
+                    <div className="max-h-48 overflow-y-auto bg-white border border-orange-100 rounded-sm mb-4 p-2">
+                        {missingCars.map(car => (
+                            <div key={car.vin} className="flex justify-between items-center text-xs py-1 px-2 border-b border-gray-50 last:border-0 hover:bg-gray-50">
+                                <span className="font-mono text-gray-500">{car.vin}</span>
+                                <span className="font-medium text-gray-700">{car.model_name || car.model_code}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={handleConfirm}
+                        disabled={processing}
+                        className={cn(
+                            "flex items-center gap-2 px-4 py-2 bg-orange-600 text-white hover:bg-orange-700 transition-colors rounded-sm text-sm font-medium shadow-sm",
+                            processing && "opacity-75 cursor-wait"
+                        )}
+                    >
+                        {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        {processing ? 'Processing...' : 'Confirm Sold & Purge Images'}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

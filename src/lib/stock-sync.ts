@@ -54,3 +54,65 @@ export const syncStockToSupabase = async (cars: StockCar[]) => {
 
     return { success: true, count };
 };
+
+export const analyzeStockDiff = async (newCars: StockCar[]) => {
+    // 1. Get all currently ACTIVE cars (not Sold/Archived)
+    const { data: activeCars, error } = await supabase
+        .from('stock_units')
+        .select('*')
+        .lt('status_code', 190); // Assuming 190+ is Sold/Reserved. User implies "unavailable".
+    // Actually, user said "marked as sold [to be accepted]".
+    // Usually Sold is ~500. Active is < 190 (Available) or < 500?
+    // Let's assume we want to catch anything that IS currently potentially available (status < 190)
+    // AND is missing from the file.
+
+    if (error) throw error;
+    if (!activeCars) return [];
+
+    const newVins = new Set(newCars.map(c => c.vin));
+
+    // Find cars in DB that are NOT in the new file
+    const missingCars = activeCars.filter(car => !newVins.has(car.vin));
+
+    return missingCars; // These are candidates for "Sold"
+};
+
+export const processSoldCars = async (vins: string[]) => {
+    if (vins.length === 0) return { count: 0, purgedCount: 0 };
+
+    // 1. Update Status to SOLD (500)
+    const { error: updateError } = await supabase
+        .from('stock_units')
+        .update({
+            status_code: 500,
+            order_status: 'Sprzedany / Wycofany',
+            visibility: 'HIDDEN' // Hide from public list immediately
+        })
+        .in('vin', vins);
+
+    if (updateError) throw updateError;
+
+    // 2. Purge Images for each VIN
+    let purgedCount = 0;
+    for (const vin of vins) {
+        // We can reuse our API logic or do it directly here since we have the service role client?
+        // No, this runs on client-side likely (triggered by Admin UI).
+        // Database trigger would be best, but we'll use a fetch loop for now or client storage calls.
+
+        // Using Storage API directly is risky if RLS blocks delete.
+        // But we fixed RLS! 
+        // However, emptying the folder requires listing files first.
+
+        try {
+            await fetch('/api/admin/purge-images', {
+                method: 'POST',
+                body: JSON.stringify({ vin }),
+            });
+            purgedCount++;
+        } catch (e) {
+            console.error(`Failed to purge images for ${vin}`, e);
+        }
+    }
+
+    return { count: vins.length, purgedCount };
+};

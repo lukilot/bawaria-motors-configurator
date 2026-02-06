@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Trash2, Plus, Loader2, Save, Edit, Search } from 'lucide-react';
+import { Trash2, Plus, Loader2, Save, Edit, Search, X } from 'lucide-react';
 import { DictionaryImageUploader } from './DictionaryImageUploader';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +41,22 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
     // Form state
     const [newCode, setNewCode] = useState('');
     const [formData, setFormData] = useState<any>({});
+
+    // Variation state
+    const [hasVariations, setHasVariations] = useState(false);
+    const [variations, setVariations] = useState<{ id: string, body_groups: string[], image: string }[]>([]);
+
+    const addVariationRow = () => {
+        setVariations([...variations, { id: crypto.randomUUID(), body_groups: [], image: '' }]);
+    };
+
+    const removeVariationRow = (id: string) => {
+        setVariations(variations.filter(v => v.id !== id));
+    };
+
+    const updateVariation = (id: string, field: 'body_groups' | 'image', value: any) => {
+        setVariations(variations.map(v => v.id === id ? { ...v, [field]: value } : v));
+    };
 
     // Filter items
     const filteredItems = items.filter(item => {
@@ -102,12 +118,17 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
         if (!newCode) return;
 
         setIsSaving(true);
+        const payloadData = { ...formData };
+        if (hasVariations) {
+            payloadData.variations = variations.map(({ id, ...v }) => v); // Remove temp ID
+        }
+
         const { error } = await supabase
             .from('dictionaries')
             .upsert({
                 type,
                 code: newCode,
-                data: formData
+                data: payloadData
             }, { onConflict: 'type,code' });
 
         if (error) {
@@ -115,6 +136,8 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
         } else {
             setNewCode('');
             setFormData({});
+            setHasVariations(false);
+            setVariations([]);
             fetchItems();
         }
         setIsSaving(false);
@@ -356,32 +379,88 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                 </div>
                             )}
                             {type === 'option' && (
-                                <div>
-                                    <div className="mb-3 flex items-center gap-2">
+                                <div className="col-span-full bg-white p-4 border border-gray-100 rounded-sm mt-2">
+                                    <div className="flex items-center gap-2 mb-4">
                                         <input
                                             type="checkbox"
-                                            id="new-body-group-specific"
-                                            checked={formData.bodyGroupSpecific || false}
-                                            onChange={(e) => handleDataChange('bodyGroupSpecific', e.target.checked)}
+                                            id="has-variations"
+                                            checked={hasVariations}
+                                            onChange={(e) => {
+                                                setHasVariations(e.target.checked);
+                                                if (e.target.checked && variations.length === 0) {
+                                                    addVariationRow();
+                                                }
+                                            }}
                                             className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
                                         />
-                                        <label htmlFor="new-body-group-specific" className="text-sm text-gray-600">Body Group Specific</label>
+                                        <label htmlFor="has-variations" className="text-sm font-medium text-gray-700">
+                                            Body Group Specific (Advanced)
+                                        </label>
                                     </div>
-                                    {formData.bodyGroupSpecific && (
-                                        <div>
-                                            <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Body Groups</label>
-                                            <select
-                                                multiple
-                                                value={formData.body_groups || []}
-                                                onChange={(e) => handleDataChange('body_groups', Array.from(e.target.selectedOptions, option => option.value))}
-                                                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-sm focus:outline-none focus:border-black transition-colors text-sm"
-                                                size={Math.min(bodyGroups.length, 8)}
+
+                                    {hasVariations && (
+                                        <div className="space-y-3">
+                                            {variations.map((variation, index) => (
+                                                <div key={variation.id} className="flex items-start gap-4 p-3 bg-gray-50 border border-gray-200 rounded-sm">
+                                                    <div className="flex-1">
+                                                        <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">
+                                                            Body Groups
+                                                        </label>
+                                                        <select
+                                                            multiple
+                                                            value={variation.body_groups}
+                                                            onChange={(e) => updateVariation(variation.id, 'body_groups', Array.from(e.target.selectedOptions, o => o.value))}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-sm text-sm h-24"
+                                                        >
+                                                            {bodyGroups.map(bg => (
+                                                                <option key={bg} value={bg}>{bg}</option>
+                                                            ))}
+                                                        </select>
+                                                        <p className="text-xs text-gray-400 mt-1">Hold Cmd/Ctrl to select multiple</p>
+                                                    </div>
+
+                                                    <div className="w-48">
+                                                        <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">
+                                                            Variation Image
+                                                        </label>
+                                                        {variation.image ? (
+                                                            <div className="relative group w-20 h-20 bg-gray-100 border border-gray-200 rounded-sm">
+                                                                <img src={variation.image} alt="Var" className="w-full h-full object-cover" />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => updateVariation(variation.id, 'image', '')}
+                                                                    className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                >
+                                                                    <X className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <DictionaryImageUploader
+                                                                dictionaryType={type}
+                                                                code={`${newCode}-var-${index}`}
+                                                                onUploadComplete={(url) => updateVariation(variation.id, 'image', url)}
+                                                            />
+                                                        )}
+                                                    </div>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeVariationRow(variation.id)}
+                                                        className="mt-6 text-gray-400 hover:text-red-500 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+
+                                            <button
+                                                type="button"
+                                                onClick={addVariationRow}
+                                                className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium px-2 py-1"
                                             >
-                                                {bodyGroups.map(bg => (
-                                                    <option key={bg} value={bg}>{bg}</option>
-                                                ))}
-                                            </select>
-                                            <p className="text-xs text-gray-400 mt-1">Hold Cmd/Ctrl to select multiple</p>
+                                                <Plus className="w-3 h-3" />
+                                                Add Another Variant
+                                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -528,10 +607,19 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                                         {type === 'upholstery' && item.data.type && (
                                                             <span className="text-xs text-gray-400 mt-0.5">{item.data.type}</span>
                                                         )}
-                                                        {type === 'option' && item.data.body_groups && item.data.body_groups.length > 0 && (
-                                                            <span className="text-xs text-gray-400 mt-0.5">
-                                                                Body Groups: {item.data.body_groups.join(', ')}
-                                                            </span>
+                                                        {item.data.variations && item.data.variations.length > 0 && (
+                                                            <div className="mt-2 text-xs">
+                                                                <span className="font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-sm">
+                                                                    {item.data.variations.length} Variants
+                                                                </span>
+                                                                <div className="text-gray-400 mt-1 pl-1 border-l-2 border-gray-100">
+                                                                    {item.data.variations.map((v: any, idx: number) => (
+                                                                        <div key={idx} className="truncate max-w-[200px]" title={v.body_groups.join(', ')}>
+                                                                            • {v.body_groups.join(', ')}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 )}

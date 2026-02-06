@@ -42,7 +42,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BUCKET_NAME = 'car-images';
+const BUCKET_NAME = 'stock-images';
 const SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.webp'];
 
 /**

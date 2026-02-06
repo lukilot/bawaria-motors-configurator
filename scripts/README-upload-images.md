@@ -66,7 +66,7 @@ node scripts/upload-images.js ./car-images
 🚀 Bawaria Motors - Bulk Image Upload
 =====================================
 📂 Images directory: /Users/you/car-images
-🗄️  Supabase bucket: car-images
+🗄️  Supabase bucket: stock-images
 
 📊 Found 3 VIN folders
 

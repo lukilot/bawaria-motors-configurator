@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
         // Upload to Supabase
         const { data, error } = await supabase.storage
-            .from('car-images') // Use the correct bucket name! Script used 'car-images', frontend used 'stock-images'. Need to verify which one to use.
+            .from('stock-images') // Use the correct bucket name! Script used 'car-images', frontend used 'stock-images'. Need to verify which one to use.
             .upload(filename, optimizedBuffer, {
                 contentType: 'image/webp',
                 upsert: true
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
         // Get Public URL
         const { data: { publicUrl } } = supabase.storage
-            .from('car-images')
+            .from('stock-images')
             .getPublicUrl(filename);
 
         return NextResponse.json({ url: publicUrl });

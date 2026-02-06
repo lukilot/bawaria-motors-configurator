@@ -24,7 +24,7 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
     return (
         <Link
             href={`/cars/${encodeURIComponent(car.vin)}`}
-            className="group bg-white border border-gray-100 overflow-hidden hover:shadow-xl hover:translate-y-[-2px] transition-all duration-300 ease-out cursor-pointer relative block"
+            className="group mt-1 bg-white border border-gray-100 overflow-hidden hover:shadow-xl hover:translate-y-[-2px] transition-all duration-300 ease-out cursor-pointer relative block"
         >
             <div className="aspect-[16/9] bg-gray-100 relative overflow-hidden">
                 {car.images && car.images.length > 0 ? (

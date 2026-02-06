@@ -84,12 +84,12 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
     const isTypingRef = useRef(false);
 
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-        series: true,
-        body: true,
-        fuel: true,
-        drivetrain: true,
-        power: true,
-        price: true
+        series: false,
+        body: false,
+        fuel: false,
+        drivetrain: false,
+        power: false,
+        price: false
     });
 
     const toggleSection = (id: string) => {
@@ -298,7 +298,7 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                         {/* Power Filter */}
                         <Section id="power" title="Moc" expanded={expandedSections.power} onToggle={toggleSection}>
                             <div className="space-y-6 px-1 pt-2">
-                                <div className="flex justify-between text-[10px] font-bold text-gray-900 tracking-tight font-mono">
+                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-900 font-mono">
                                     <span>{pmin} KM</span>
                                     <span>{pmax} KM</span>
                                 </div>
@@ -323,7 +323,7 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                         {/* Price Range Slider */}
                         <Section id="price" title="Cena Max" expanded={expandedSections.price} onToggle={toggleSection}>
                             <div className="space-y-6 px-1 pt-2">
-                                <div className="flex justify-between text-[10px] font-bold text-gray-900 tracking-tight font-mono">
+                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-900 font-mono">
                                     <span>{formatPrice(activeMin)}</span>
                                     <span>{formatPrice(activeMax)}</span>
                                 </div>

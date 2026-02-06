@@ -5,13 +5,14 @@ import { StockUploader } from '@/components/admin/StockUploader';
 import { AdminCarList } from '@/components/admin/AdminCarList';
 import { DictionaryManager } from '@/components/admin/DictionaryManager';
 import { ServicePricingManager } from '@/components/admin/ServicePricingManager';
+import { SettingsEditor } from '@/components/admin/SettingsEditor';
 import { AdminAuth } from '@/components/admin/AdminAuth';
 import Link from 'next/link';
 import { ArrowLeft, LayoutDashboard, Library, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function AdminPage() {
-    const [view, setView] = useState<'stock' | 'dictionaries' | 'pricing'>('stock');
+    const [view, setView] = useState<'stock' | 'dictionaries' | 'pricing' | 'settings'>('stock');
 
     return (
         <AdminAuth>
@@ -56,6 +57,16 @@ export default function AdminPage() {
                                 <Coins className="w-4 h-4" />
                                 Service Pricing
                             </button>
+                            <button
+                                onClick={() => setView('settings')}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
+                                    view === 'settings' ? "bg-white text-black shadow-sm" : "text-gray-400 hover:text-gray-600"
+                                )}
+                            >
+                                <LayoutDashboard className="w-4 h-4 rotate-90" />
+                                Config
+                            </button>
                         </nav>
                     </div>
                 </header>
@@ -71,9 +82,13 @@ export default function AdminPage() {
                         <div className="animate-in fade-in duration-500">
                             <DictionaryManager />
                         </div>
-                    ) : (
+                    ) : view === 'pricing' ? (
                         <div className="animate-in fade-in duration-500">
                             <ServicePricingManager />
+                        </div>
+                    ) : (
+                        <div className="animate-in fade-in duration-500">
+                            <SettingsEditor />
                         </div>
                     )}
                 </div>

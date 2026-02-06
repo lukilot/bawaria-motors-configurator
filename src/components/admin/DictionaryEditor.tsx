@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Trash2, Plus, Loader2, Save, Edit } from 'lucide-react';
+import { Trash2, Plus, Loader2, Save, Edit, Search } from 'lucide-react';
 import { DictionaryImageUploader } from './DictionaryImageUploader';
 import { cn } from '@/lib/utils';
 
@@ -27,10 +27,29 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
     const [bodyGroups, setBodyGroups] = useState<string[]>([]);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<'date' | 'code'>('date');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedQuery, setDebouncedQuery] = useState('');
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedQuery(searchQuery);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     // Form state
     const [newCode, setNewCode] = useState('');
     const [formData, setFormData] = useState<any>({});
+
+    // Filter items
+    const filteredItems = items.filter(item => {
+        if (!debouncedQuery) return true;
+        const q = debouncedQuery.toLowerCase();
+        const codeMatch = item.code.toLowerCase().includes(q);
+        const nameMatch = item.data?.name?.toLowerCase().includes(q);
+        return codeMatch || nameMatch;
+    });
 
     const fetchItems = async () => {
         setIsLoading(true);
@@ -162,6 +181,16 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
             <div className="p-6 border-b border-gray-50 flex items-center justify-between">
                 <h3 className="text-lg font-light text-gray-900">{title}</h3>
                 <div className="flex items-center gap-4">
+                    <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2 top-1/2 -translate-y-1/2" />
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-8 pr-3 py-1 text-sm border border-gray-200 rounded-sm focus:outline-none focus:border-black w-48 transition-colors"
+                        />
+                    </div>
                     <div className="flex bg-gray-50 p-1 rounded-sm border border-gray-100">
                         <button
                             onClick={() => setSortBy('date')}
@@ -183,7 +212,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                         </button>
                     </div>
                     <span className="text-xs bg-gray-50 text-gray-400 px-2 py-1 rounded-full uppercase tracking-wider">
-                        {items.length} items
+                        {filteredItems.length} items
                     </span>
                 </div>
             </div>
@@ -394,7 +423,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {items.map((item) => (
+                            {filteredItems.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50/50 transition-colors group">
                                     <td className="px-6 py-4">
                                         <DictionaryImageUploader

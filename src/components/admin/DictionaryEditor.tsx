@@ -123,13 +123,28 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
             payloadData.variations = variations.map(({ id, ...v }) => v); // Remove temp ID
         }
 
-        const { error } = await supabase
-            .from('dictionaries')
-            .upsert({
-                type,
-                code: newCode,
-                data: payloadData
-            }, { onConflict: 'type,code' });
+        let error;
+        if (editingId) {
+            // Update existing
+            const { error: err } = await supabase
+                .from('dictionaries')
+                .update({
+                    code: newCode,
+                    data: payloadData
+                })
+                .eq('id', editingId);
+            error = err;
+        } else {
+            // Create new
+            const { error: err } = await supabase
+                .from('dictionaries')
+                .upsert({
+                    type,
+                    code: newCode,
+                    data: payloadData
+                }, { onConflict: 'type,code' });
+            error = err;
+        }
 
         if (error) {
             alert('Error saving dictionary item: ' + error.message);
@@ -138,6 +153,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
             setFormData({});
             setHasVariations(false);
             setVariations([]);
+            setEditingId(null);
             fetchItems();
         }
         setIsSaving(false);
@@ -163,28 +179,27 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
 
     const handleEdit = (item: DictionaryItem) => {
         setEditingId(item.id);
-    };
+        setNewCode(item.code);
+        setFormData(item.data);
 
-    const handleSaveEdit = async (item: DictionaryItem) => {
-        const { error } = await supabase
-            .from('dictionaries')
-            .update({
-                code: item.code,
-                data: item.data
-            })
-            .eq('id', item.id);
-
-        if (error) {
-            alert('Error updating item: ' + error.message);
+        if (item.data.variations) {
+            setHasVariations(true);
+            setVariations(item.data.variations.map((v: any) => ({ ...v, id: crypto.randomUUID() })));
         } else {
-            setEditingId(null);
-            fetchItems();
+            setHasVariations(false);
+            setVariations([]);
         }
+
+        // Scroll to form
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleCancelEdit = () => {
         setEditingId(null);
-        fetchItems(); // Refresh to discard changes
+        setNewCode('');
+        setFormData({});
+        setHasVariations(false);
+        setVariations([]);
     };
 
     const handleEditDataChange = (itemId: string, key: string, value: any) => {
@@ -467,14 +482,26 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                             )}
                         </>
                     )}
-                    <div className="flex items-end">
+                    <div className="flex items-end gap-2">
+                        {editingId && (
+                            <button
+                                type="button"
+                                onClick={handleCancelEdit}
+                                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-sm hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                            >
+                                Cancel
+                            </button>
+                        )}
                         <button
                             type="submit"
                             disabled={isSaving}
-                            className="w-full bg-black text-white px-4 py-2 rounded-sm hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                            className={cn(
+                                "w-full text-white px-4 py-2 rounded-sm transition-colors flex items-center justify-center gap-2 text-sm font-medium",
+                                editingId ? "bg-blue-600 hover:bg-blue-700" : "bg-black hover:bg-gray-800"
+                            )}
                         >
-                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                            Add Item
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingId ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />)}
+                            {editingId ? 'Update Item' : 'Add Item'}
                         </button>
                     </div>
                 </div>
@@ -537,131 +564,56 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 font-mono text-gray-500">
-                                        {editingId === item.id ? (
-                                            <input
-                                                type="text"
-                                                value={item.code}
-                                                onChange={(e) => setItems(prev => prev.map(i => i.id === item.id ? { ...i, code: e.target.value } : i))}
-                                                className="w-full px-2 py-1 border border-gray-300 rounded-sm focus:outline-none focus:border-black text-sm font-mono"
-                                            />
-                                        ) : (
-                                            item.code
-                                        )}
+                                        {item.code}
                                     </td>
                                     <td className="px-6 py-4 text-gray-700">
-                                        {editingId === item.id ? (
-                                            <div className="flex flex-col gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={item.data.name || ''}
-                                                    onChange={(e) => handleEditDataChange(item.id, 'name', e.target.value)}
-                                                    className="w-full px-2 py-1 border border-gray-300 rounded-sm focus:outline-none focus:border-black text-sm"
-                                                    placeholder="Name"
-                                                />
-                                                {type === 'option' && (
-                                                    <>
-                                                        <div className="flex items-center gap-2">
-                                                            <input
-                                                                type="checkbox"
-                                                                id={`edit-bg-${item.id}`}
-                                                                checked={item.data.body_groups && item.data.body_groups.length > 0}
-                                                                onChange={(e) => {
-                                                                    if (!e.target.checked) {
-                                                                        handleEditDataChange(item.id, 'body_groups', []);
-                                                                    } else {
-                                                                        handleEditDataChange(item.id, 'body_groups', []);
-                                                                    }
-                                                                }}
-                                                                className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
-                                                            />
-                                                            <label htmlFor={`edit-bg-${item.id}`} className="text-xs text-gray-600">Body Group Specific</label>
-                                                        </div>
-                                                        {item.data.body_groups && item.data.body_groups.length >= 0 && (
-                                                            <select
-                                                                multiple
-                                                                value={item.data.body_groups || []}
-                                                                onChange={(e) => handleEditDataChange(item.id, 'body_groups', Array.from(e.target.selectedOptions, option => option.value))}
-                                                                className="w-full px-2 py-1 border border-gray-300 rounded-sm focus:outline-none focus:border-black text-sm"
-                                                                size={Math.min(bodyGroups.length, 6)}
-                                                            >
-                                                                {bodyGroups.map(bg => (
-                                                                    <option key={bg} value={bg}>{bg}</option>
-                                                                ))}
-                                                            </select>
-                                                        )}
-                                                    </>
-                                                )}
+                                        {type === 'model' ? (
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{item.data.name}</span>
+                                                <span className="text-xs text-gray-400">
+                                                    {item.data.series} • {item.data.body_type} • {item.data.fuel} • {item.data.drivetrain}
+                                                </span>
                                             </div>
                                         ) : (
-                                            <>
-                                                {type === 'model' ? (
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">{item.data.name}</span>
-                                                        <span className="text-xs text-gray-400">
-                                                            {item.data.series} • {item.data.body_type} • {item.data.fuel} • {item.data.drivetrain}
+                                            <div className="flex flex-col">
+                                                <span>{item.data.name}</span>
+                                                {type === 'upholstery' && item.data.type && (
+                                                    <span className="text-xs text-gray-400 mt-0.5">{item.data.type}</span>
+                                                )}
+                                                {item.data.variations && item.data.variations.length > 0 && (
+                                                    <div className="mt-2 text-xs">
+                                                        <span className="font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-sm">
+                                                            {item.data.variations.length} Variants
                                                         </span>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex flex-col">
-                                                        <span>{item.data.name}</span>
-                                                        {type === 'upholstery' && item.data.type && (
-                                                            <span className="text-xs text-gray-400 mt-0.5">{item.data.type}</span>
-                                                        )}
-                                                        {item.data.variations && item.data.variations.length > 0 && (
-                                                            <div className="mt-2 text-xs">
-                                                                <span className="font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-sm">
-                                                                    {item.data.variations.length} Variants
-                                                                </span>
-                                                                <div className="text-gray-400 mt-1 pl-1 border-l-2 border-gray-100">
-                                                                    {item.data.variations.map((v: any, idx: number) => (
-                                                                        <div key={idx} className="truncate max-w-[200px]" title={v.body_groups.join(', ')}>
-                                                                            • {v.body_groups.join(', ')}
-                                                                        </div>
-                                                                    ))}
+                                                        <div className="text-gray-400 mt-1 pl-1 border-l-2 border-gray-100">
+                                                            {item.data.variations.map((v: any, idx: number) => (
+                                                                <div key={idx} className="truncate max-w-[200px]" title={v.body_groups.join(', ')}>
+                                                                    • {v.body_groups.join(', ')}
                                                                 </div>
-                                                            </div>
-                                                        )}
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 )}
-                                            </>
+                                            </div>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        {editingId === item.id ? (
-                                            <div className="flex items-center justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleSaveEdit(item)}
-                                                    className="text-green-600 hover:text-green-700 p-2 transition-colors"
-                                                    title="Save"
-                                                >
-                                                    <Save className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={handleCancelEdit}
-                                                    className="text-gray-400 hover:text-gray-600 p-2 transition-colors"
-                                                    title="Cancel"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleEdit(item)}
-                                                    className="text-blue-500 hover:text-blue-600 p-2 transition-colors"
-                                                    title="Edit"
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(item.id, item.code)}
-                                                    className="text-gray-300 hover:text-red-500 p-2 transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        )}
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => handleEdit(item)}
+                                                className="text-blue-500 hover:text-blue-600 p-2 transition-colors"
+                                                title="Edit"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(item.id, item.code)}
+                                                className="text-gray-300 hover:text-red-500 p-2 transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

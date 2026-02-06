@@ -212,21 +212,24 @@ export default function AdminCarEditor() {
             const newImages = [...(car.images || [])];
 
             for (const file of acceptedFiles) {
-                const ext = file.name.split('.').pop();
-                const fileName = `${car.vin}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('vin', car.vin);
 
-                const { error } = await supabase.storage
-                    .from('stock-images')
-                    .upload(fileName, file);
+                const response = await fetch('/api/admin/upload-images', {
+                    method: 'POST',
+                    body: formData,
+                });
 
-                if (error) throw error;
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Upload failed');
+                }
 
-                const { data: { publicUrl } } = supabase.storage
-                    .from('stock-images')
-                    .getPublicUrl(fileName);
+                const { url } = await response.json();
 
                 newImages.push({
-                    url: publicUrl,
+                    url: url,
                     id: crypto.randomUUID(),
                     sort_order: newImages.length
                 });
@@ -243,6 +246,7 @@ export default function AdminCarEditor() {
             setMsg({ type: 'success', text: `Uploaded ${acceptedFiles.length} images.` });
 
         } catch (e: any) {
+            console.error(e);
             setMsg({ type: 'error', text: 'Upload failed: ' + e.message });
         } finally {
             setUploading(false);
@@ -336,7 +340,7 @@ export default function AdminCarEditor() {
                                 <div className="flex flex-col items-center">
                                     <Upload className="w-8 h-8 text-gray-400 mb-2" />
                                     <p className="text-sm text-gray-500 font-light">Drop photos here or click to upload</p>
-                                    <p className="text-[10px] text-gray-400 uppercase mt-2">Up to 10MB per image</p>
+                                    <p className="text-[10px] text-gray-400 uppercase mt-2">Auto-optimized to FullHD WebP</p>
                                 </div>
                             )}
                         </div>

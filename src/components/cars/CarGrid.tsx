@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { StockCar } from '@/types/stock';
 import { CarRow } from '@/components/cars/CarRow';
 import { CarCard } from '@/components/cars/CarCard';
@@ -28,6 +28,25 @@ export function CarGrid({ cars, onOpenFilters, dictionaries }: CarGridProps) {
 
 
     const [layout, setLayout] = useState<'grid' | 'list'>('list'); // Default to list because it shows more detail
+    const [displayCount, setDisplayCount] = useState(12);
+    const observerTarget = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && displayCount < cars.length) {
+                    setDisplayCount(prev => prev + 12);
+                }
+            },
+            { threshold: 0.1, rootMargin: '100px' }
+        );
+
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
+
+        return () => observer.disconnect();
+    }, [displayCount, cars.length]);
 
 
 
@@ -83,29 +102,44 @@ export function CarGrid({ cars, onOpenFilters, dictionaries }: CarGridProps) {
                     <h3 className="text-xl font-light text-gray-400">No vehicles found.</h3>
                     <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search query.</p>
                 </div>
-            ) : layout === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {cars.map(car => (
-                        <CarCard
-                            key={car.vin}
-                            car={car}
-                            modelName={dictionaries.model[car.model_code]?.name || car.model_name}
-                            colorName={dictionaries.color[car.color_code]?.name}
-                            upholsteryName={dictionaries.upholstery[car.upholstery_code]?.name}
-                        />
-                    ))}
-                </div>
             ) : (
-                <div className="flex flex-col gap-6">
-                    {cars.map(car => (
-                        <CarRow
-                            key={car.vin}
-                            car={car}
-                            modelName={dictionaries.model[car.model_code]?.name || car.model_name || `BMW ${car.model_code}`}
-                            dictionaries={dictionaries}
-                        />
-                    ))}
-                </div>
+                <>
+                    {layout === 'grid' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {cars.slice(0, displayCount).map(car => (
+                                <CarCard
+                                    key={car.vin}
+                                    car={car}
+                                    modelName={dictionaries.model[car.model_code]?.name || car.model_name}
+                                    colorName={dictionaries.color[car.color_code]?.name}
+                                    upholsteryName={dictionaries.upholstery[car.upholstery_code]?.name}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-6">
+                            {cars.slice(0, displayCount).map(car => (
+                                <CarRow
+                                    key={car.vin}
+                                    car={car}
+                                    modelName={dictionaries.model[car.model_code]?.name || car.model_name || `BMW ${car.model_code}`}
+                                    dictionaries={dictionaries}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {displayCount < cars.length && (
+                        <div
+                            ref={observerTarget}
+                            className="mt-12 text-center py-8"
+                        >
+                            <span className="text-xs text-gray-400 block uppercase tracking-widest animate-pulse">
+                                Ładowanie kolejnych pojazdów...
+                            </span>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

@@ -27,6 +27,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
+const sharp = require('sharp');
 require('dotenv').config({ path: '.env.local' });
 
 // Supabase configuration
@@ -49,13 +50,26 @@ const SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.webp'];
  */
 async function uploadImage(vin, filePath, filename) {
     const fileBuffer = fs.readFileSync(filePath);
-    const storagePath = `${vin}/${filename}`;
+
+    // Optimize image with Sharp
+    console.log(`     ⚡ Optimizing...`);
+    const optimizedBuffer = await sharp(fileBuffer)
+        .resize(1920, 1080, { // Max dimensions
+            fit: 'inside',
+            withoutEnlargement: true
+        })
+        .webp({ quality: 80 })
+        .toBuffer();
+
+    // Force .webp extension for the uploaded file
+    const targetFilename = path.parse(filename).name + '.webp';
+    const storagePath = `${vin}/${targetFilename}`;
 
     const { data, error } = await supabase.storage
         .from(BUCKET_NAME)
-        .upload(storagePath, fileBuffer, {
-            contentType: `image/${path.extname(filename).slice(1)}`,
-            upsert: true // Overwrite if exists
+        .upload(storagePath, optimizedBuffer, {
+            contentType: 'image/webp',
+            upsert: true
         });
 
     if (error) {

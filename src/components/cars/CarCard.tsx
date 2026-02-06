@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
 
@@ -24,34 +25,41 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
             href={`/cars/${encodeURIComponent(car.vin)}`}
             className="group bg-white border border-gray-100 overflow-hidden hover:shadow-xl hover:translate-y-[-2px] transition-all duration-300 ease-out cursor-pointer relative block"
         >
-            {/* Image Area */}
             <div className="aspect-[16/9] bg-gray-100 relative overflow-hidden">
                 {car.images && car.images.length > 0 ? (
-                    <img
-                        src={car.images[0].url}
-                        alt={`${modelName || car.model_code}`}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
+                    <div className="relative w-full h-full">
+                        <Image
+                            src={car.images[0].url}
+                            alt={`${modelName || car.model_code}`}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                            placeholder="blur"
+                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88P//fwAJ/AP+0068IAAAAABJRU5ErkJggg=="
+                        />
+                    </div>
                 ) : (
                     <>
                         {/* Car Under Cover */}
-                        <div className="w-full h-full bg-gray-200">
-                            <img
+                        <div className="relative w-full h-full bg-gray-200">
+                            <Image
                                 src="/images/car-cover.png"
                                 alt="Vehicle in Preparation"
-                                className="w-full h-full object-cover opacity-80 mix-blend-multiply grayscale-[0.2]"
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                className="object-cover opacity-80 mix-blend-multiply grayscale-[0.2]"
                             />
                         </div>
                         {/* Badge Overlay */}
                         <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-[1px]">
-                            <span className="bg-white/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-900 border border-gray-200 shadow-sm">
+                            <span className="bg-white/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-900 border border-gray-200 shadow-sm relative z-10">
                                 Oferta w trakcie przygotowywania
                             </span>
                         </div>
                     </>
                 )}
 
-                <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10">
                     {/* Only show 'Available' if we have photos (REAL availability) or if we want to show 'In Prep' status? 
                         User said "Pending offer should change to Ready".
                         I'll show the standard status but maybe dimmed if pending?

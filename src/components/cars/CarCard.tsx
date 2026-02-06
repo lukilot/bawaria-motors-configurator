@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
+import { ArrowRight } from 'lucide-react';
 
 interface CarCardProps {
     car: StockCar;
@@ -108,29 +109,33 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
                     </div>
                 </div>
 
-                <div className="flex items-end justify-between border-t border-gray-50 pt-4">
+                <div className="flex items-end justify-between border-t border-gray-50 pt-4 mt-2">
                     <div className="flex flex-col">
                         {car.special_price && car.special_price < car.list_price ? (
                             <>
                                 <span className="text-[10px] text-gray-400 line-through mb-0.5">
                                     {formatPrice(car.list_price)}
                                 </span>
-                                <span className="text-lg font-bold text-gray-900 tracking-tight">
+                                <span className="text-xl font-bold text-gray-900 tracking-tight">
                                     {formatPrice(car.special_price)}
                                 </span>
                             </>
                         ) : (
-                            <span className="text-lg font-bold text-gray-900 tracking-tight">
+                            <span className="text-xl font-bold text-gray-900 tracking-tight">
                                 {formatPrice(car.list_price)}
                             </span>
                         )}
                     </div>
 
-                    <button className="text-[10px] font-bold uppercase tracking-widest border border-gray-200 px-5 py-2.5 hover:bg-black hover:text-white hover:border-black transition-colors">
-                        View
-                    </button>
+                    <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform duration-300">
+                        <span className="text-[10px] uppercase tracking-widest font-bold text-gray-300 group-hover:text-black transition-colors">
+                            Szczegóły
+                        </span>
+                        <ArrowRight className="w-3 h-3 text-gray-300 group-hover:text-black transition-colors" />
+                    </div>
                 </div>
             </div>
         </Link>
+
     );
 }

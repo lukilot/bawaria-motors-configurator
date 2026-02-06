@@ -28,7 +28,7 @@ const Section = ({ id, title, children, expanded, onToggle }: { id: string, titl
             onClick={() => onToggle(id)}
             className="flex w-full items-center justify-between text-left group"
         >
-            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-900 group-hover:text-blue-600 transition-colors">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-900 group-hover:text-blue-600 transition-colors">
                 {title}
             </span>
             {expanded ? (
@@ -47,6 +47,36 @@ const Section = ({ id, title, children, expanded, onToggle }: { id: string, titl
     </div>
 );
 
+const FilterPill = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
+    <button
+        onClick={onClick}
+        className={cn(
+            "px-3 py-2 text-[10px] font-bold uppercase tracking-widest border transition-all duration-200 text-center",
+            active
+                ? "bg-black text-white border-black"
+                : "bg-transparent text-gray-500 border-gray-200 hover:border-gray-900 hover:text-gray-900"
+        )}
+    >
+        {label}
+    </button>
+);
+
+const FilterCheckbox = ({ label, checked, onChange }: { label: string, checked: boolean, onChange: () => void }) => (
+    <label className="flex items-center gap-3 cursor-pointer group select-none py-1">
+        <div className={cn(
+            "w-3 h-3 border flex items-center justify-center transition-colors duration-200",
+            checked ? "bg-black border-black" : "bg-white border-gray-300 group-hover:border-black"
+        )}>
+            {checked && <div className="w-1.5 h-1.5 bg-white" />}
+        </div>
+        <span className={cn(
+            "text-[11px] uppercase tracking-wider transition-colors",
+            checked ? "text-black font-bold" : "text-gray-500 group-hover:text-black"
+        )}>{label}</span>
+        <input type="checkbox" className="hidden" checked={checked} onChange={onChange} />
+    </label>
+);
+
 export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -58,7 +88,7 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
         body: true,
         fuel: true,
         drivetrain: true,
-        power: false,
+        power: true,
         price: true
     });
 
@@ -172,11 +202,11 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
 
             {/* Sidebar Content */}
             <aside className={cn(
-                "fixed lg:sticky top-0 lg:top-24 left-0 h-full lg:h-[calc(100vh-8rem)] w-[320px] bg-white lg:bg-transparent z-50 lg:z-0 hidden lg:block overflow-y-auto px-8 py-8 border-r border-gray-100 lg:border-none shadow-2xl lg:shadow-none transition-transform duration-500 ease-porsche",
+                "fixed lg:sticky top-0 lg:top-24 left-0 h-full lg:h-[calc(100vh-8rem)] w-[320px] bg-white lg:bg-transparent z-50 lg:z-0 hidden lg:block overflow-y-auto px-6 py-8 border-r border-gray-100 lg:border-none shadow-2xl lg:shadow-none transition-transform duration-500 ease-porsche scrollbar-hide",
                 isOpen ? "translate-x-0 !block" : "-translate-x-full lg:translate-x-0"
             )}>
                 <div className="flex items-center justify-between lg:hidden mb-10">
-                    <h2 className="text-sm font-bold uppercase tracking-widest">Filtry</h2>
+                    <h2 className="text-xs font-bold uppercase tracking-widest">Filtry</h2>
                     <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                         <X className="w-5 h-5" />
                     </button>
@@ -184,25 +214,25 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
 
                 {/* Filter Controls Header */}
                 <div className="flex items-center justify-between mb-8">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Konfiguracja</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Konfiguracja</span>
                     {hasActiveFilters && (
                         <button
                             onClick={clearFilters}
                             className="text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-800 flex items-center gap-1.5 transition-colors"
                         >
                             <RotateCcw className="w-3 h-3" />
-                            Wyczyść
+                            Reset
                         </button>
                     )}
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-2">
                     {/* Text Search */}
-                    <div className="relative">
+                    <div className="relative mb-6">
                         <input
                             type="text"
-                            placeholder="Szukaj modelu lub VIN..."
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-sm focus:outline-none focus:border-black transition-colors text-xs font-medium placeholder:text-gray-400 placeholder:uppercase placeholder:tracking-widest"
+                            placeholder="SZUKAJ..."
+                            className="w-full px-0 py-2 bg-transparent border-b border-gray-200 focus:outline-none focus:border-black transition-colors text-xs font-bold uppercase tracking-widest placeholder:text-gray-300"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -210,94 +240,70 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
 
                     <div className="space-y-1">
                         {/* Series Filter */}
-                        <Section id="series" title="Seria Modelowa" expanded={expandedSections.series} onToggle={toggleSection}>
-                            <div className="grid grid-cols-1 gap-3">
+                        <Section id="series" title="Seria" expanded={expandedSections.series} onToggle={toggleSection}>
+                            <div className="grid grid-cols-1 gap-1">
                                 {options.series.map(s => (
-                                    <label key={s} className="flex items-center gap-3 cursor-pointer group">
-                                        <input
-                                            type="checkbox"
-                                            checked={activeSeries.includes(s)}
-                                            onChange={() => toggleFilter('series', s)}
-                                            className="w-4 h-4 rounded-sm border-gray-300 text-black focus:ring-black cursor-pointer"
-                                        />
-                                        <span className={cn(
-                                            "text-xs uppercase tracking-wider transition-colors",
-                                            activeSeries.includes(s) ? "text-black font-bold" : "text-gray-500 group-hover:text-black"
-                                        )}>{s}</span>
-                                    </label>
+                                    <FilterCheckbox
+                                        key={s}
+                                        label={s}
+                                        checked={activeSeries.includes(s)}
+                                        onChange={() => toggleFilter('series', s)}
+                                    />
                                 ))}
                             </div>
                         </Section>
 
-                        {/* Body Type Filter */}
-                        <Section id="body" title="Typ Nadwozia" expanded={expandedSections.body} onToggle={toggleSection}>
-                            <div className="grid grid-cols-1 gap-3">
+                        {/* Body Type Filter - PILLS */}
+                        <Section id="body" title="Nadwozie" expanded={expandedSections.body} onToggle={toggleSection}>
+                            <div className="grid grid-cols-2 gap-2">
                                 {options.bodyTypes.map(b => (
-                                    <label key={b} className="flex items-center gap-3 cursor-pointer group">
-                                        <input
-                                            type="checkbox"
-                                            checked={activeBody.includes(b)}
-                                            onChange={() => toggleFilter('body', b)}
-                                            className="w-4 h-4 rounded-sm border-gray-300 text-black focus:ring-black cursor-pointer"
-                                        />
-                                        <span className={cn(
-                                            "text-xs uppercase tracking-wider transition-colors",
-                                            activeBody.includes(b) ? "text-black font-bold" : "text-gray-500 group-hover:text-black"
-                                        )}>{b}</span>
-                                    </label>
+                                    <FilterPill
+                                        key={b}
+                                        label={b}
+                                        active={activeBody.includes(b)}
+                                        onClick={() => toggleFilter('body', b)}
+                                    />
                                 ))}
                             </div>
                         </Section>
 
-                        {/* Fuel Type Filter */}
-                        <Section id="fuel" title="Rodzaj Paliwa" expanded={expandedSections.fuel} onToggle={toggleSection}>
-                            <div className="grid grid-cols-1 gap-3">
+                        {/* Fuel Type Filter - PILLS */}
+                        <Section id="fuel" title="Paliwo" expanded={expandedSections.fuel} onToggle={toggleSection}>
+                            <div className="grid grid-cols-2 gap-2">
                                 {options.fuelTypes.map(f => (
-                                    <label key={f} className="flex items-center gap-3 cursor-pointer group">
-                                        <input
-                                            type="checkbox"
-                                            checked={activeFuel.includes(f)}
-                                            onChange={() => toggleFilter('fuel', f)}
-                                            className="w-4 h-4 rounded-sm border-gray-300 text-black focus:ring-black cursor-pointer"
-                                        />
-                                        <span className={cn(
-                                            "text-xs uppercase tracking-wider transition-colors",
-                                            activeFuel.includes(f) ? "text-black font-bold" : "text-gray-500 group-hover:text-black"
-                                        )}>{f}</span>
-                                    </label>
+                                    <FilterPill
+                                        key={f}
+                                        label={f}
+                                        active={activeFuel.includes(f)}
+                                        onClick={() => toggleFilter('fuel', f)}
+                                    />
                                 ))}
                             </div>
                         </Section>
 
-                        {/* Drivetrain Filter */}
+                        {/* Drivetrain Filter - PILLS */}
                         <Section id="drivetrain" title="Napęd" expanded={expandedSections.drivetrain} onToggle={toggleSection}>
-                            <div className="grid grid-cols-1 gap-3">
+                            <div className="grid grid-cols-2 gap-2">
                                 {options.drivetrains.map(d => (
-                                    <label key={d} className="flex items-center gap-3 cursor-pointer group">
-                                        <input
-                                            type="checkbox"
-                                            checked={activeDrivetrain.includes(d)}
-                                            onChange={() => toggleFilter('drivetrain', d)}
-                                            className="w-4 h-4 rounded-sm border-gray-300 text-black focus:ring-black cursor-pointer"
-                                        />
-                                        <span className={cn(
-                                            "text-xs uppercase tracking-wider transition-colors",
-                                            activeDrivetrain.includes(d) ? "text-black font-bold" : "text-gray-500 group-hover:text-black"
-                                        )}>{d}</span>
-                                    </label>
+                                    <FilterPill
+                                        key={d}
+                                        label={d}
+                                        active={activeDrivetrain.includes(d)}
+                                        onClick={() => toggleFilter('drivetrain', d)}
+                                    />
                                 ))}
                             </div>
                         </Section>
 
                         {/* Power Filter */}
-                        <Section id="power" title="Moc [KM]" expanded={expandedSections.power} onToggle={toggleSection}>
-                            <div className="space-y-6 px-1">
-                                <div className="flex justify-between text-[11px] font-bold text-gray-900 tracking-tight">
+                        <Section id="power" title="Moc" expanded={expandedSections.power} onToggle={toggleSection}>
+                            <div className="space-y-6 px-1 pt-2">
+                                <div className="flex justify-between text-[10px] font-bold text-gray-900 tracking-tight font-mono">
                                     <span>{pmin} KM</span>
                                     <span>{pmax} KM</span>
                                 </div>
 
-                                <div className="mt-4 px-1">
+                                <div className="px-1">
                                     <Slider
                                         defaultValue={[120, options.maxPower]}
                                         value={[pmin, pmax]}
@@ -311,19 +317,18 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                         }}
                                     />
                                 </div>
-                                <p className="text-[9px] text-gray-400 uppercase font-medium mt-4">Zakres: 120 KM - {options.maxPower} KM (Skok 10)</p>
                             </div>
                         </Section>
 
                         {/* Price Range Slider */}
-                        <Section id="price" title="Cena" expanded={expandedSections.price} onToggle={toggleSection}>
-                            <div className="space-y-6 px-1">
-                                <div className="flex justify-between text-[11px] font-bold text-gray-900 tracking-tight">
+                        <Section id="price" title="Cena Max" expanded={expandedSections.price} onToggle={toggleSection}>
+                            <div className="space-y-6 px-1 pt-2">
+                                <div className="flex justify-between text-[10px] font-bold text-gray-900 tracking-tight font-mono">
                                     <span>{formatPrice(activeMin)}</span>
                                     <span>{formatPrice(activeMax)}</span>
                                 </div>
 
-                                <div className="mt-4 px-1">
+                                <div className="px-1">
                                     <Slider
                                         defaultValue={[sliderMax]}
                                         value={[sliderMax]}
@@ -333,7 +338,6 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                         onValueChange={([val]) => setSliderMax(val)}
                                     />
                                 </div>
-                                <p className="text-[9px] text-gray-400 uppercase font-medium mt-4">Przesuń, aby ustawić budżet maksymalny</p>
                             </div>
                         </Section>
                     </div>

@@ -466,6 +466,41 @@ export default function AdminCarEditor() {
                             </div>
                         </div>
                     </div>
+                    {/* Danger Zone */}
+                    <div className="bg-red-50 p-6 rounded-sm shadow-sm border border-red-100">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-red-900 mb-4">Danger Zone</h3>
+                        <p className="text-xs text-red-700 mb-4">
+                            Actions here are irreversible. Use with caution.
+                        </p>
+                        <button
+                            onClick={async () => {
+                                if (!confirm('Are you sure? This will DELETE ALL PHOTOS for this car from the server. This cannot be undone.')) return;
+
+                                setSaving(true);
+                                try {
+                                    const res = await fetch('/api/admin/purge-images', {
+                                        method: 'POST',
+                                        body: JSON.stringify({ vin: car.vin }),
+                                        headers: { 'Content-Type': 'application/json' }
+                                    });
+
+                                    if (!res.ok) throw new Error('Purge failed');
+
+                                    const data = await res.json();
+                                    setCar({ ...car, images: [] });
+                                    setMsg({ type: 'success', text: `Storage cleaned. Deleted ${data.count} files.` });
+                                } catch (e) {
+                                    setMsg({ type: 'error', text: 'Failed to purge images.' });
+                                } finally {
+                                    setSaving(false);
+                                }
+                            }}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-600 hover:text-white transition-all rounded-sm text-xs font-bold uppercase tracking-wide"
+                        >
+                            <Trash2 className="w-3 h-3" />
+                            Purge All Images (Sold)
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

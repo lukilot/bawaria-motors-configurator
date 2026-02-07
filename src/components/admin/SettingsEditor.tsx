@@ -6,6 +6,7 @@ import { Save, Upload, X } from 'lucide-react';
 
 interface Settings {
     intro_media_url: string;
+    intro_media_url_mobile: string;
     intro_cta_link: string;
     intro_contact_phone: string;
 }
@@ -13,6 +14,7 @@ interface Settings {
 export function SettingsEditor() {
     const [settings, setSettings] = useState<Settings>({
         intro_media_url: '',
+        intro_media_url_mobile: '',
         intro_cta_link: '',
         intro_contact_phone: ''
     });
@@ -62,14 +64,14 @@ export function SettingsEditor() {
         }
     };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'desktop' | 'mobile') => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setUploading(true);
         try {
             const fileExt = file.name.split('.').pop();
-            const fileName = `intro-${Date.now()}.${fileExt}`;
+            const fileName = `intro-${type}-${Date.now()}.${fileExt}`;
             const filePath = `intro-media/${fileName}`;
 
             // Upload to 'stock-images' bucket (or a dedicated 'assets' bucket if we had one, reusing stock-images for simplicity)
@@ -83,7 +85,10 @@ export function SettingsEditor() {
                 .from('stock-images')
                 .getPublicUrl(filePath);
 
-            setSettings(prev => ({ ...prev, intro_media_url: publicUrl }));
+            setSettings(prev => ({
+                ...prev,
+                [type === 'desktop' ? 'intro_media_url' : 'intro_media_url_mobile']: publicUrl
+            }));
         } catch (err) {
             console.error('Error uploading file:', err);
             alert('Upload failed');
@@ -99,10 +104,10 @@ export function SettingsEditor() {
             <h2 className="text-xl font-bold mb-6">Konfiguracja Intro / Intro Settings</h2>
 
             <div className="space-y-6">
-                {/* Media URL */}
+                {/* Desktop Media URL */}
                 <div className="space-y-2">
                     <label className="block text-xs font-bold uppercase tracking-widest text-gray-500">
-                        Intro Media (Image/Video URL)
+                        Intro Media (Desktop)
                     </label>
                     <div className="flex gap-2">
                         <input
@@ -114,15 +119,53 @@ export function SettingsEditor() {
                         />
                         <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-sm flex items-center justify-center transition-colors">
                             <Upload className="w-4 h-4" />
-                            <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*,video/*" />
+                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'desktop')} accept="image/*,video/*" />
                         </label>
                     </div>
                     {settings.intro_media_url && (
                         <div className="mt-2 relative w-32 h-20 bg-gray-100 rounded overflow-hidden">
-                            {/* Simple preview if image */}
-                            <img src={settings.intro_media_url} alt="Preview" className="w-full h-full object-cover" />
+                            {settings.intro_media_url.match(/\.(mp4|webm)$/) ? (
+                                <video src={settings.intro_media_url} className="w-full h-full object-cover" />
+                            ) : (
+                                <img src={settings.intro_media_url} alt="Preview" className="w-full h-full object-cover" />
+                            )}
                             <button
                                 onClick={() => setSettings({ ...settings, intro_media_url: '' })}
+                                className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm"
+                            >
+                                <X className="w-3 h-3 text-red-500" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Mobile Media URL */}
+                <div className="space-y-2">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-gray-500">
+                        Intro Media (Mobile)
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={settings.intro_media_url_mobile}
+                            onChange={(e) => setSettings({ ...settings, intro_media_url_mobile: e.target.value })}
+                            className="flex-1 p-2 border border-gray-200 rounded-sm text-sm"
+                            placeholder="https://..."
+                        />
+                        <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-sm flex items-center justify-center transition-colors">
+                            <Upload className="w-4 h-4" />
+                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'mobile')} accept="image/*,video/*" />
+                        </label>
+                    </div>
+                    {settings.intro_media_url_mobile && (
+                        <div className="mt-2 relative w-20 h-32 bg-gray-100 rounded overflow-hidden">
+                            {settings.intro_media_url_mobile.match(/\.(mp4|webm)$/) ? (
+                                <video src={settings.intro_media_url_mobile} className="w-full h-full object-cover" />
+                            ) : (
+                                <img src={settings.intro_media_url_mobile} alt="Preview" className="w-full h-full object-cover" />
+                            )}
+                            <button
+                                onClick={() => setSettings({ ...settings, intro_media_url_mobile: '' })}
                                 className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm"
                             >
                                 <X className="w-3 h-3 text-red-500" />

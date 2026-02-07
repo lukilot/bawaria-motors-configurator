@@ -30,6 +30,7 @@ create policy "Allow admin update access to site_settings"
 insert into site_settings (key, value)
 values 
     ('intro_media_url', ''),
+    ('intro_media_url_mobile', ''),
     ('intro_cta_link', ''),
     ('intro_contact_phone', '+48 000 000 000')
 on conflict (key) do nothing;

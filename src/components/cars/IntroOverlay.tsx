@@ -16,6 +16,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
     const [hasSeenIntro, setHasSeenIntro] = useState(false);
     const [settings, setSettings] = useState({
         intro_media_url: '',
+        intro_media_url_mobile: '',
         intro_cta_link: '',
         intro_contact_phone: ''
     });
@@ -68,15 +69,33 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                 >
                     {/* Background */}
                     <div className="absolute inset-0 z-0">
-                        {settings.intro_media_url ? (
-                            settings.intro_media_url.endsWith('.mp4') || settings.intro_media_url.endsWith('.webm') ? (
-                                <video src={settings.intro_media_url} autoPlay muted loop className="w-full h-full object-cover opacity-60" />
-                            ) : (
-                                <img src={settings.intro_media_url} alt="Intro" className="w-full h-full object-cover opacity-60" />
-                            )
-                        ) : (
+                        {/* Desktop Media */}
+                        {settings.intro_media_url && (
+                            <div className={`absolute inset-0 hidden ${settings.intro_media_url_mobile ? 'md:block' : 'block'}`}>
+                                {settings.intro_media_url.endsWith('.mp4') || settings.intro_media_url.endsWith('.webm') ? (
+                                    <video src={settings.intro_media_url} autoPlay muted loop playsInline className="w-full h-full object-cover opacity-60" />
+                                ) : (
+                                    <img src={settings.intro_media_url} alt="Intro Desktop" className="w-full h-full object-cover opacity-60" />
+                                )}
+                            </div>
+                        )}
+
+                        {/* Mobile Media */}
+                        {settings.intro_media_url_mobile && (
+                            <div className="absolute inset-0 block md:hidden">
+                                {settings.intro_media_url_mobile.endsWith('.mp4') || settings.intro_media_url_mobile.endsWith('.webm') ? (
+                                    <video src={settings.intro_media_url_mobile} autoPlay muted loop playsInline className="w-full h-full object-cover opacity-60" />
+                                ) : (
+                                    <img src={settings.intro_media_url_mobile} alt="Intro Mobile" className="w-full h-full object-cover opacity-60" />
+                                )}
+                            </div>
+                        )}
+
+                        {/* Fallback Gradient if no media */}
+                        {!settings.intro_media_url && !settings.intro_media_url_mobile && (
                             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-blue-950/20" />
                         )}
+
                         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
                     </div>
 

@@ -60,7 +60,7 @@ export const analyzeStockDiff = async (newCars: StockCar[]) => {
     const { data: activeCars, error } = await supabase
         .from('stock_units')
         .select('*')
-        .lt('status_code', 190); // Assuming 190+ is Sold/Reserved. User implies "unavailable".
+        .lt('status_code', 500); // 500 is Sold. Anything < 500 is potentially active (including 193 Arrived, 198 Lot)
     // Actually, user said "marked as sold [to be accepted]".
     // Usually Sold is ~500. Active is < 190 (Available) or < 500?
     // Let's assume we want to catch anything that IS currently potentially available (status < 190)
@@ -77,42 +77,46 @@ export const analyzeStockDiff = async (newCars: StockCar[]) => {
     return missingCars; // These are candidates for "Sold"
 };
 
-export const processSoldCars = async (vins: string[]) => {
-    if (vins.length === 0) return { count: 0, purgedCount: 0 };
+export const markCarsAsSold = async (vins: string[]) => {
+    if (vins.length === 0) return { count: 0 };
 
     // 1. Update Status to SOLD (500)
-    const { error: updateError } = await supabase
+    const { error: updateError, count } = await supabase
         .from('stock_units')
         .update({
             status_code: 500,
             order_status: 'Sprzedany / Wycofany',
-            visibility: 'HIDDEN' // Hide from public list immediately
+            visibility: 'HIDDEN', // Hide from public list immediately
+            last_synced_at: new Date().toISOString()
         })
-        .in('vin', vins);
+        .in('vin', vins)
+        .select('*', { count: 'exact' });
 
     if (updateError) throw updateError;
 
-    // 2. Purge Images for each VIN
-    let purgedCount = 0;
-    for (const vin of vins) {
-        // We can reuse our API logic or do it directly here since we have the service role client?
-        // No, this runs on client-side likely (triggered by Admin UI).
-        // Database trigger would be best, but we'll use a fetch loop for now or client storage calls.
+    return { count: count || vins.length };
+};
 
-        // Using Storage API directly is risky if RLS blocks delete.
-        // But we fixed RLS! 
-        // However, emptying the folder requires listing files first.
-
-        try {
-            await fetch('/api/admin/purge-images', {
-                method: 'POST',
-                body: JSON.stringify({ vin }),
-            });
-            purgedCount++;
-        } catch (e) {
-            console.error(`Failed to purge images for ${vin}`, e);
-        }
+export const deleteCarPermanently = async (vin: string) => {
+    // 1. Purge Images
+    try {
+        await fetch('/api/admin/purge-images', {
+            method: 'POST',
+            body: JSON.stringify({ vin }),
+        });
+    } catch (e) {
+        console.error(`Failed to purge images for ${vin}`, e);
+        // Continue to delete the record even if image purge fails? 
+        // Yes, to avoid stuck records.
     }
 
-    return { count: vins.length, purgedCount };
+    // 2. Delete Record from DB
+    const { error } = await supabase
+        .from('stock_units')
+        .delete()
+        .eq('vin', vin);
+
+    if (error) throw error;
+
+    return true;
 };

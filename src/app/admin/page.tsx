@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 
 export default function AdminPage() {
     const [view, setView] = useState<'stock' | 'dictionaries' | 'pricing' | 'settings'>('stock');
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     return (
         <AdminAuth>
@@ -74,9 +75,9 @@ export default function AdminPage() {
                 <div className="flex-1 w-full max-w-7xl mx-auto p-8">
                     {view === 'stock' ? (
                         <div className="animate-in fade-in duration-500">
-                            <StockUploader />
+                            <StockUploader onSyncSuccess={() => setRefreshTrigger(prev => prev + 1)} />
                             <div className="my-12 h-px bg-gray-100" />
-                            <AdminCarList />
+                            <AdminCarList refreshTrigger={refreshTrigger} />
                         </div>
                     ) : view === 'dictionaries' ? (
                         <div className="animate-in fade-in duration-500">

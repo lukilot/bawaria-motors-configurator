@@ -12,7 +12,6 @@ interface IntroOverlayProps {
 
 export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
     const [isMinimized, setIsMinimized] = useState(false);
-    const [hasSeenIntro, setHasSeenIntro] = useState(false);
     const [showNumber, setShowNumber] = useState(false); // For desktop contact pill toggle
     const [settings, setSettings] = useState({
         intro_media_url: '',
@@ -34,7 +33,6 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
         const seen = sessionStorage.getItem('lukilot_intro_seen');
         if (seen) {
             setIsMinimized(true);
-            setHasSeenIntro(true);
         } else {
             document.body.style.overflow = 'hidden';
             window.scrollTo(0, 0);
@@ -112,7 +110,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
         <AnimatePresence>
             <motion.div
                 initial={false}
-                animate={isMinimized || hasSeenIntro ? "minimized" : "maximized"}
+                animate={isMinimized ? "minimized" : "maximized"}
                 variants={containerVariants}
                 className={`shadow-2xl overflow-hidden bg-black text-white ${isMinimized ? 'cursor-pointer' : ''}`}
                 onClick={isMinimized ? handleMaximize : undefined}

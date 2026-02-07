@@ -90,7 +90,7 @@ export const markCarsAsSold = async (vins: string[]) => {
             last_synced_at: new Date().toISOString()
         })
         .in('vin', vins)
-        .select('*', { count: 'exact' });
+        .select('*');
 
     if (updateError) throw updateError;
 

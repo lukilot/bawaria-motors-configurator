@@ -58,8 +58,8 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
 
     const containerVariants: Variants = {
         maximized: {
-            width: "100%",
-            height: "100%",
+            width: "100vw",
+            height: "100vh",
             borderRadius: "0px",
             y: 0,
             x: 0,
@@ -92,7 +92,6 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
     return (
         <AnimatePresence>
             <motion.div
-                layout
                 initial={false}
                 animate={isMinimized || hasSeenIntro ? "minimized" : "maximized"}
                 variants={containerVariants}

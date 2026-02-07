@@ -61,10 +61,10 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
             {!isMinimized ? (
                 /* Fullscreen Overlay */
                 <motion.div
-                    layoutId="intro-overlay"
+                    key="fullscreen"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0, transition: { duration: 0.5 } }}
+                    exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)", transition: { duration: 0.8 } }}
                     className="fixed inset-0 z-[100] bg-black text-white flex flex-col items-center justify-center overflow-hidden"
                 >
                     {/* Background */}
@@ -148,13 +148,14 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
             ) : (
                 /* Tech Notch (Minimized) */
                 <motion.div
-                    layoutId="intro-overlay"
+                    key="notch"
+                    initial={{ y: -100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -100, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 120, damping: 20 }}
                     className="fixed top-0 left-1/2 -translate-x-1/2 z-[90] flex justify-center pt-2"
                 >
-                    <motion.div
-                        initial={{ width: 0, opacity: 0 }}
-                        animate={{ width: "auto", opacity: 1 }}
-                        transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
+                    <div
                         className="bg-black/90 backdrop-blur-md rounded-full px-1 py-1 flex items-center gap-2 shadow-2xl border border-white/10 cursor-pointer hover:scale-105 transition-transform group"
                         onClick={handleMaximize}
                     >
@@ -183,7 +184,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                                 </>
                             )}
                         </div>
-                    </motion.div>
+                    </div>
                 </motion.div>
             )}
         </AnimatePresence>

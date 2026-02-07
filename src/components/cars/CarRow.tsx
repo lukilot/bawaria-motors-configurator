@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
 
@@ -241,14 +242,19 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                             )}
                         </div>
 
-                        <button className={cn(
-                            "px-6 py-2.5 text-xs font-bold uppercase tracking-widest transition-all border",
-                            isSold
-                                ? "bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed"
-                                : "bg-white border-black text-black hover:bg-black hover:text-white"
+                        <div className={cn(
+                            "flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all",
+                            isSold ? "text-gray-400 cursor-not-allowed" : "text-black group-hover:text-blue-700"
                         )}>
-                            {isSold ? 'Sprzedany' : 'Szczegóły'}
-                        </button>
+                            {isSold ? (
+                                <span>Sprzedany</span>
+                            ) : (
+                                <>
+                                    <span>Szczegóły</span>
+                                    <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
 

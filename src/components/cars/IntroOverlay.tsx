@@ -135,7 +135,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                                     alt="Intro Desktop"
                                     fill
                                     priority
-                                    quality={90}
+                                    unoptimized // Serve original file directly to prevent double-compression/quality loss
                                     className="object-cover opacity-60"
                                     sizes="100vw"
                                 />
@@ -154,7 +154,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                                     alt="Intro Mobile"
                                     fill
                                     priority
-                                    quality={80} // Lower quality for mobile speed
+                                    unoptimized // Serve original file directly
                                     className="object-cover opacity-60"
                                     sizes="100vw"
                                 />

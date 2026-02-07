@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import NextImage from 'next/image';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { ArrowDown, Phone, ChevronDown } from 'lucide-react';
 import { StockCar } from '@/types/stock';
@@ -35,7 +36,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
             setIsMinimized(true);
         } else {
             document.body.style.overflow = 'hidden';
-            window.scrollTo(0, 0);
+            // window.scrollTo(0, 0); // Removed to preserve scroll position if needed (though usually 0 on load)
         }
 
         return () => {
@@ -52,7 +53,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
     const handleMaximize = () => {
         setIsMinimized(false);
         document.body.style.overflow = 'hidden';
-        window.scrollTo(0, 0);
+        // window.scrollTo(0, 0); // Removed: Do not reset scroll on maximize
     };
 
     // Desktop: Toggle number visibility
@@ -129,7 +130,15 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                             {settings.intro_media_url.endsWith('.mp4') || settings.intro_media_url.endsWith('.webm') ? (
                                 <video src={settings.intro_media_url} autoPlay muted loop playsInline className="w-full h-full object-cover opacity-60" />
                             ) : (
-                                <img src={settings.intro_media_url} alt="Intro Desktop" className="w-full h-full object-cover opacity-60" />
+                                <NextImage
+                                    src={settings.intro_media_url}
+                                    alt="Intro Desktop"
+                                    fill
+                                    priority
+                                    quality={90}
+                                    className="object-cover opacity-60"
+                                    sizes="100vw"
+                                />
                             )}
                         </div>
                     )}
@@ -140,7 +149,15 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                             {settings.intro_media_url_mobile.endsWith('.mp4') || settings.intro_media_url_mobile.endsWith('.webm') ? (
                                 <video src={settings.intro_media_url_mobile} autoPlay muted loop playsInline className="w-full h-full object-cover opacity-60" />
                             ) : (
-                                <img src={settings.intro_media_url_mobile} alt="Intro Mobile" className="w-full h-full object-cover opacity-60" />
+                                <NextImage
+                                    src={settings.intro_media_url_mobile}
+                                    alt="Intro Mobile"
+                                    fill
+                                    priority
+                                    quality={80} // Lower quality for mobile speed
+                                    className="object-cover opacity-60"
+                                    sizes="100vw"
+                                />
                             )}
                         </div>
                     )}

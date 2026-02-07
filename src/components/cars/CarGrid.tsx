@@ -53,25 +53,31 @@ export function CarGrid({ cars, onOpenFilters, dictionaries }: CarGridProps) {
 
 
     return (
-        <div className="w-full">
-            {/* SRP Top Bar */}
-            <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-100">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={onOpenFilters}
-                        className="lg:hidden flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-sm"
-                    >
-                        <SlidersHorizontal className="w-4 h-4" />
-                        Filtry
-                    </button>
-                </div>
+        <div className="w-full relative">
+            {/* Mobile Filter Button - Floating at Bottom with high Z-index to prevent click-through */}
+            <div className="lg:hidden fixed bottom-8 left-6 right-6 z-[100]">
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenFilters();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-sm shadow-xl"
+                >
+                    <SlidersHorizontal className="w-4 h-4" />
+                    Filtry i Sortowanie
+                </button>
+            </div>
 
-                <div className="flex items-center gap-6">
+            {/* SRP Top Bar */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-6 border-b border-gray-100 gap-4">
+                <div className="flex items-center gap-6 justify-between w-full md:w-auto">
                     <span className="text-xs font-medium text-gray-500 uppercase tracking-widest mr-4">
                         {cars.length} Wyników
                     </span>
 
-                    <div className="flex bg-gray-50 p-1 rounded-sm border border-gray-100">
+                    {/* Desktop Layout Toggle (Hidden on Mobile) */}
+                    <div className="hidden md:flex bg-gray-50 p-1 rounded-sm border border-gray-100">
                         <button
                             onClick={() => setLayout('grid')}
                             className={cn(

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { ArrowRight, Phone, ChevronDown } from 'lucide-react';
+import { ArrowDown, Phone, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { StockCar } from '@/types/stock';
 import { supabase } from '@/lib/supabase';
@@ -140,47 +140,39 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                     {!isMinimized ? (
                         <motion.div
                             key="full-content"
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.3, delay: 0.1 }}
-                            className="w-full h-full flex flex-col items-center justify-center gap-12 max-w-4xl mx-auto px-6 pt-20"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="w-full h-full flex flex-col items-center justify-between py-12"
                         >
-                            <motion.div>
-                                <h1 className="text-6xl md:text-8xl font-bold tracking-tighter text-white mb-4 text-center">
-                                    lukilot.work
-                                </h1>
-                                <p className="text-gray-400 text-lg md:text-xl font-light tracking-wide text-center">
-                                    BAWARIA MOTORS STOCK BUFFER
-                                </p>
-                            </motion.div>
+                            {/* Top Spacer */}
+                            <div className="flex-1" />
 
-                            <div className="flex flex-col md:flex-row gap-6 items-center">
-                                {(settings.intro_cta_link || featuredCar) && (
-                                    <Link
-                                        href={settings.intro_cta_link || `/cars/${featuredCar?.vin}`}
-                                        onClick={(e) => { e.stopPropagation(); handleMinimize(); }}
-                                        className="px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors flex items-center gap-3"
-                                    >
-                                        <span>Featured Offer</span>
-                                        <ArrowRight className="w-4 h-4" />
-                                    </Link>
-                                )}
-
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); handleMinimize(); }}
-                                    className="px-12 py-4 bg-transparent border border-white/20 text-white font-medium uppercase tracking-widest text-xs hover:bg-white/10 transition-colors backdrop-blur-sm"
-                                >
-                                    Enter Site
-                                </button>
+                            {/* Center Hint */}
+                            <div className="flex flex-col items-center justify-center gap-4 animate-pulse pointer-events-none">
+                                <span className="text-white/80 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">
+                                    Zacznij wyszukiwanie
+                                </span>
+                                <ArrowDown className="w-5 h-5 text-white/60 animate-bounce" />
                             </div>
 
-                            {settings.intro_contact_phone && (
-                                <div className="absolute bottom-12 flex items-center gap-3 text-gray-400">
-                                    <Phone className="w-4 h-4" />
-                                    <span className="text-xs tracking-widest">{settings.intro_contact_phone}</span>
-                                </div>
-                            )}
+                            {/* Bottom Branding & Interaction Area container */}
+                            <div className="flex-1 w-full flex flex-col justify-end items-center relative">
+                                {/* Bottom 1/3 Interaction Area */}
+                                <div
+                                    className="absolute bottom-0 left-0 w-full h-[33vh] z-50 cursor-pointer"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleMinimize();
+                                    }}
+                                />
+
+                                {/* Small Branding at very bottom */}
+                                <span className="text-[9px] text-white/30 uppercase tracking-[0.3em] font-light mb-4 relative z-0 pointer-events-none">
+                                    lukilot.work
+                                </span>
+                            </div>
                         </motion.div>
                     ) : (
                         <motion.div

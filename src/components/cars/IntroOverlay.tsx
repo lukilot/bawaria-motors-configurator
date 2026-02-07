@@ -38,6 +38,8 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
             setHasSeenIntro(true);
         } else {
             document.body.style.overflow = 'hidden';
+            // Ensure we are at the top
+            window.scrollTo(0, 0);
         }
 
         return () => {
@@ -54,17 +56,22 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
     const handleMaximize = () => {
         setIsMinimized(false);
         document.body.style.overflow = 'hidden';
+        window.scrollTo(0, 0);
     };
 
     const containerVariants: Variants = {
         maximized: {
-            width: "100vw",
-            height: "100vh",
+            width: "100%",
+            height: "100dvh", // Use dynamic viewport height
             borderRadius: "0px",
             y: 0,
             x: 0,
             top: 0,
             left: 0,
+            right: 0,
+            bottom: 0,
+            position: "fixed",
+            zIndex: 100,
             transition: {
                 type: "spring",
                 stiffness: 70,
@@ -80,6 +87,10 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
             x: "-50%",
             top: 0,
             left: "50%",
+            right: "auto",
+            bottom: "auto",
+            position: "fixed",
+            zIndex: 90,
             transition: {
                 type: "spring",
                 stiffness: 70,
@@ -95,7 +106,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                 initial={false}
                 animate={isMinimized || hasSeenIntro ? "minimized" : "maximized"}
                 variants={containerVariants}
-                className={`fixed z-[100] bg-black text-white overflow-hidden shadow-2xl ${isMinimized ? 'cursor-pointer' : ''}`}
+                className={`shadow-2xl overflow-hidden bg-black text-white ${isMinimized ? 'cursor-pointer' : ''}`}
                 onClick={isMinimized ? handleMaximize : undefined}
                 style={{ originY: 0 }}
             >
@@ -104,6 +115,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                     animate={{ opacity: isMinimized ? 0 : 1 }}
                     transition={{ duration: 0.4 }}
                     className="absolute inset-0 z-0 pointer-events-none"
+                    style={{ width: '100%', height: '100%' }}
                 >
                     {/* Desktop Media */}
                     {settings.intro_media_url && (

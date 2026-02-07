@@ -59,12 +59,12 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
     return (
         <AnimatePresence mode="wait">
             {!isMinimized ? (
-                /* Fullscreen Overlay */
+                /* Fullscreen Overlay "Blind" */
                 <motion.div
                     key="fullscreen"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)", transition: { duration: 0.8 } }}
+                    initial={{ y: 0 }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "-100%", transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] } }}
                     className="fixed inset-0 z-[100] bg-black text-white flex flex-col items-center justify-center overflow-hidden"
                 >
                     {/* Background */}
@@ -146,44 +146,41 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                     )}
                 </motion.div>
             ) : (
-                /* Tech Notch (Minimized) */
+                /* Top Island Notch (Minimized) */
                 <motion.div
                     key="notch"
-                    initial={{ y: -100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -100, opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 120, damping: 20 }}
-                    className="fixed top-0 left-1/2 -translate-x-1/2 z-[90] flex justify-center pt-2"
+                    initial={{ y: "-100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "-100%" }}
+                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.2 }}
+                    className="fixed top-0 left-1/2 -translate-x-1/2 z-[90] flex justify-center"
                 >
                     <div
-                        className="bg-black/90 backdrop-blur-md rounded-full px-1 py-1 flex items-center gap-2 shadow-2xl border border-white/10 cursor-pointer hover:scale-105 transition-transform group"
+                        className="bg-black/90 backdrop-blur-md rounded-b-[2rem] px-6 py-3 flex items-center gap-4 shadow-2xl border-b border-x border-white/10 cursor-pointer hover:pt-5 transition-all duration-300 group"
                         onClick={handleMaximize}
                     >
                         {/* Status Dot */}
-                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+
+                        {/* Text */}
+                        <div className="flex flex-col items-start justify-center">
+                            <span className="text-[10px] uppercase font-bold text-white tracking-widest leading-none">lukilot.work</span>
                         </div>
 
-                        {/* Text (Only visible on hover or large screens) */}
-                        <div className="flex items-center gap-4 px-2 pr-4 overflow-hidden">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] uppercase font-bold text-white tracking-widest leading-none mb-0.5">lukilot.work</span>
-                                <span className="text-[8px] text-gray-400 leading-none">Tap to expand</span>
-                            </div>
+                        {settings.intro_contact_phone && (
+                            <>
+                                <div className="w-px h-3 bg-white/20 mx-1" />
+                                <a
+                                    href={`tel:${settings.intro_contact_phone}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="hover:text-green-400 transition-colors"
+                                >
+                                    <Phone className="w-3 h-3 text-white" />
+                                </a>
+                            </>
+                        )}
 
-                            {settings.intro_contact_phone && (
-                                <>
-                                    <div className="w-px h-6 bg-white/10" />
-                                    <a
-                                        href={`tel:${settings.intro_contact_phone}`}
-                                        onClick={(e) => e.stopPropagation()} // Prevent expand when calling
-                                        className="p-1.5 bg-white/10 rounded-full hover:bg-green-600 transition-colors"
-                                    >
-                                        <Phone className="w-3 h-3 text-white" />
-                                    </a>
-                                </>
-                            )}
-                        </div>
+                        <ChevronDown className="w-3 h-3 text-gray-500 group-hover:text-white transition-colors" />
                     </div>
                 </motion.div>
             )}

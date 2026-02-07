@@ -63,7 +63,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ url: publicUrl });
 
     } catch (error: any) {
-        console.error('Upload failed:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('SERVER UPLOAD ERROR DETAILED:', error);
+        console.error('Error Stack:', error.stack);
+        console.error('Error Message:', error.message);
+        return NextResponse.json({
+            error: error.message || 'Server Upload Failed',
+            details: JSON.stringify(error)
+        }, { status: 500 });
     }
 }

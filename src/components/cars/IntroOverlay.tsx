@@ -58,13 +58,10 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
     };
 
     // Desktop: Toggle number visibility
-    // Mobile: Direct call via href (handled in render)
     const handleContactClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        // Check if mobile (rudimentary check or rely on CSS mostly)
-        // Here we rely on the link behavior for mobile, but for desktop div we toggle
         if (window.matchMedia('(min-width: 768px)').matches) {
-            setShowNumber(!showNumber);
+            setShowNumber(true);
         }
     };
 
@@ -169,16 +166,29 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                         >
                             {/* TOP 20% AREA: Contact Pill */}
                             <div className="absolute top-0 left-0 w-full h-[20%] flex items-center justify-center z-[60]">
-                                {/* Desktop Interaction Div (Click to Reveal) */}
-                                <div
-                                    onClick={handleContactClick}
-                                    className="hidden md:flex bg-transparent border border-white/80 rounded-full px-6 py-2 items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors backdrop-blur-sm"
-                                >
-                                    <Phone className="w-4 h-4 text-white" />
-                                    <span className="text-sm font-bold tracking-widest uppercase text-white">
-                                        {showNumber ? settings.intro_contact_phone || '+48 508 020 612' : 'SKONTAKTUJ SIĘ'}
-                                    </span>
-                                </div>
+                                {/* Desktop Interaction Div (Click to Reveal -> Click to Call) */}
+                                {showNumber ? (
+                                    <a
+                                        href={`tel:${settings.intro_contact_phone || '+48508020612'}`}
+                                        className="hidden md:flex bg-transparent border border-white/80 rounded-full px-6 py-2 items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors backdrop-blur-sm"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <Phone className="w-4 h-4 text-white" />
+                                        <span className="text-sm font-bold tracking-widest uppercase text-white">
+                                            {settings.intro_contact_phone || '+48 508 020 612'}
+                                        </span>
+                                    </a>
+                                ) : (
+                                    <div
+                                        onClick={handleContactClick}
+                                        className="hidden md:flex bg-transparent border border-white/80 rounded-full px-6 py-2 items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors backdrop-blur-sm"
+                                    >
+                                        <Phone className="w-4 h-4 text-white" />
+                                        <span className="text-sm font-bold tracking-widest uppercase text-white">
+                                            SKONTAKTUJ SIĘ
+                                        </span>
+                                    </div>
+                                )}
 
                                 {/* Mobile Link (Direct Call) */}
                                 <a
@@ -222,33 +232,20 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3, delay: 0.1 }}
-                            className="flex items-center gap-4 px-6 py-3 min-w-[300px] justify-between text-nowrap"
+                            className="flex items-center gap-4 px-6 py-3 min-w-[200px] justify-between text-nowrap"
                         >
-                            <div className="flex items-center gap-4">
-                                {/* Status Dot */}
-                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-
-                                {/* Text */}
-                                <div className="flex flex-col items-start justify-center">
-                                    <span className="text-[10px] uppercase font-bold text-white tracking-widest leading-none">lukilot.work</span>
-                                </div>
+                            {/* Left Side: Phone + Kontakt */}
+                            <div className="flex items-center gap-3 text-white/90">
+                                <Phone className="w-3 h-3" />
+                                <span className="text-[10px] uppercase font-bold tracking-widest leading-none">
+                                    Kontakt
+                                </span>
                             </div>
 
+                            {/* Right Side: Divider + Chevron */}
                             <div className="flex items-center gap-3">
-                                {settings.intro_contact_phone && (
-                                    <>
-                                        <a
-                                            href={`tel:${settings.intro_contact_phone}`}
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="hover:text-green-400 transition-colors p-1"
-                                        >
-                                            <Phone className="w-3 h-3 text-white" />
-                                        </a>
-                                        <div className="w-px h-3 bg-white/20" />
-                                    </>
-                                )}
-
-                                <ChevronDown className="w-3 h-3 text-gray-500 group-hover:text-white transition-colors" />
+                                <div className="w-px h-3 bg-white/20" />
+                                <ChevronDown className="w-3 h-3 text-white/80 group-hover:text-white transition-colors" />
                             </div>
                         </motion.div>
                     )}

@@ -10,21 +10,6 @@ interface IntroOverlayProps {
     featuredCar?: StockCar; // Kept for prop compatibility but unused
 }
 
-// Helper to format phone number (e.g. +48508020612 -> +48 508 020 612)
-const formatPhoneNumber = (phone: string) => {
-    // Remove all non-digit characters except '+'
-    const cleaned = phone.replace(/[^\d+]/g, '');
-
-    // Check if it matches typical Polish mobile format +48XXXXXXXXX
-    const match = cleaned.match(/^(\+48)(\d{3})(\d{3})(\d{3})$/);
-    if (match) {
-        return `${match[1]} ${match[2]} ${match[3]} ${match[4]}`;
-    }
-
-    // Fallback: Just return original if no match (or implement generic chunking)
-    return phone;
-};
-
 export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
     const [isMinimized, setIsMinimized] = useState(false);
     const [hasSeenIntro, setHasSeenIntro] = useState(false);
@@ -32,7 +17,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
     const [settings, setSettings] = useState({
         intro_media_url: '',
         intro_media_url_mobile: '',
-        intro_contact_phone: '+48 508 020 612' // Default fallback
+        intro_contact_phone: '+48 508 020 612' // Default fallback with spaces logic
     });
 
     useEffect(() => {
@@ -186,13 +171,13 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                                 {/* Desktop Interaction Div (Click to Reveal -> Click to Call) */}
                                 {showNumber ? (
                                     <a
-                                        href={`tel:${settings.intro_contact_phone || '+48508020612'}`}
+                                        href={`tel:${settings.intro_contact_phone}`}
                                         className="hidden md:flex bg-transparent border border-white/80 rounded-full px-6 py-2 items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors backdrop-blur-sm"
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         <Phone className="w-4 h-4 text-white" />
                                         <span className="text-sm font-bold tracking-widest uppercase text-white">
-                                            {formatPhoneNumber(settings.intro_contact_phone || '+48 508 020 612')}
+                                            {settings.intro_contact_phone}
                                         </span>
                                     </a>
                                 ) : (
@@ -209,7 +194,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
 
                                 {/* Mobile Link (Direct Call) */}
                                 <a
-                                    href={`tel:${settings.intro_contact_phone || '+48508020612'}`}
+                                    href={`tel:${settings.intro_contact_phone}`}
                                     className="flex md:hidden bg-transparent border border-white/80 rounded-full px-6 py-3 items-center gap-3 cursor-pointer active:scale-95 transition-transform backdrop-blur-sm"
                                 >
                                     <Phone className="w-4 h-4 text-white" />

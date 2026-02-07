@@ -70,24 +70,24 @@ export function SettingsEditor() {
 
         setUploading(true);
         try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `intro-${type}-${Date.now()}.${fileExt}`;
-            const filePath = `intro-media/${fileName}`;
+            const formData = new FormData();
+            formData.append('file', file);
 
-            // Upload to 'stock-images' bucket (or a dedicated 'assets' bucket if we had one, reusing stock-images for simplicity)
-            const { error: uploadError } = await supabase.storage
-                .from('stock-images')
-                .upload(filePath, file);
+            const response = await fetch('/api/admin/upload-asset', {
+                method: 'POST',
+                body: formData,
+            });
 
-            if (uploadError) throw uploadError;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Upload failed');
+            }
 
-            const { data: { publicUrl } } = supabase.storage
-                .from('stock-images')
-                .getPublicUrl(filePath);
+            const { url } = await response.json();
 
             setSettings(prev => ({
                 ...prev,
-                [type === 'desktop' ? 'intro_media_url' : 'intro_media_url_mobile']: publicUrl
+                [type === 'desktop' ? 'intro_media_url' : 'intro_media_url_mobile']: url
             }));
         } catch (err) {
             console.error('Error uploading file:', err);

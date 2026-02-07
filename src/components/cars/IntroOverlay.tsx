@@ -3,22 +3,21 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { ArrowDown, Phone, ChevronDown } from 'lucide-react';
-import Link from 'next/link';
 import { StockCar } from '@/types/stock';
 import { supabase } from '@/lib/supabase';
 
 interface IntroOverlayProps {
-    featuredCar?: StockCar;
+    featuredCar?: StockCar; // Kept for prop compatibility but unused
 }
 
 export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
     const [isMinimized, setIsMinimized] = useState(false);
     const [hasSeenIntro, setHasSeenIntro] = useState(false);
+    const [showNumber, setShowNumber] = useState(false); // For desktop contact pill toggle
     const [settings, setSettings] = useState({
         intro_media_url: '',
         intro_media_url_mobile: '',
-        intro_cta_link: '',
-        intro_contact_phone: ''
+        intro_contact_phone: '+48 508 020 612' // Default fallback
     });
 
     useEffect(() => {
@@ -38,7 +37,6 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
             setHasSeenIntro(true);
         } else {
             document.body.style.overflow = 'hidden';
-            // Ensure we are at the top
             window.scrollTo(0, 0);
         }
 
@@ -59,10 +57,21 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
         window.scrollTo(0, 0);
     };
 
+    // Desktop: Toggle number visibility
+    // Mobile: Direct call via href (handled in render)
+    const handleContactClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        // Check if mobile (rudimentary check or rely on CSS mostly)
+        // Here we rely on the link behavior for mobile, but for desktop div we toggle
+        if (window.matchMedia('(min-width: 768px)').matches) {
+            setShowNumber(!showNumber);
+        }
+    };
+
     const containerVariants: Variants = {
         maximized: {
             width: "100%",
-            height: "100dvh", // Use dynamic viewport height
+            height: "100dvh",
             borderRadius: "0px",
             y: 0,
             x: 0,
@@ -148,7 +157,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                 </motion.div>
 
                 {/* Content Switcher */}
-                <div className="relative z-10 w-full h-full">
+                <div className="relative z-10 w-full h-full font-sans">
                     {!isMinimized ? (
                         <motion.div
                             key="full-content"
@@ -156,32 +165,52 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="w-full h-full flex flex-col items-center justify-between py-12"
+                            className="w-full h-full relative"
                         >
-                            {/* Top Spacer */}
-                            <div className="flex-1" />
+                            {/* TOP 20% AREA: Contact Pill */}
+                            <div className="absolute top-0 left-0 w-full h-[20%] flex items-center justify-center z-[60]">
+                                {/* Desktop Interaction Div (Click to Reveal) */}
+                                <div
+                                    onClick={handleContactClick}
+                                    className="hidden md:flex bg-transparent border border-white/80 rounded-full px-6 py-2 items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors backdrop-blur-sm"
+                                >
+                                    <Phone className="w-4 h-4 text-white" />
+                                    <span className="text-sm font-bold tracking-widest uppercase text-white">
+                                        {showNumber ? settings.intro_contact_phone || '+48 508 020 612' : 'SKONTAKTUJ SIĘ'}
+                                    </span>
+                                </div>
 
-                            {/* Center Hint */}
-                            <div className="flex flex-col items-center justify-center gap-4 animate-pulse pointer-events-none">
-                                <span className="text-white/80 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">
-                                    Zacznij wyszukiwanie
-                                </span>
-                                <ArrowDown className="w-5 h-5 text-white/60 animate-bounce" />
+                                {/* Mobile Link (Direct Call) */}
+                                <a
+                                    href={`tel:${settings.intro_contact_phone || '+48508020612'}`}
+                                    className="flex md:hidden bg-transparent border border-white/80 rounded-full px-6 py-3 items-center gap-3 cursor-pointer active:scale-95 transition-transform backdrop-blur-sm"
+                                >
+                                    <Phone className="w-4 h-4 text-white" />
+                                    <span className="text-xs font-bold tracking-widest uppercase text-white">
+                                        SKONTAKTUJ SIĘ
+                                    </span>
+                                </a>
                             </div>
 
-                            {/* Bottom Branding & Interaction Area container */}
-                            <div className="flex-1 w-full flex flex-col justify-end items-center relative">
-                                {/* Bottom 1/3 Interaction Area */}
-                                <div
-                                    className="absolute bottom-0 left-0 w-full h-[33vh] z-50 cursor-pointer"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleMinimize();
-                                    }}
-                                />
+                            {/* BOTTOM 80% AREA: Dismiss Interaction */}
+                            <div
+                                className="absolute bottom-0 left-0 w-full h-[80%] z-[50] cursor-pointer group flex flex-col items-center"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMinimize();
+                                }}
+                            >
+                                {/* Hint Text at 75% from TOP (which is roughly near bottom of this container) */}
+                                {/* 75% from top means top: 75% */}
+                                <div className="absolute top-[75%] transform -translate-y-1/2 flex flex-col items-center justify-center gap-4 animate-pulse pointer-events-none">
+                                    <span className="text-white/80 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] group-hover:text-white transition-colors">
+                                        Zacznij wyszukiwanie
+                                    </span>
+                                    <ArrowDown className="w-5 h-5 text-white/60 animate-bounce group-hover:text-white transition-colors" />
+                                </div>
 
-                                {/* Small Branding at very bottom */}
-                                <span className="text-[9px] text-white/30 uppercase tracking-[0.3em] font-light mb-4 relative z-0 pointer-events-none">
+                                {/* Branding at absolute bottom */}
+                                <span className="absolute bottom-8 text-[9px] text-white/30 uppercase tracking-[0.3em] font-light pointer-events-none">
                                     lukilot.work
                                 </span>
                             </div>

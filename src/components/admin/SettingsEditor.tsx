@@ -174,20 +174,7 @@ export function SettingsEditor() {
                     )}
                 </div>
 
-                {/* CTA Link */}
-                <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-gray-500">
-                        Featured Car Link (CTA URL)
-                    </label>
-                    <input
-                        type="text"
-                        value={settings.intro_cta_link}
-                        onChange={(e) => setSettings({ ...settings, intro_cta_link: e.target.value })}
-                        className="w-full p-2 border border-gray-200 rounded-sm text-sm"
-                        placeholder="/cars/WB..."
-                    />
-                    <p className="text-[10px] text-gray-400">Leave empty to use default logic (most expensive car).</p>
-                </div>
+
 
                 {/* Contact Phone */}
                 <div className="space-y-2">

@@ -10,6 +10,21 @@ interface IntroOverlayProps {
     featuredCar?: StockCar; // Kept for prop compatibility but unused
 }
 
+// Helper to format phone number (e.g. +48508020612 -> +48 508 020 612)
+const formatPhoneNumber = (phone: string) => {
+    // Remove all non-digit characters except '+'
+    const cleaned = phone.replace(/[^\d+]/g, '');
+
+    // Check if it matches typical Polish mobile format +48XXXXXXXXX
+    const match = cleaned.match(/^(\+48)(\d{3})(\d{3})(\d{3})$/);
+    if (match) {
+        return `${match[1]} ${match[2]} ${match[3]} ${match[4]}`;
+    }
+
+    // Fallback: Just return original if no match (or implement generic chunking)
+    return phone;
+};
+
 export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
     const [isMinimized, setIsMinimized] = useState(false);
     const [hasSeenIntro, setHasSeenIntro] = useState(false);
@@ -67,8 +82,8 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
 
     const containerVariants: Variants = {
         maximized: {
-            width: "100%",
-            height: "100dvh",
+            width: "100vw",
+            height: "100vh",
             borderRadius: "0px",
             y: 0,
             x: 0,
@@ -77,7 +92,8 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
             right: 0,
             bottom: 0,
             position: "fixed",
-            zIndex: 100,
+            zIndex: 9999,
+            backgroundColor: "#000000",
             transition: {
                 type: "spring",
                 stiffness: 70,
@@ -96,7 +112,8 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
             right: "auto",
             bottom: "auto",
             position: "fixed",
-            zIndex: 90,
+            zIndex: 9990,
+            backgroundColor: "#000000",
             transition: {
                 type: "spring",
                 stiffness: 70,
@@ -175,7 +192,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                                     >
                                         <Phone className="w-4 h-4 text-white" />
                                         <span className="text-sm font-bold tracking-widest uppercase text-white">
-                                            {settings.intro_contact_phone || '+48 508 020 612'}
+                                            {formatPhoneNumber(settings.intro_contact_phone || '+48 508 020 612')}
                                         </span>
                                     </a>
                                 ) : (

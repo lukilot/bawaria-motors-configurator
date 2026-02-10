@@ -73,14 +73,15 @@ export function SettingsEditor() {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await fetch('/api/admin/upload-asset', {
+            const response = await fetch('/api/admin/upload-intro', {
                 method: 'POST',
                 body: formData,
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Upload failed');
+                console.error('Upload Error Details:', errorData);
+                throw new Error(errorData.error || errorData.details || 'Upload failed');
             }
 
             const { url } = await response.json();
@@ -89,9 +90,9 @@ export function SettingsEditor() {
                 ...prev,
                 [type === 'desktop' ? 'intro_media_url' : 'intro_media_url_mobile']: url
             }));
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error uploading file:', err);
-            alert('Upload failed');
+            alert(`Upload failed: ${err.message}`);
         } finally {
             setUploading(false);
         }

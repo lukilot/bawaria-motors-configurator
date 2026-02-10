@@ -19,29 +19,37 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(7);
-        let uploadBuffer: Buffer = buffer;
-        let contentType = file.type;
-        let extension = file.name.split('.').pop()?.toLowerCase() || '';
-        let filename = `intro-media/${timestamp}-${randomString}.${extension}`;
 
-        // Optimize Images
-        if (file.type.startsWith('image/')) {
+        // Determine file type
+        const isImage = file.type.startsWith('image/');
+        const isVideo = file.type.startsWith('video/');
+
+        if (!isImage && !isVideo) {
+            return NextResponse.json({ error: 'Invalid file type. Only images and videos are allowed.' }, { status: 400 });
+        }
+
+        let uploadBuffer = buffer;
+        let contentType = file.type;
+        let filename = `intro-media/${timestamp}-${randomString}.${file.name.split('.').pop()?.toLowerCase() || ''}`;
+
+        // Optimize Images (Match StockUploader Logic)
+        if (isImage) {
             try {
-                const processed = await sharp(buffer)
+                // Try to optimize
+                uploadBuffer = await sharp(buffer)
                     .resize(1920, 1080, {
-                        fit: 'inside', // Proportional resize, max dimensions
+                        fit: 'inside',
                         withoutEnlargement: true
                     })
                     .webp({ quality: 80 })
                     .toBuffer();
 
-                uploadBuffer = processed as unknown as Buffer;
-
                 contentType = 'image/webp';
                 filename = `intro-media/${timestamp}-${randomString}.webp`;
             } catch (sharpError) {
-                console.warn('Sharp optimization failed, falling back to original:', sharpError);
-                // Fallback to original buffer/type if sharp fails
+                console.warn('Sharp optimization failed, falling back to original file:', sharpError);
+                // Fallback: keep uploadBuffer as original buffer, contentType as original type
+                // filename remains original extension
             }
         }
 
@@ -63,12 +71,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ url: publicUrl });
 
     } catch (error: any) {
-        console.error('SERVER UPLOAD ERROR DETAILED:', error);
-        console.error('Error Stack:', error.stack);
-        console.error('Error Message:', error.message);
+        console.error('Upload Asset Error:', error);
         return NextResponse.json({
-            error: error.message || 'Server Upload Failed',
-            details: JSON.stringify(error)
+            error: error.message || 'Upload failed',
+            details: error.toString()
         }, { status: 500 });
     }
 }

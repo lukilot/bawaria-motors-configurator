@@ -36,13 +36,15 @@ export async function POST(request: NextRequest) {
         if (isImage) {
             try {
                 // Try to optimize
-                uploadBuffer = await sharp(buffer)
+                const processed = await sharp(buffer)
                     .resize(1920, 1080, {
                         fit: 'inside',
                         withoutEnlargement: true
                     })
                     .webp({ quality: 80 })
                     .toBuffer();
+
+                uploadBuffer = Buffer.from(processed);
 
                 contentType = 'image/webp';
                 filename = `intro-media/${timestamp}-${randomString}.webp`;

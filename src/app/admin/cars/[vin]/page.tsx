@@ -212,8 +212,63 @@ export default function AdminCarEditor() {
             const newImages = [...(car.images || [])];
 
             for (const file of acceptedFiles) {
+                // Client-side compression
+                let fileToUpload = file;
+                if (file.type.startsWith('image/')) {
+                    try {
+                        fileToUpload = await new Promise<File>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.readAsDataURL(file);
+                            reader.onload = (event) => {
+                                const img = new Image();
+                                img.src = event.target?.result as string;
+                                img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    if (!ctx) { reject(new Error('Canvas context failed')); return; }
+
+                                    // Resize logic (max 1920x1080)
+                                    let width = img.width;
+                                    let height = img.height;
+                                    const MAX_WIDTH = 1920;
+                                    const MAX_HEIGHT = 1080;
+
+                                    if (width > height) {
+                                        if (width > MAX_WIDTH) {
+                                            height *= MAX_WIDTH / width;
+                                            width = MAX_WIDTH;
+                                        }
+                                    } else {
+                                        if (height > MAX_HEIGHT) {
+                                            width *= MAX_HEIGHT / height;
+                                            height = MAX_HEIGHT;
+                                        }
+                                    }
+
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    ctx.drawImage(img, 0, 0, width, height);
+
+                                    canvas.toBlob((blob) => {
+                                        if (!blob) { reject(new Error('Canvas to Blob failed')); return; }
+                                        const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                                            type: 'image/webp',
+                                            lastModified: Date.now(),
+                                        });
+                                        resolve(newFile);
+                                    }, 'image/webp', 0.8);
+                                };
+                                img.onerror = (e) => reject(e);
+                            };
+                            reader.onerror = (e) => reject(e);
+                        });
+                    } catch (err) {
+                        console.warn('Compression failed, using original', err);
+                    }
+                }
+
                 const formData = new FormData();
-                formData.append('file', file);
+                formData.append('file', fileToUpload);
                 formData.append('vin', car.vin);
 
                 const response = await fetch('/api/admin/upload-images', {

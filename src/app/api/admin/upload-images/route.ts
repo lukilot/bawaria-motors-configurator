@@ -20,13 +20,15 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
 
         // Optimize with Sharp
-        const optimizedBuffer = await sharp(buffer)
+        const processed = await sharp(buffer)
             .resize(1920, 1080, {
                 fit: 'inside',
                 withoutEnlargement: true
             })
             .webp({ quality: 80 })
             .toBuffer();
+
+        const optimizedBuffer = Buffer.from(processed);
 
         // Generate filename
         const filename = `${vin}/${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;

@@ -68,10 +68,68 @@ export function SettingsEditor() {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Client-side compression for images to bypass Vercel 4.5MB limit
+        let fileToUpload = file;
+
+        if (file.type.startsWith('image/')) {
+            try {
+                setUploading(true); // Show loading during compression
+                fileToUpload = await new Promise<File>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.src = event.target?.result as string;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            if (!ctx) { reject(new Error('Canvas context failed')); return; }
+
+                            // Resize logic (max 1920x1080)
+                            let width = img.width;
+                            let height = img.height;
+                            const MAX_WIDTH = 1920;
+                            const MAX_HEIGHT = 1080;
+
+                            if (width > height) {
+                                if (width > MAX_WIDTH) {
+                                    height *= MAX_WIDTH / width;
+                                    width = MAX_WIDTH;
+                                }
+                            } else {
+                                if (height > MAX_HEIGHT) {
+                                    width *= MAX_HEIGHT / height;
+                                    height = MAX_HEIGHT;
+                                }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            canvas.toBlob((blob) => {
+                                if (!blob) { reject(new Error('Canvas to Blob failed')); return; }
+                                const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                                    type: 'image/webp',
+                                    lastModified: Date.now(),
+                                });
+                                resolve(newFile);
+                            }, 'image/webp', 0.8);
+                        };
+                        img.onerror = (e) => reject(e);
+                    };
+                    reader.onerror = (e) => reject(e);
+                });
+            } catch (compressionError) {
+                console.warn('Client-side compression failed, trying original file:', compressionError);
+                // Fallback to original file
+            }
+        }
+
         setUploading(true);
         try {
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('file', fileToUpload);
 
             const response = await fetch('/api/admin/upload-intro', {
                 method: 'POST',

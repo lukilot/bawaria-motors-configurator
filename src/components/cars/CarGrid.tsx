@@ -60,7 +60,7 @@ export function CarGrid({ cars, onOpenFilters, dictionaries }: CarGridProps) {
                     type="button"
                     onClick={(e) => {
                         e.stopPropagation();
-                        onOpenFilters();
+                        onOpenFilters?.();
                     }}
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-sm shadow-xl"
                 >

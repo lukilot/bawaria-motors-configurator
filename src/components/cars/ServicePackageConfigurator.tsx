@@ -87,25 +87,27 @@ export function ServicePackageConfigurator({
 
         // BRI Logic
         const baseBri = packages.find(p => p.type === 'BRI' && currentCodes.includes(p.code));
-        const baseBriPrice = baseBri ? (prices[baseBri.code] || 0) : 0;
+        const baseBriPrice = baseBri ? (prices[baseBri.id] || 0) : 0;
 
         if (selectedBri) {
             selectedCodes.push(selectedBri);
             // If selected is different from base, add cost difference
             if (selectedBri !== baseBri?.code) {
-                const selectedPrice = prices[selectedBri] || 0;
+                const selectedPkg = packages.find(p => p.code === selectedBri);
+                const selectedPrice = selectedPkg ? (prices[selectedPkg.id] || 0) : 0;
                 totalAdditionalCost += Math.max(0, selectedPrice - baseBriPrice);
             }
         }
 
         // BSI Logic
         const baseBsi = packages.find(p => (p.type === 'BSI' || p.type === 'BSI_PLUS') && currentCodes.includes(p.code));
-        const baseBsiPrice = baseBsi ? (prices[baseBsi.code] || 0) : 0;
+        const baseBsiPrice = baseBsi ? (prices[baseBsi.id] || 0) : 0;
 
         if (selectedBsi) {
             selectedCodes.push(selectedBsi);
             if (selectedBsi !== baseBsi?.code) {
-                const selectedPrice = prices[selectedBsi] || 0;
+                const selectedPkg = packages.find(p => p.code === selectedBsi);
+                const selectedPrice = selectedPkg ? (prices[selectedPkg.id] || 0) : 0;
                 totalAdditionalCost += Math.max(0, selectedPrice - baseBsiPrice);
             }
         }
@@ -121,11 +123,11 @@ export function ServicePackageConfigurator({
 
     // Derived Data
     const baseBri = packages.find(p => p.type === 'BRI' && currentCodes.includes(p.code));
-    const baseBriPrice = baseBri ? (prices[baseBri.code] || 0) : 0;
+    const baseBriPrice = baseBri ? (prices[baseBri.id] || 0) : 0;
     const showStandardBri = !baseBri;
 
     const baseBsi = packages.find(p => (p.type === 'BSI' || p.type === 'BSI_PLUS') && currentCodes.includes(p.code));
-    const baseBsiPrice = baseBsi ? (prices[baseBsi.code] || 0) : 0;
+    const baseBsiPrice = baseBsi ? (prices[baseBsi.id] || 0) : 0;
     const showStandardBsi = !baseBsi;
 
     const briPackages = packages.filter(p => p.type === 'BRI');
@@ -137,13 +139,10 @@ export function ServicePackageConfigurator({
     const currentBsiPkg = selectedBsi ? packages.find(p => p.code === selectedBsi) : null;
 
     // Helper: Price String for Popup tiles
-    const getTilePriceString = (code: string | null, currentSelection: string | null) => {
-        const currentP = currentSelection ? (prices[currentSelection] || 0) : 0;
-        const targetP = code ? (prices[code] || 0) : 0;
+    const getTilePriceString = (targetPrice: number, currentPrice: number, isSelected: boolean) => {
+        if (isSelected) return 'W cenie';
 
-        if (code === currentSelection) return 'W cenie';
-
-        const diff = targetP - currentP;
+        const diff = targetPrice - currentPrice;
 
         if (diff === 0) return 'W cenie';
         if (diff > 0) return `+ ${diff.toLocaleString()} zł`;
@@ -159,7 +158,10 @@ export function ServicePackageConfigurator({
         if (isBase) return "Zmień pakiet";
 
         // Calculate diff
-        const currentP = code ? (prices[code] || 0) : 0;
+        // We need to find the package for 'code' to get its price
+        const pkg = packages.find(p => p.code === code);
+        const currentP = pkg ? (prices[pkg.id] || 0) : 0;
+
         const diff = currentP - baseP;
 
         if (diff > 0) return `+ ${diff.toLocaleString()} PLN`;
@@ -182,7 +184,8 @@ export function ServicePackageConfigurator({
     ) => {
         const isStandard = pkg === null;
         const code = isStandard ? null : pkg.code;
-        const price = isStandard ? 0 : (prices[code!] || 0);
+        // Fix: Use ID for price lookup
+        const price = isStandard ? 0 : (prices[pkg!.id] || 0);
 
         if (!isStandard && price === undefined && code !== basePkgCode) return null;
 
@@ -190,11 +193,14 @@ export function ServicePackageConfigurator({
         const upgradeCost = pkgPrice - basePrice;
 
         // Only disable if it's strictly cheaper (downgrade) and NOT the base.
-        // If current car has base 7CH, and we compare to Standard (null), upgradeCost is negative. Disable.
         const isCheaper = upgradeCost < 0;
         const isDisabled = isCheaper;
 
         const isSelected = currentSelection === code;
+
+        // Calculate current selection price for diff
+        const currentSelectionPkg = packages.find(p => p.code === currentSelection);
+        const currentSelectionPrice = currentSelectionPkg ? (prices[currentSelectionPkg.id] || 0) : 0;
 
         // Content
         let years = 0;
@@ -231,7 +237,7 @@ export function ServicePackageConfigurator({
                 </div>
                 <div className="w-full pt-1 border-t border-dashed border-gray-500/20 pointer-events-none">
                     <span className={cn("text-[9px] font-bold block", isSelected ? "text-white" : "text-black")}>
-                        {isDisabled ? '' : getTilePriceString(code, currentSelection)}
+                        {isDisabled ? '' : getTilePriceString(pkgPrice, currentSelectionPrice, isSelected)}
                     </span>
                 </div>
                 <div className={cn("absolute top-0 left-0 w-full h-0.5 rounded-t-sm",

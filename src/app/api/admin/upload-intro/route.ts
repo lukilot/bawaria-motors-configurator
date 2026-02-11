@@ -75,7 +75,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ url: publicUrl });
 
     } catch (error: any) {
-        console.error('Upload Intro Error:', error);
+        console.error('Upload Intro Error CRITICAL:', error);
+        console.error('Error Name:', error.name);
+        console.error('Error Message:', error.message);
+        console.error('Error Stack:', error.stack);
         return NextResponse.json({
             error: error.message || 'Upload failed',
             details: error.toString()

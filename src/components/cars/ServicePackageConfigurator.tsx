@@ -8,6 +8,7 @@ import { Check, Loader2, Shield, Wrench, X, ChevronRight } from 'lucide-react';
 interface ServicePackageConfiguratorProps {
     currentCodes: string[];
     seriesCode: string; // e.g. G60
+    fuelType?: string; // e.g. 'Electric', 'Diesel'
     onPriceUpdate: (additionalCost: number) => void;
     onSelectionChange: (codes: string[]) => void;
 }
@@ -15,6 +16,7 @@ interface ServicePackageConfiguratorProps {
 export function ServicePackageConfigurator({
     currentCodes,
     seriesCode,
+    fuelType,
     onPriceUpdate,
     onSelectionChange
 }: ServicePackageConfiguratorProps) {
@@ -40,7 +42,21 @@ export function ServicePackageConfigurator({
                 getServicePackages(),
                 getServicePrices(seriesCode)
             ]);
-            setPackages(pkgData);
+            setPackages(pkgData.filter(p => {
+                // Filter by vehicle_type
+                // If package says 'ELECTRIC', only show if fuelType is 'Electric'
+                // If package says 'ICE_PHEV', show if fuelType != 'Electric'
+                // If package says 'ALL', show always
+                const vType: string = (p as any).vehicle_type || 'ALL';
+                if (vType === 'ALL') return true;
+
+                const isElectric = fuelType?.toUpperCase() === 'ELECTRIC';
+
+                if (vType === 'ELECTRIC') return isElectric;
+                if (vType === 'ICE_PHEV') return !isElectric;
+
+                return true;
+            }));
             setPrices(priceData);
             setIsLoading(false);
         };

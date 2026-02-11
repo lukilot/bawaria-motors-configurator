@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { StockUploader } from '@/components/admin/StockUploader';
 import { AdminCarList } from '@/components/admin/AdminCarList';
 import { DictionaryManager } from '@/components/admin/DictionaryManager';
-import { ServicePricingManager } from '@/components/admin/ServicePricingManager';
+import { PackagesManager } from '@/components/admin/PackagesManager';
 import { SettingsEditor } from '@/components/admin/SettingsEditor';
 import { AdminAuth } from '@/components/admin/AdminAuth';
 import Link from 'next/link';
@@ -56,7 +56,7 @@ export default function AdminPage() {
                                 )}
                             >
                                 <Coins className="w-4 h-4" />
-                                Service Pricing
+                                Service Packages
                             </button>
                             <button
                                 onClick={() => setView('settings')}
@@ -85,7 +85,7 @@ export default function AdminPage() {
                         </div>
                     ) : view === 'pricing' ? (
                         <div className="animate-in fade-in duration-500">
-                            <ServicePricingManager />
+                            <PackagesManager />
                         </div>
                     ) : (
                         <div className="animate-in fade-in duration-500">

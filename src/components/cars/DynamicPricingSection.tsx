@@ -37,6 +37,7 @@ export function DynamicPricingSection({ car, seriesCode }: DynamicPricingSection
             <ServicePackageConfigurator
                 currentCodes={car.option_codes}
                 seriesCode={seriesCode}
+                fuelType={car.fuel_type}
                 onPriceUpdate={setAdditionalCost}
                 onSelectionChange={setSelectedServiceCodes}
             />

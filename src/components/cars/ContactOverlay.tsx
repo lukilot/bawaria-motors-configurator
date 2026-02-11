@@ -48,9 +48,9 @@ export function ContactOverlay({ isOpen, onClose }: ContactOverlayProps) {
                 </button>
 
                 <div className="text-center mb-8">
-                    <h3 className="text-xl font-light text-gray-900 tracking-tight mb-2">Skontaktuj się z nami</h3>
+                    <h3 className="text-xl font-light text-gray-900 tracking-tight mb-2">Skontaktuj się.</h3>
                     <p className="text-sm text-gray-500 font-light">
-                        Jesteśmy do Twojej dyspozycji. Wybierz preferowaną formę kontaktu.
+                        Wybierz preferowaną formę kontaktu.
                     </p>
                 </div>
 

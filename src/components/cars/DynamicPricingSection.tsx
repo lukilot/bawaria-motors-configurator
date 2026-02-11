@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
 import { ServicePackageConfigurator } from './ServicePackageConfigurator';
+import { ContactOverlay } from './ContactOverlay';
 
 interface DynamicPricingSectionProps {
     car: StockCar;
@@ -14,6 +15,7 @@ export function DynamicPricingSection({ car, seriesCode }: DynamicPricingSection
     // State for additional costs from service packages
     const [additionalCost, setAdditionalCost] = useState(0);
     const [selectedServiceCodes, setSelectedServiceCodes] = useState<string[]>([]);
+    const [isContactOpen, setIsContactOpen] = useState(false);
 
     const formatPrice = (price: number) =>
         new Intl.NumberFormat('pl-PL', { style: 'currency', currency: car.currency }).format(price);
@@ -26,11 +28,7 @@ export function DynamicPricingSection({ car, seriesCode }: DynamicPricingSection
     const hasDiscount = car.special_price && car.special_price < car.list_price;
 
     const handleContactClick = () => {
-        // Here we would ideally open the contact form and pass the selected codes
-        console.log('Contact with services:', selectedServiceCodes);
-        // For now just standard log or navigation, assuming functionality is similar to before
-        // If there was a specific onClick handler before, we might need to replicate it or accept it as prop.
-        // But the previous code just had a button.
+        setIsContactOpen(true);
     };
 
     return (
@@ -99,6 +97,11 @@ export function DynamicPricingSection({ car, seriesCode }: DynamicPricingSection
                     *Cena zawiera VAT. Zdjęcia mają charakter poglądowy.
                 </p>
             </div>
+
+            <ContactOverlay
+                isOpen={isContactOpen}
+                onClose={() => setIsContactOpen(false)}
+            />
         </div>
     );
 }

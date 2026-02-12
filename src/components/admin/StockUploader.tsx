@@ -121,48 +121,45 @@ export function StockUploader({ onSyncSuccess }: { onSyncSuccess?: () => void })
 
 import { syncStockToSupabase, analyzeStockDiff, markCarsAsSold } from '@/lib/stock-sync';
 import { StockCar } from '@/types/stock';
-import { Check, Loader2, Database } from 'lucide-react';
+import { Loader2, Database, CheckCircle } from 'lucide-react';
 
 function SyncButton({ cars, onSyncSuccess }: { cars: StockCar[], onSyncSuccess?: () => void }) {
-    const [status, setStatus] = useState<'IDLE' | 'SYNCING' | 'SUCCESS' | 'ERROR'>('IDLE');
+    const [status, setStatus] = useState<'IDLE' | 'SYNCING' | 'SUCCESS' | 'ERROR' | string>('IDLE');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const [stats, setStats] = useState<{ synced: number, markedSold: number } | null>(null);
+    const [stats, setStats] = useState<{ synced: number, markedSold: number } | null>(null); // Kept stats for potential future use, though not used in new success message
 
     const handleSync = async () => {
         setStatus('SYNCING');
         try {
-            // 1. Sync Active Cars
-            const syncRes = await syncStockToSupabase(cars);
+            // 2. Sync to Supabase
+            // Explicitly 'Bawaria Motors' source
+            await syncStockToSupabase(cars, 'Bawaria Motors');
 
-            // 2. Identify & Mark Sol Cars
-            const missingCars = await analyzeStockDiff(cars);
-            const soldRes = await markCarsAsSold(missingCars.map(c => c.vin));
+            // 3. Mark missing cars as sold (Source Scoped)
+            const missing = await analyzeStockDiff(cars, 'Bawaria Motors');
 
-            setStats({
-                synced: syncRes.count || 0,
-                markedSold: soldRes.count || 0
-            });
-            setStatus('SUCCESS');
-            onSyncSuccess?.();
+            if (missing.length > 0) {
+                // Auto-mark missing as Sold (soft delete)
+                await markCarsAsSold(missing.map(c => c.vin));
+                setStatus(`SUCCESS: Sync Complete. Updated ${cars.length} cars. Marked ${missing.length} missing as Sold.`);
+            } else {
+                setStatus(`SUCCESS: Sync Complete. Updated ${cars.length} cars.`);
+            }
+            onSyncSuccess?.(); // Call success callback after sync
         } catch (e: any) {
             setStatus('ERROR');
             setErrorMsg(e.message);
         }
     };
 
-    if (status === 'SUCCESS' && stats) {
+    // Modified success display logic to use the string status
+    if (typeof status === 'string' && status.startsWith('SUCCESS')) {
         return (
             <div className="flex flex-col items-center gap-2 animate-in fade-in">
                 <div className="flex items-center gap-2 text-green-600 bg-green-50 px-6 py-3 rounded-full">
-                    <Check className="w-5 h-5" />
-                    <span className="font-medium">Sync Complete</span>
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">{status.replace('SUCCESS: ', '')}</span>
                 </div>
-                <p className="text-sm text-gray-500">
-                    Updated {stats.synced} active cars. Marked {stats.markedSold} cars as sold.
-                </p>
-                <p className="text-xs text-gray-400">
-                    Go to "Sold / To Delete" section above to purge them.
-                </p>
             </div>
         );
     }

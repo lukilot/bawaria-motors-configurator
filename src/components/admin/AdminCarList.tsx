@@ -117,17 +117,59 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [showInternal, setShowInternal] = useState(true);
+    const [modelMap, setModelMap] = useState<Record<string, string>>({});
 
     const fetchCars = async () => {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('stock_units')
-            .select('*')
-            .order('created_at', { ascending: false });
 
-        if (!error && data) {
-            setCars(data as any);
+        let allCars: StockCar[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let more = true;
+
+        // 1. Fetch Cars with Pagination
+        while (more) {
+            const { data, error } = await supabase
+                .from('stock_units')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .range(from, from + batchSize - 1);
+
+            if (error) {
+                console.error('Error fetching cars:', error);
+                // If error occurs, stop fetching and show what we have (or handle error UI)
+                break;
+            }
+
+            if (data && data.length > 0) {
+                allCars = [...allCars, ...data as any];
+
+                // If we got fewer than batchSize, we've reached the end
+                if (data.length < batchSize) {
+                    more = false;
+                } else {
+                    from += batchSize;
+                }
+            } else {
+                more = false;
+            }
         }
+
+        setCars(allCars);
+
+        // 2. Fetch Model Dictionary for enrichment
+        const { data: dictData, error: dictError } = await supabase
+            .from('dictionary_models')
+            .select('code, name');
+
+        if (!dictError && dictData) {
+            const map: Record<string, string> = {};
+            dictData.forEach((item: any) => {
+                map[item.code] = item.name;
+            });
+            setModelMap(map);
+        }
+
         setLoading(false);
     };
 
@@ -224,46 +266,52 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
                             </td>
                         </tr>
                     ) : (
-                        data.map((car) => (
-                            <tr key={car.vin} className="hover:bg-gray-50/50 transition-colors">
-                                <td className="px-6 py-4">
-                                    <div className="font-medium text-gray-900">{car.model_name || car.model_code}</div>
-                                    <div className="text-xs text-gray-400 font-mono bg-gray-50 inline-block px-1 rounded">{car.vin}</div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className={cn(
-                                        "px-2 py-1 rounded-sm text-[10px] uppercase font-bold tracking-wide",
-                                        car.status_code >= 190 ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"
-                                    )}>
-                                        Code {car.status_code}
-                                    </span>
-                                    <div className="text-xs text-gray-400 mt-1 truncate max-w-[150px]">{car.processing_type}</div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className={cn(
-                                        "inline-flex items-center gap-1.5 px-2 py-1 rounded-sm text-[10px] uppercase font-bold tracking-wide border",
-                                        car.visibility === 'PUBLIC'
-                                            ? "bg-blue-50 text-blue-700 border-blue-100"
-                                            : "bg-red-50 text-red-700 border-red-100"
-                                    )}>
-                                        {car.visibility === 'PUBLIC' ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                                        {car.visibility}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 font-mono text-xs">
-                                    {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(car.list_price)}
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <Link
-                                        href={`/admin/cars/${car.vin}`}
-                                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black transition-all text-xs font-medium uppercase tracking-wide rounded-sm shadow-sm"
-                                    >
-                                        <Edit2 className="w-3 h-3" />
-                                        Edit
-                                    </Link>
-                                </td>
-                            </tr>
-                        ))
+                        data.map((car) => {
+                            // Enriched Model Name: DB Name > Dictionary Name > Code
+                            const displayName = car.model_name || modelMap[car.model_code] || car.model_code;
+
+                            return (
+                                <tr key={car.vin} className="hover:bg-gray-50/50 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="font-medium text-gray-900">{displayName}</div>
+                                        <div className="text-xs text-gray-400 font-mono bg-gray-50 inline-block px-1 rounded">{car.vin}</div>
+                                    </td>
+                                    {/* ... rest of columns */}
+                                    <td className="px-6 py-4">
+                                        <span className={cn(
+                                            "px-2 py-1 rounded-sm text-[10px] uppercase font-bold tracking-wide",
+                                            car.status_code >= 190 ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"
+                                        )}>
+                                            Code {car.status_code}
+                                        </span>
+                                        <div className="text-xs text-gray-400 mt-1 truncate max-w-[150px]">{car.processing_type}</div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className={cn(
+                                            "inline-flex items-center gap-1.5 px-2 py-1 rounded-sm text-[10px] uppercase font-bold tracking-wide border",
+                                            car.visibility === 'PUBLIC'
+                                                ? "bg-blue-50 text-blue-700 border-blue-100"
+                                                : "bg-red-50 text-red-700 border-red-100"
+                                        )}>
+                                            {car.visibility === 'PUBLIC' ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                                            {car.visibility}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 font-mono text-xs">
+                                        {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(car.list_price)}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <Link
+                                            href={`/admin/cars/${car.vin}`}
+                                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black transition-all text-xs font-medium uppercase tracking-wide rounded-sm shadow-sm"
+                                        >
+                                            <Edit2 className="w-3 h-3" />
+                                            Edit
+                                        </Link>
+                                    </td>
+                                </tr>
+                            );
+                        })
                     )}
                 </tbody>
             </table>

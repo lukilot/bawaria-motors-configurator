@@ -82,11 +82,7 @@ export function ContactOverlay({ isOpen, onClose }: ContactOverlayProps) {
                     </a>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-widest">
-                        Bawaria Motors Gdańsk
-                    </p>
-                </div>
+
             </div>
         </div>
     );

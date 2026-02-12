@@ -4,6 +4,7 @@ import { CarRow } from '@/components/cars/CarRow';
 import { CarCard } from '@/components/cars/CarCard';
 import { SlidersHorizontal, LayoutGrid, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SearchFooter } from './SearchFooter';
 
 interface DictionaryItem {
     name?: string;
@@ -105,8 +106,8 @@ export function CarGrid({ cars, onOpenFilters, dictionaries }: CarGridProps) {
             {/* Content Layout */}
             {cars.length === 0 ? (
                 <div className="text-center py-32 bg-white border border-dashed border-gray-200 rounded-sm">
-                    <h3 className="text-xl font-light text-gray-400">No vehicles found.</h3>
-                    <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search query.</p>
+                    <h3 className="text-xl font-light text-gray-400">Nie znaleziono pojazdów.</h3>
+                    <p className="text-gray-400 text-sm mt-2">Spróbuj zmienić filtry lub wyszukiwaną frazę.</p>
                 </div>
             ) : (
                 <>
@@ -135,7 +136,7 @@ export function CarGrid({ cars, onOpenFilters, dictionaries }: CarGridProps) {
                         </div>
                     )}
 
-                    {displayCount < cars.length && (
+                    {displayCount < cars.length ? (
                         <div
                             ref={observerTarget}
                             className="mt-12 text-center py-8"
@@ -144,9 +145,20 @@ export function CarGrid({ cars, onOpenFilters, dictionaries }: CarGridProps) {
                                 Ładowanie kolejnych pojazdów...
                             </span>
                         </div>
+                    ) : (
+                        /* Show Footer when all cars are loaded or list is short enough to show all */
+                        null
                     )}
                 </>
             )}
+
+            {/* Always show SearchFooter at the bottom (if not loading more) or even if empty? User said "regardless of filters or their absence" and "always displayed at the end of search results".
+               Actually if cars.length === 0, it should also show.
+               So I should put it OUTSIDE the cars.length check, or inside both branches.
+               If cars.length === 0, we show "No vehicles" AND "Contact us".
+               If cars.length > 0, we show list AND "Contact us" at the bottom.
+            */}
+            <SearchFooter />
         </div>
     );
 }

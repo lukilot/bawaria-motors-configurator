@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getCarByVin, getCarVariants } from '@/lib/stock-fetch';
+import { getCarByVin, getCarVariants, getAvailableCars } from '@/lib/stock-fetch';
 import { getAllDictionaries } from '@/lib/dictionary-fetch';
 import { getServicePackages } from '@/lib/service-packages';
 import { CarGallery } from '@/components/cars/CarGallery';
@@ -219,26 +219,93 @@ export default async function CarPage({ params }: PageProps) {
     const formatPrice = (price: number) =>
         new Intl.NumberFormat('pl-PL', { style: 'currency', currency: car.currency }).format(price);
 
-    const isSold = (car.order_status || '').includes('Sprzedany');
     const reservationStr = (car.reservation_details || '').trim();
-    const isReserved = !!reservationStr && reservationStr.toLowerCase() !== 'rezerwuj';
-    // Available if status > 190 (regardless of reservation)
-    const isReady = car.status_code > 190;
 
     const restrictedCodes = new Set(servicePkgs.map(p => p.code));
     const optionGroups = parseOptionGroups(car.option_codes, dictionaries.option, car.body_group, restrictedCodes);
 
+    // Grouping / Identical Logic
+    // We need to fetch all cars to find siblings (Inefficient but matches current architecture)
+    // TODO: Optimize fetching
+    const allStock = await getAvailableCars();
+
+    const isIdentical = (a: any, b: any) => {
+        if (a.model_code !== b.model_code) return false;
+        if (a.color_code !== b.color_code) return false;
+        if (a.upholstery_code !== b.upholstery_code) return false;
+
+        // Year Check
+        const yA = (a.production_date || '').substring(0, 4);
+        const yB = (b.production_date || '').substring(0, 4);
+        if (yA !== yB) return false;
+
+        // Options Check
+        const optsA = [...(a.option_codes || [])].sort().join(',');
+        const optsB = [...(b.option_codes || [])].sort().join(',');
+        return optsA === optsB;
+    };
+
+    const siblings = allStock.filter(c => isIdentical(car, c));
+    const totalAvailable = siblings.length;
+
+    // "Order Status - if at least one car has it greater than 190, label them all together as DOSTĘPNY OD RĘKI."
+    const anyReady = siblings.some(c => c.status_code > 190);
+    const effectiveIsReady = anyReady || car.status_code > 190;
+
+    // Status Display Labels
+    const showSold = (car.order_status || '').includes('Sprzedany');
+    const showReserved = !showSold && !!reservationStr && reservationStr.toLowerCase() !== 'rezerwuj';
+    const showReady = !showSold && !showReserved && effectiveIsReady;
+
+    // BMW M Branding Logic
+    const isMSeries = (enrichedCar.series || '').includes('Seria M');
+    const theme = {
+        bg: isMSeries ? 'bg-[#0f0f0f]' : 'bg-white',
+        text: isMSeries ? 'text-gray-100' : 'text-gray-900',
+        subtext: isMSeries ? 'text-gray-400' : 'text-gray-500',
+        border: isMSeries ? 'border-[#222]' : 'border-gray-100',
+        cardBg: isMSeries ? 'bg-[#1a1a1a]' : 'bg-white',
+        cardBorder: isMSeries ? 'border-[#333]' : 'border-gray-100',
+        accordionTitle: isMSeries ? 'text-white group-hover:text-blue-400' : 'text-gray-900 group-hover:text-black',
+        navBg: isMSeries ? 'bg-[#0f0f0f]/80' : 'bg-white/80',
+    };
+
     return (
-        <main className="min-h-screen bg-white text-gray-900 font-sans pb-20">
+        <main className={cn("min-h-screen font-sans pb-20 transition-colors duration-500", theme.bg, theme.text)}>
             {/* ... nav ... */}
-            <nav className="border-b border-gray-100 py-6 px-6 sticky top-0 bg-white/80 backdrop-blur-md z-50">
+            <nav className={cn("py-6 px-6 sticky top-0 backdrop-blur-md z-50 border-b transition-colors duration-500", theme.navBg, theme.border)}>
                 <div className="max-w-[1600px] mx-auto flex items-center gap-4">
                     <BackButton
                         label="Wróć do listy"
-                        className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors"
+                        className={cn("flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors", isMSeries ? "text-gray-400 hover:text-white pb-3" : "text-gray-500 hover:text-black")}
                     />
-                    <div className="h-4 w-px bg-gray-200 mx-2" />
-                    <span className="text-xs text-gray-400 font-mono tracking-wide">{car.vin}</span>
+                    <div className={cn("h-4 w-px mx-2", isMSeries ? "bg-gray-800" : "bg-gray-200")} />
+                    {totalAvailable > 1 ? (
+                        <div className="flex items-center gap-2">
+                            <span className={cn("text-xs font-bold uppercase tracking-wider", isMSeries ? "text-white" : "text-gray-900")}>{totalAvailable} Dostępnych</span>
+                            <span className="text-xs text-gray-300">|</span>
+                            {/* Select styling simplified for now */}
+                            <select className={cn("text-xs font-mono bg-transparent border-none outline-none cursor-pointer hover:text-current", isMSeries ? "text-gray-400 hover:text-white" : "text-gray-400 hover:text-black")}>
+                                <option className="text-black">Zobacz VIN-y ({totalAvailable})</option>
+                                {siblings.map(s => (
+                                    <option key={s.vin} disabled className="text-black">
+                                        {s.vin} {s.status_code > 190 ? '✅' : '⏳'}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    ) : (
+                        <span className="text-xs text-gray-400 font-mono tracking-wide">{car.vin}</span>
+                    )}
+
+                    {/* M Logo in Nav if M Series */}
+                    {isMSeries && (
+                        <div className="ml-auto flex gap-1">
+                            <div className="w-1 h-3 bg-[#53A0DE] -skew-x-12" />
+                            <div className="w-1 h-3 bg-[#02256E] -skew-x-12" />
+                            <div className="w-1 h-3 bg-[#E40424] -skew-x-12" />
+                        </div>
+                    )}
                 </div>
             </nav>
 
@@ -249,67 +316,71 @@ export default async function CarPage({ params }: PageProps) {
                     <CarGallery
                         modelName={modelName}
                         images={car.images}
+                        isDark={isMSeries}
                     />
 
                     {/* Accordions - Desktop/Tablet Position (between gallery and options) */}
-                    <div className="hidden lg:block mt-16 space-y-px border-t border-gray-100 pt-6">
-                        <SpecsAccordion title="Dane techniczne">
-                            <div className="py-4 text-sm text-gray-600 space-y-2">
-                                <div className="flex justify-between py-2 border-b border-gray-50">
+                    <div className={cn("hidden lg:block mt-16 space-y-px border-t pt-6", theme.border)}>
+                        <SpecsAccordion title="Dane techniczne" className={theme.border} titleClassName={theme.accordionTitle}>
+                            <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
+                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Moc</span>
-                                    <span className="font-medium text-black">{enrichedCar.power} KM</span>
+                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.power} KM</span>
                                 </div>
-                                <div className="flex justify-between py-2 border-b border-gray-50">
+
+                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Przyspieszenie 0-100 km/h</span>
-                                    <span className="font-medium text-black">{enrichedCar.acceleration} s</span>
+                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.acceleration} s</span>
                                 </div>
-                                <div className="flex justify-between py-2 border-b border-gray-50">
+                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Rodzaj paliwa</span>
-                                    <span className="font-medium text-black">{enrichedCar.fuel_type}</span>
+                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.fuel_type}</span>
                                 </div>
-                                <div className="flex justify-between py-2 border-b border-gray-50">
+                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Rodzaj napędu</span>
-                                    <span className="font-medium text-black">
+                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>
                                         {dictionaries.drivetrain[car.drivetrain || '']?.name || car.drivetrain}
                                     </span>
                                 </div>
-                                <div className="flex justify-between py-2 border-b border-gray-50">
+                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Prędkość maksymalna</span>
-                                    <span className="font-medium text-black">{enrichedCar.max_speed} km/h</span>
+                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.max_speed} km/h</span>
                                 </div>
-                                <div className="flex justify-between py-2 border-b border-gray-50">
+                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Pojemność bagażnika</span>
-                                    <span className="font-medium text-black">{enrichedCar.trunk_capacity} l</span>
+                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.trunk_capacity} l</span>
                                 </div>
                             </div>
                         </SpecsAccordion>
 
-                        <SpecsAccordion title="Seria i Nadwozie">
-                            <div className="py-4 text-sm text-gray-600 space-y-2">
-                                <div className="flex justify-between py-2 border-b border-gray-50">
+                        <SpecsAccordion title="Seria i Nadwozie" className={theme.border} titleClassName={theme.accordionTitle}>
+                            <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
+                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
+                                    <span>Rok produkcji</span>
+                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>
+                                        {car.production_date ? new Date(car.production_date).getFullYear() : '2024'}
+                                    </span>
+                                </div>
+                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Seria</span>
-                                    <span className="font-medium text-black">{enrichedCar.series}</span>
+                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.series}</span>
                                 </div>
-                                <div className="flex justify-between py-2 border-b border-gray-50">
+                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Typ nadwozia</span>
-                                    <span className="font-medium text-black">{enrichedCar.body_type}</span>
-                                </div>
-                                <div className="flex justify-between py-2 border-b border-gray-50">
-                                    <span>Kod modelu</span>
-                                    <span className="font-medium text-black">{enrichedCar.model_code}</span>
+                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.body_type}</span>
                                 </div>
                             </div>
                         </SpecsAccordion>
 
-                        <SpecsAccordion title="Tapicerka i kolor">
-                            <div className="py-4 text-sm text-gray-600 space-y-2">
-                                <div className="flex justify-between py-2 border-b border-gray-50">
+                        <SpecsAccordion title="Tapicerka i kolor" className={theme.border} titleClassName={theme.accordionTitle}>
+                            <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
+                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Kolor</span>
-                                    <span className="font-medium text-black">{colorName}</span>
+                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{colorName}</span>
                                 </div>
-                                <div className="flex justify-between py-2 border-b border-gray-50">
+                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Tapicerka</span>
-                                    <span className="font-medium text-black">{upholsteryName}</span>
+                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{upholsteryName}</span>
                                 </div>
                             </div>
                         </SpecsAccordion>
@@ -317,7 +388,7 @@ export default async function CarPage({ params }: PageProps) {
 
                     {/* Options List - Desktop Position */}
                     <div className="hidden lg:block mt-16 max-h-[800px] overflow-y-auto pr-4 -mr-4">
-                        <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} />
+                        <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} />
                     </div>
                 </div>
 
@@ -328,37 +399,44 @@ export default async function CarPage({ params }: PageProps) {
                         {/* Header Info */}
                         <div>
                             <div className="flex items-center gap-3 mb-4">
-                                {isSold && (
+                                {showSold && (
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-200 text-gray-600 text-[10px] font-bold uppercase tracking-wider rounded-sm">
                                         Sprzedany
                                     </span>
                                 )}
 
-                                {!isSold && isReady && (
+                                {showReady && (
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-wider rounded-sm">
                                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                                         Dostępny od ręki
                                     </span>
                                 )}
 
-                                {!isSold && isReserved && (
+                                {showReserved && (
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-50 text-yellow-700 text-[10px] font-bold uppercase tracking-wider rounded-sm">
                                         <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" />
                                         Zarezerwowany
                                     </span>
                                 )}
+
+                                {/* Available Count Badge */}
+                                {totalAvailable > 1 && (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider rounded-sm border border-blue-100">
+                                        {totalAvailable} szt. dostępnych
+                                    </span>
+                                )}
                             </div>
 
-                            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 leading-[1.1] mb-2">
+                            <h1 className={cn("text-4xl md:text-5xl font-bold tracking-tight leading-[1.1] mb-2", theme.text)}>
                                 {modelName}
                             </h1>
-                            <p className="text-gray-500 text-lg font-light">
+                            <p className={cn("text-lg font-light", theme.subtext)}>
                                 {colorName}
                             </p>
 
                             {/* Car Variants (Config Twins) */}
                             {variants.length > 0 && (
-                                <div className="mt-8 pt-6 border-t border-gray-100">
+                                <div className={cn("mt-8 pt-6 border-t", theme.border)}>
                                     <h3 className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-4 italic">Sprawdź inne dostępne kolorystyki:</h3>
                                     <div className="flex flex-col gap-2">
                                         {variants.map(v => {
@@ -374,7 +452,10 @@ export default async function CarPage({ params }: PageProps) {
                                                     key={v.vin}
                                                     replace
                                                     href={`/cars/${v.vin}`}
-                                                    className="group flex items-center gap-3 px-4 py-3 bg-white border border-gray-100 rounded-sm hover:border-black hover:shadow-sm transition-all"
+                                                    className={cn(
+                                                        "group flex items-center gap-3 px-4 py-3 border rounded-sm transition-all",
+                                                        isMSeries ? "bg-[#1a1a1a] border-gray-800 hover:border-blue-500" : "bg-white border-gray-100 hover:border-black hover:shadow-sm"
+                                                    )}
                                                 >
                                                     {/* Image Previews */}
                                                     <div className="flex gap-2 shrink-0">
@@ -400,7 +481,7 @@ export default async function CarPage({ params }: PageProps) {
 
                                                     {/* Text Info */}
                                                     <div className="flex flex-col">
-                                                        <span className="text-[11px] font-bold text-gray-900 group-hover:text-black">
+                                                        <span className={cn("text-[11px] font-bold group-hover:text-blue-500", isMSeries ? "text-gray-200" : "text-gray-900 group-hover:text-black")}>
                                                             {vColor}
                                                         </span>
                                                         <span className="text-[10px] text-gray-500">
@@ -418,67 +499,70 @@ export default async function CarPage({ params }: PageProps) {
 
 
                         {/* Price Card & Service Configurator */}
-                        <DynamicPricingSection car={car} seriesCode={car.body_group || ''} />
+                        <DynamicPricingSection car={car} seriesCode={car.body_group || ''} isDark={isMSeries} />
 
                         {/* Accordions - Mobile Only */}
                         <div className="lg:hidden space-y-px border-t border-gray-100 pt-6">
-                            <SpecsAccordion title="Dane techniczne">
-                                <div className="py-4 text-sm text-gray-600 space-y-2">
-                                    <div className="flex justify-between py-2 border-b border-gray-50">
+                            <SpecsAccordion title="Dane techniczne" className={theme.border} titleClassName={theme.accordionTitle}>
+                                <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
+                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Moc</span>
-                                        <span className="font-medium text-black">{enrichedCar.power} KM</span>
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.power} KM</span>
                                     </div>
-                                    <div className="flex justify-between py-2 border-b border-gray-50">
+                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Przyspieszenie 0-100 km/h</span>
-                                        <span className="font-medium text-black">{enrichedCar.acceleration} s</span>
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.acceleration} s</span>
                                     </div>
-                                    <div className="flex justify-between py-2 border-b border-gray-50">
+                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Rodzaj paliwa</span>
-                                        <span className="font-medium text-black">{enrichedCar.fuel_type}</span>
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.fuel_type}</span>
                                     </div>
-                                    <div className="flex justify-between py-2 border-b border-gray-50">
+                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Rodzaj napędu</span>
-                                        <span className="font-medium text-black">
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>
                                             {dictionaries.drivetrain[car.drivetrain || '']?.name || car.drivetrain}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between py-2 border-b border-gray-50">
+                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Prędkość maksymalna</span>
-                                        <span className="font-medium text-black">{enrichedCar.max_speed} km/h</span>
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.max_speed} km/h</span>
                                     </div>
-                                    <div className="flex justify-between py-2 border-b border-gray-50">
+                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Pojemność bagażnika</span>
-                                        <span className="font-medium text-black">{enrichedCar.trunk_capacity} l</span>
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.trunk_capacity} l</span>
                                     </div>
                                 </div>
                             </SpecsAccordion>
 
-                            <SpecsAccordion title="Seria i Nadwozie">
-                                <div className="py-4 text-sm text-gray-600 space-y-2">
-                                    <div className="flex justify-between py-2 border-b border-gray-50">
+                            <SpecsAccordion title="Seria i Nadwozie" className={theme.border} titleClassName={theme.accordionTitle}>
+                                <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
+                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
+                                        <span>Rok produkcji</span>
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>
+                                            {car.production_date ? new Date(car.production_date).getFullYear() : '2024'}
+                                        </span>
+                                    </div>
+                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Seria</span>
-                                        <span className="font-medium text-black">{enrichedCar.series}</span>
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.series}</span>
                                     </div>
-                                    <div className="flex justify-between py-2 border-b border-gray-50">
+                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Typ nadwozia</span>
-                                        <span className="font-medium text-black">{enrichedCar.body_type}</span>
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.body_type}</span>
                                     </div>
-                                    <div className="flex justify-between py-2 border-b border-gray-50">
-                                        <span>Kod modelu</span>
-                                        <span className="font-medium text-black">{enrichedCar.model_code}</span>
-                                    </div>
+                                    {/* The following div for "Kod modelu" was removed as per instruction */}
                                 </div>
                             </SpecsAccordion>
 
-                            <SpecsAccordion title="Tapicerka i kolor">
-                                <div className="py-4 text-sm text-gray-600 space-y-2">
-                                    <div className="flex justify-between py-2 border-b border-gray-50">
+                            <SpecsAccordion title="Tapicerka i kolor" className={theme.border} titleClassName={theme.accordionTitle}>
+                                <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
+                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Kolor</span>
-                                        <span className="font-medium text-black">{colorName}</span>
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{colorName}</span>
                                     </div>
-                                    <div className="flex justify-between py-2 border-b border-gray-50">
+                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Tapicerka</span>
-                                        <span className="font-medium text-black">{upholsteryName}</span>
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{upholsteryName}</span>
                                     </div>
                                 </div>
                             </SpecsAccordion>
@@ -491,10 +575,10 @@ export default async function CarPage({ params }: PageProps) {
 
                 {/* Mobile Options List (Bottom) */}
                 <div className="lg:hidden mt-2 pt-6 border-t border-gray-100 px-4">
-                    <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} />
+                    <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} />
                 </div>
 
-            </div>
+            </div >
         </main >
     );
 }

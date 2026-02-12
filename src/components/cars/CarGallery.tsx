@@ -8,9 +8,10 @@ import { FullScreenGallery } from './FullScreenGallery';
 interface CarGalleryProps {
     modelName: string;
     images?: { url: string; sort_order: number }[];
+    isDark?: boolean;
 }
 
-export function CarGallery({ modelName, images = [] }: CarGalleryProps) {
+export function CarGallery({ modelName, images = [], isDark = false }: CarGalleryProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFullScreen, setIsFullScreen] = useState(false);
 
@@ -34,7 +35,10 @@ export function CarGallery({ modelName, images = [] }: CarGalleryProps) {
             <div className="flex flex-col gap-4">
                 {/* Main Image */}
                 <div
-                    className="relative aspect-[4/3] bg-white overflow-hidden group rounded-sm cursor-zoom-in"
+                    className={cn(
+                        "relative aspect-[4/3] overflow-hidden group rounded-sm cursor-zoom-in",
+                        isDark ? "bg-[#0f0f0f]" : "bg-white"
+                    )}
                     onClick={() => hasImages && setIsFullScreen(true)}
                 >
 
@@ -105,8 +109,11 @@ export function CarGallery({ modelName, images = [] }: CarGalleryProps) {
                                 key={idx}
                                 onClick={() => setCurrentIndex(idx)}
                                 className={cn(
-                                    "relative flex-shrink-0 w-24 h-16 bg-gray-100 rounded-sm overflow-hidden border-2 transition-all",
-                                    currentIndex === idx ? "border-blue-600 opacity-100" : "border-transparent opacity-60 hover:opacity-100"
+                                    "relative flex-shrink-0 w-24 h-16 rounded-sm overflow-hidden border-2 transition-all",
+                                    isDark ? "bg-[#1a1a1a]" : "bg-gray-100",
+                                    currentIndex === idx
+                                        ? "border-blue-600 opacity-100"
+                                        : (isDark ? "border-transparent opacity-60 hover:opacity-100 invert-1" : "border-transparent opacity-60 hover:opacity-100")
                                 )}
                             >
                                 <img src={img.url} alt="" className="w-full h-full object-cover" />

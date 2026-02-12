@@ -220,6 +220,52 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                 <h3 className="text-lg font-light text-gray-900">{title}</h3>
                 <div className="flex items-center gap-4">
                     <div className="relative">
+                        <input
+                            type="file"
+                            id={`file-upload-${type}`}
+                            className="hidden"
+                            accept=".xlsx, .xls"
+                            onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+
+                                const formData = new FormData();
+                                formData.append('file', file);
+                                formData.append('type', type);
+
+                                // Use isSaving for loading state
+                                setIsSaving(true);
+                                try {
+                                    const res = await fetch('/api/admin/dictionary/upload-spreadsheet', {
+                                        method: 'POST',
+                                        body: formData,
+                                    });
+                                    if (!res.ok) throw new Error('Upload failed');
+                                    const result = await res.json();
+                                    alert(`Successfully processed ${result.count} items.`);
+                                    fetchItems();
+                                } catch (err: any) {
+                                    alert('Error uploading spreadsheet: ' + err.message);
+                                } finally {
+                                    setIsSaving(false);
+                                    // Reset input
+                                    e.target.value = '';
+                                }
+                            }}
+                        />
+                        <label
+                            htmlFor={`file-upload-${type}`}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-sm cursor-pointer hover:bg-gray-800 transition-colors mr-2",
+                                isSaving && "opacity-50 cursor-not-allowed pointer-events-none"
+                            )}
+                        >
+                            {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Edit className="w-3 h-3" />}
+                            Import Excel
+                        </label>
+                    </div>
+
+                    <div className="relative">
                         <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2 top-1/2 -translate-y-1/2" />
                         <input
                             type="text"
@@ -577,6 +623,11 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                         ) : (
                                             <div className="flex flex-col">
                                                 <span>{item.data.name}</span>
+                                                {item.data.group && (
+                                                    <span className="text-xs text-blue-600 font-medium bg-blue-50 px-1.5 py-0.5 rounded-sm self-start mt-1">
+                                                        {item.data.group}
+                                                    </span>
+                                                )}
                                                 {type === 'upholstery' && item.data.type && (
                                                     <span className="text-xs text-gray-400 mt-0.5">{item.data.type}</span>
                                                 )}

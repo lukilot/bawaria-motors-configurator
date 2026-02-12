@@ -37,6 +37,10 @@ export interface StockCar {
   // Manual / System Fields
   visibility: Visibility;
   images?: { url: string; id: string; sort_order: number }[];
+
+  // Grouping fields (virtual)
+  available_count?: number;
+  sibling_vins?: string[];
 }
 
 export type ImportResult = {

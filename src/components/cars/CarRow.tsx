@@ -24,6 +24,7 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
     const isReserved = !!reservationStr && reservationStr.toLowerCase() !== 'rezerwuj';
     // Available if status > 190 (regardless of reservation, but logic below handles display)
     const isReady = car.status_code > 190;
+    const isMSeries = (car.series || '').includes('Seria M');
 
     const hasImages = car.images && car.images.length > 0;
 
@@ -72,17 +73,21 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
 
     return (
         <div className={cn(
-            "group bg-white border border-gray-100 rounded-sm overflow-hidden hover:shadow-lg transition-all duration-300",
+            "group rounded-sm overflow-hidden transition-all duration-300 relative",
+            isMSeries
+                ? "bg-[#1a1a1a] border border-[#333] hover:border-[#53A0DE]/30 hover:shadow-[0_20px_50px_-12px_rgba(83,160,222,0.2)]"
+                : "bg-white border border-gray-100 hover:shadow-lg",
             isSold && "opacity-60 grayscale-[0.5] hover:shadow-none hover:opacity-60"
         )}>
+            {/* Custom M Hover Gradient Shadow (Blur) - Subtle for List View */}
+            {isMSeries && (
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#53A0DE] via-[#02256E] to-[#E40424] opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500 -z-10" />
+            )}
+
             <Link href={`/cars/${encodeURIComponent(car.vin)}`} className={cn("flex flex-col md:flex-row h-full", isSold && "cursor-default pointer-events-none")}>
 
                 {/* Left: Images (Grid) */}
-                {/* Desktop: 1 Main + 3 Small below? Or Porsche style is 1 big left, 3 small below it? 
-                   Actually Porsche style often has a slider or grid. 
-                   User said: "1 main photo and three photos below using grid" 
-                */}
-                <div className="w-full md:w-[45%] lg:w-[40%] bg-white flex flex-col">
+                <div className={cn("w-full md:w-[45%] lg:w-[40%] flex flex-col", isMSeries ? (hasImages ? "bg-[#0f0f0f]" : "bg-gray-200") : "bg-white")}>
                     {/* Main Image */}
                     <div className="relative aspect-[4/3] md:aspect-[16/10] overflow-hidden">
                         {hasImages ? (
@@ -106,19 +111,27 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                                 </div>
                             </>
                         )}
+                        {/* M Badge on List View */}
+                        {isMSeries && (
+                            <div className="absolute top-0 right-0 z-20">
+                                <div className="relative bg-black/80 backdrop-blur-md text-white px-3 py-1 flex items-center gap-2 skew-x-[-12deg] mr-[-10px] mt-2 translate-x-2">
+                                    <span className="text-[9px] font-bold uppercase tracking-widest skew-x-[12deg] pr-2">M Power</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* 3 Thumbnails Row */}
                     {hasImages && displayImages.length > 1 && (
-                        <div className="grid grid-cols-3 h-20 md:h-24 border-t border-gray-100">
+                        <div className={cn("grid grid-cols-3 h-20 md:h-24 border-t", isMSeries ? "border-gray-800" : "border-gray-100")}>
                             {/* Slot 1 */}
-                            <div className="relative border-r border-gray-100 overflow-hidden">
+                            <div className={cn("relative border-r overflow-hidden", isMSeries ? "border-gray-800" : "border-gray-100")}>
                                 {displayImages[1] && (
                                     <img src={displayImages[1].url} className="w-full h-full object-cover" alt="" />
                                 )}
                             </div>
                             {/* Slot 2 */}
-                            <div className="relative border-r border-gray-100 overflow-hidden">
+                            <div className={cn("relative border-r overflow-hidden", isMSeries ? "border-gray-800" : "border-gray-100")}>
                                 {displayImages[2] && (
                                     <img src={displayImages[2].url} className="w-full h-full object-cover" alt="" />
                                 )}
@@ -128,21 +141,19 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                                 {displayImages[3] && (
                                     <img src={displayImages[3].url} className="w-full h-full object-cover" alt="" />
                                 )}
-                                {/* Optional 'Interior' label? */}
                             </div>
                         </div>
                     )}
                 </div>
 
                 {/* Right: Details */}
-                {/* Right: Details */}
-                <div className="flex-1 p-5 flex flex-col">
+                <div className="flex-1 p-5 flex flex-col relative">
 
                     {/* Header */}
                     <div>
                         <div className="flex justify-between items-start mb-2">
                             <div>
-                                <h3 className="text-2xl font-bold tracking-tight text-gray-900 group-hover:text-blue-700 transition-colors">
+                                <h3 className={cn("text-2xl font-bold tracking-tight transition-colors", isMSeries ? "text-white group-hover:text-blue-400" : "text-gray-900 group-hover:text-blue-700")}>
                                     {displayedModelName}
                                 </h3>
                                 <div className="mt-0">
@@ -160,7 +171,12 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                                 )}
 
                                 {!isSold && isReady && (
-                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-wider rounded-sm">
+                                    <span className={cn(
+                                        "inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm",
+                                        isMSeries
+                                            ? "bg-black/40 text-green-400 border border-green-900/50"
+                                            : "bg-green-50 text-green-700"
+                                    )}>
                                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shrink-0" />
                                         Dostępny od ręki
                                     </span>
@@ -172,49 +188,59 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                                         Zarezerwowany
                                     </span>
                                 )}
+
+                                {/* Available Count Badge */}
+                                {(car.available_count || 0) > 1 && (
+                                    <span className={cn(
+                                        "inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm border",
+                                        isMSeries ? "bg-white/10 text-gray-300 border-white/10" : "bg-blue-50 text-blue-700 border-blue-100"
+                                    )}>
+                                        {car.available_count} szt. dostępnych
+                                    </span>
+                                )}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-y-3 gap-x-8 mt-4 text-sm text-gray-600">
+                        <div className={cn("grid grid-cols-2 gap-y-3 gap-x-8 mt-4 text-sm", isMSeries ? "text-gray-400" : "text-gray-600")}>
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold italic">Lakier</span>
-                                <span className="font-medium text-gray-900 truncate text-xs" title={car.color_code}>
+                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Lakier</span>
+                                <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")} title={car.color_code}>
                                     {dictionaries.color[car.color_code]?.name || car.color_code}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold italic">Tapicerka</span>
-                                <span className="font-medium text-gray-900 truncate text-xs" title={car.upholstery_code}>
+                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Tapicerka</span>
+                                <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")} title={car.upholstery_code}>
                                     {dictionaries.upholstery[car.upholstery_code]?.name || car.upholstery_code}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold italic">Rok produkcji</span>
-                                <span className="font-medium text-gray-900 text-xs">
+                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Rok produkcji</span>
+                                <span className={cn("font-medium text-xs", isMSeries ? "text-gray-200" : "text-gray-900")}>
                                     {car.production_date ? new Date(car.production_date).getFullYear() : '2024'}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold italic">Moc</span>
-                                <span className="font-medium text-gray-900 truncate text-xs">
+                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Moc</span>
+                                <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")}>
                                     {car.power || '-'}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold italic">Rodzaj paliwa</span>
-                                <span className="font-medium text-gray-900 truncate text-xs">
+                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Rodzaj paliwa</span>
+                                <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")}>
                                     {car.fuel_type || '-'}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold italic">Napęd</span>
-                                <span className="font-medium text-gray-900 text-xs">
+                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Napęd</span>
+                                <span className={cn("font-medium text-xs", isMSeries ? "text-gray-200" : "text-gray-900")}>
                                     {dictionaries.drivetrain[car.drivetrain || '']?.name || car.drivetrain || '-'}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold italic">Typ nadwozia</span>
-                                <span className="font-medium text-gray-900 truncate text-xs">
+                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Typ nadwozia</span>
+                                <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")}>
                                     {car.body_type || '-'}
                                 </span>
                             </div>
@@ -222,7 +248,7 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                     </div>
 
                     {/* Footer: Price & CTA */}
-                    <div className="mt-auto flex items-end justify-between border-t border-gray-50 pt-4">
+                    <div className={cn("mt-auto flex items-end justify-between border-t pt-4", isMSeries ? "border-gray-800" : "border-gray-50")}>
                         <div className="flex flex-col">
                             {car.list_price > 0 && (
                                 car.special_price && car.special_price < car.list_price ? (
@@ -230,12 +256,12 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                                         <span className="text-xs text-gray-400 line-through mb-0.5">
                                             {formatPrice(car.list_price)}
                                         </span>
-                                        <span className="text-2xl font-bold text-gray-900 tracking-tight">
+                                        <span className={cn("text-2xl font-bold tracking-tight", isMSeries ? "text-white" : "text-gray-900")}>
                                             {formatPrice(car.special_price)}
                                         </span>
                                     </>
                                 ) : (
-                                    <span className="text-2xl font-bold text-gray-900 tracking-tight">
+                                    <span className={cn("text-2xl font-bold tracking-tight", isMSeries ? "text-white" : "text-gray-900")}>
                                         {formatPrice(car.list_price)}
                                     </span>
                                 )
@@ -244,7 +270,7 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
 
                         <div className={cn(
                             "flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all",
-                            isSold ? "text-gray-400 cursor-not-allowed" : "text-black group-hover:text-blue-700"
+                            isSold ? "text-gray-400 cursor-not-allowed" : (isMSeries ? "text-gray-400 group-hover:text-blue-400" : "text-black group-hover:text-blue-700")
                         )}>
                             {isSold ? (
                                 <span>Sprzedany</span>
@@ -256,6 +282,15 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                             )}
                         </div>
                     </div>
+
+                    {/* M Bottom Border */}
+                    {isMSeries && (
+                        <div className="absolute bottom-0 left-0 w-full h-1 flex">
+                            <div className="w-1/3 bg-[#53A0DE]" />
+                            <div className="w-1/3 bg-[#02256E]" />
+                            <div className="w-1/3 bg-[#E40424]" />
+                        </div>
+                    )}
                 </div>
 
             </Link>

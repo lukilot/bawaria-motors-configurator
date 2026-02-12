@@ -8,18 +8,20 @@ interface SpecsAccordionProps {
     title: string;
     defaultOpen?: boolean;
     children: React.ReactNode;
+    className?: string;
+    titleClassName?: string;
 }
 
-export function SpecsAccordion({ title, defaultOpen = false, children }: SpecsAccordionProps) {
+export function SpecsAccordion({ title, defaultOpen = false, children, className, titleClassName }: SpecsAccordionProps) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className="border-b border-gray-100 last:border-0">
+        <div className={cn("border-b border-gray-100 last:border-0", className)}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center justify-between w-full py-6 group text-left"
             >
-                <span className="text-lg font-light text-gray-900 group-hover:text-black transition-colors">
+                <span className={cn("text-lg font-light text-gray-900 group-hover:text-black transition-colors", titleClassName)}>
                     {title}
                 </span>
                 <ChevronDown

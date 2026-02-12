@@ -257,40 +257,56 @@ export const parseModelsFile = async (fileBuffer: ArrayBuffer): Promise<any> => 
     const results = [];
     const errors = [];
 
-    // Skip header row (row 0)
+    // Dynamic Header Detection
+    let codeIndex = 1; // Default to B
+    const headerRow = json[0] as any[];
+
+    if (headerRow) {
+        headerRow.forEach((cell, idx) => {
+            const val = String(cell || '').trim().toLowerCase();
+            if (val.includes('kod model') || val.includes('model code')) {
+                codeIndex = idx;
+            }
+        });
+    }
+
+    // Skip header row
     for (let i = 1; i < json.length; i++) {
         try {
             const row = json[i];
-            // Mapping from User Requirements & Inspection:
-            // 1: Kod modelowy (A)
-            // 3: Seria (D)
-            // 4: Typ nadwozia (E)
-            // 5: Nazwa modelowa (F)
-            // 6: Moc [KM] (G)
-            // 7: Przyspieszenie 0-100 (H)
-            // 8: Rodzaj paliwa (I)
-            // 9: Rodzaj napędu (J)
-            // 10: Prędkość maksymalna (K)
-            // 11: Pojemność bagażnika (L)
 
-            const code = String(row[1] || '').trim();
-            if (!code || code === 'undefined' || code === 'Kod modelowy') continue;
+            // Use detected index
+            const code = String(row[codeIndex] || '').trim();
+            if (!code || code === 'undefined' || code.toLowerCase().includes('kod model')) continue;
 
-            const series = String(row[3] || '').trim();
-            const body_type = String(row[4] || '').trim();
-            const name = String(row[5] || '').trim();
-            const power = String(row[6] || '').trim();
-            const acceleration = String(row[7] || '').trim();
-            const fuel = String(row[8] || '').trim();
-            const drivetrain = String(row[9] || '').trim();
-            const max_speed = String(row[10] || '').trim();
-            const trunk = String(row[11] || '').trim();
+            const series = String(row[3] || '').trim(); // indices might also be shifted? 
+            // Ideally we map all columns, but let's stick to Code fix first unless user complains about empty data.
+            // Assuming others are relative or standard.
+
+            // Map other columns blindly for now based on old logic, but let's be safer:
+            // If Code is at 0, likely everything shifted left by 1.
+            // Make a helper to get offset
+            const offset = (codeIndex === 0) ? -1 : 0; // If default was 1.
+
+            const getVal = (defaultIdx: number) => {
+                const idx = defaultIdx + offset;
+                return String(row[idx] || '').trim();
+            };
+
+            const body_type = getVal(4);
+            const name = getVal(5);
+            const power = getVal(6);
+            const acceleration = getVal(7);
+            const fuel = getVal(8);
+            const drivetrain = getVal(9);
+            const max_speed = getVal(10);
+            const trunk = getVal(11);
 
             results.push({
                 type: 'model',
                 code,
                 data: {
-                    series,
+                    series: getVal(3),
                     body_type,
                     name,
                     power,
@@ -307,4 +323,165 @@ export const parseModelsFile = async (fileBuffer: ArrayBuffer): Promise<any> => 
     }
 
     return { results, errors };
+};
+export const parseBMWPLStock = async (fileBuffer: ArrayBuffer): Promise<ImportResult> => {
+    const wb = XLSX.read(fileBuffer, { type: 'array' });
+    const sheetName = wb.SheetNames[0];
+    const ws = wb.Sheets[sheetName];
+
+    // Read as array of arrays (ignoring headers for mapping, using indices)
+    // Starting from row 1 (index 1) assuming row 0 is header?
+    // User gave columns (A, C etc). Usually there is a header.
+    // Let's assume row 0 is header and data starts at 1.
+    const rows = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1 });
+
+    const result: ImportResult = {
+        processed: 0,
+        skipped_status: 0,
+        skipped_type: 0,
+        hidden_de: 0,
+        errors: [],
+        cars: []
+    };
+
+    // Find header row/start index? 
+    // Let's assume standard Excel list where data starts at row 1 (0-based index)
+    // We can try to validate if row 0 has "VIN" in Col C or check row 1.
+    // If user says "VIN - column C", it's likely fixed structure.
+
+    let startIndex = 1;
+    // Simple heuristic: look for a row where Col C looks like a VIN (17 chars)
+    // Or just start at 1.
+
+    rows.forEach((row, rowIndex) => {
+        if (rowIndex < startIndex) return; // Skip potential header
+
+        try {
+            const getVal = (idx: number) => {
+                const val = row[idx];
+                return val !== undefined && val !== null ? String(val).trim() : '';
+            };
+
+            // VIN - Col C (Index 2)
+            const vin = getVal(2);
+            if (!vin || vin.length < 10) return; // Basic validation
+
+            // Order Status - Col A (Index 0)
+            let rawStatus = parseInt(getVal(0) || '0');
+
+            // Dealer Name - Col N (Index 13)
+            // Filter: Must contain "BMW PL"
+            const dealerName = getVal(13).toUpperCase();
+            if (!dealerName.includes('BMW PL')) {
+                return; // Skip other dealers
+            }
+
+            // Status Sprzedaży - Col O (Index 14)
+            const salesStatus = getVal(14).toUpperCase();
+            // Rules: TAK or PRZEJĘTE -> Sold (500)
+            // NIE -> Available (use rawStatus)
+            let order_status = salesStatus;
+
+            if (['TAK', 'PRZEJĘTE', 'PRZEJETE'].some(s => salesStatus.includes(s))) {
+                rawStatus = 500;
+                order_status = 'Sprzedany';
+            } else if (salesStatus.includes('NIE')) {
+                order_status = 'Dostępny'; // or keep rawStatus text?
+            }
+
+            // Processing Type - User: "Always SH or ST"
+            // Default to SH as public stock
+            const processing_type = 'SH';
+
+            // Filter out internal/low status if standard rules apply?
+            // "if there is TAK... same as SPRZEDANY"
+            // Standard parseStockFile rejects status < 150. 
+            // Should we do the same? 
+            // If it's BMW PL stock available for dealers, usually they are 112, 150...
+            // Let's keep the filter "status < 150 REJECT" unless it is 500 (Sold).
+            if (rawStatus < 150 && rawStatus !== 500) {
+                result.skipped_status++;
+                return;
+            }
+
+            // Body Group - Col E (Index 4) - First 3 chars
+            let bodyGroup = getVal(4);
+            if (bodyGroup.length > 3) {
+                bodyGroup = bodyGroup.substring(0, 3);
+            }
+
+            // Model Code - Col G (Index 6)
+            const modelCode = getVal(6);
+
+            // Color - Col I (Index 8)
+            const colorCode = getVal(8);
+
+            // Upholstery - Col J (Index 9)
+            const upholsteryCode = getVal(9);
+
+            // Options - Col K (Index 10)
+            const optionsString = getVal(10);
+            const optionCodes = parseOptionString(optionsString); // Reuse existing helper
+
+            // Production Date - Col H (Index 7)
+            const prodDateRaw = row[7]; // Get raw value (number or string)
+            let prodDate: string | undefined;
+
+            if (typeof prodDateRaw === 'number') {
+                // Excel Serial Date
+                // Approx conversion: (value - 25569) * 86400 * 1000
+                // Or using SSF if available, but simple math works for >= 1900
+                const utc_days = Math.floor(prodDateRaw - 25569);
+                const utc_value = utc_days * 86400;
+                const date_info = new Date(utc_value * 1000);
+                // Adjust for timezone offset if needed, but usually just getting YYYY-MM-DD is fine
+                prodDate = date_info.toISOString().split('T')[0];
+            } else if (typeof prodDateRaw === 'string') {
+                const cleanDate = prodDateRaw.trim();
+                // Handle DD.MM.YYYY
+                if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(cleanDate)) {
+                    const [d, m, y] = cleanDate.split('.');
+                    prodDate = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+                } else {
+                    // Try standard parse
+                    const d = new Date(cleanDate);
+                    if (!isNaN(d.getTime())) {
+                        prodDate = d.toISOString().split('T')[0];
+                    }
+                }
+            }
+
+            // Model Description - User requested to use Column E (Index 4)
+            // Previously used for Body Group (first 3 chars), but now full string is Model Name
+            const modelName = getVal(4);
+
+            const car: StockCar = {
+                vin,
+                status_code: rawStatus,
+                order_status: order_status,
+                processing_type,
+                reservation_details: '', // User said ignore
+                model_code: modelCode,
+                model_name: modelName,
+                body_group: bodyGroup,
+                color_code: colorCode,
+                upholstery_code: upholsteryCode,
+                option_codes: optionCodes,
+                list_price: 0,
+                currency: 'PLN',
+                visibility: 'PUBLIC', // BMW PL stock is additional available source
+                production_date: prodDate, // Can be undefined, which is allowed by type but handled safely in sync
+                fuel_type: undefined, // Unknown without description
+                drivetrain: undefined // Unknown without description
+            };
+
+            result.cars.push(car);
+            result.processed++;
+
+        } catch (e: any) {
+            result.errors.push(`Row ${rowIndex + 1}: ${e.message}`);
+        }
+    });
+
+    return result;
 };

@@ -28,10 +28,19 @@ export function ModelUploader({ onComplete }: { onComplete: () => void }) {
             }
 
             setStatus('UPLOADING');
+
+            // Deduplicate results based on type + code (Last wins)
+            const uniqueResultsMap = new Map();
+            results.forEach((item: any) => {
+                const key = `${item.type}-${item.code}`;
+                uniqueResultsMap.set(key, item);
+            });
+            const uniqueResults = Array.from(uniqueResultsMap.values());
+
             // Chunked upsert to avoid large request body
             const chunkSize = 50;
-            for (let i = 0; i < results.length; i += chunkSize) {
-                const chunk = results.slice(i, i + chunkSize);
+            for (let i = 0; i < uniqueResults.length; i += chunkSize) {
+                const chunk = uniqueResults.slice(i, i + chunkSize);
                 const { error } = await supabase
                     .from('dictionaries')
                     .upsert(chunk, { onConflict: 'type,code' });
@@ -40,7 +49,7 @@ export function ModelUploader({ onComplete }: { onComplete: () => void }) {
             }
 
             setStatus('SUCCESS');
-            setResult({ count: results.length, errors });
+            setResult({ count: uniqueResults.length, errors });
             onComplete();
         } catch (e: any) {
             console.error(e);
@@ -61,7 +70,8 @@ export function ModelUploader({ onComplete }: { onComplete: () => void }) {
                 {status === 'SUCCESS' ? (
                     <div className="flex items-center gap-2 text-green-600 text-sm font-medium animate-in fade-in zoom-in">
                         <Check className="w-4 h-4" />
-                        Uploaded {result?.count} models
+                        Processed {result?.count} models.
+                        {result?.errors && result.errors.length === 0 && ' All good!'}
                     </div>
                 ) : (
                     <label className={cn(

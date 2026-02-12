@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ServicePackage, getServicePackages, getServicePrices } from '@/lib/service-packages';
 import { cn } from '@/lib/utils';
-import { Check, Loader2, Shield, Wrench, X, ChevronRight } from 'lucide-react';
+import { Shield, Wrench, X, Loader2 } from 'lucide-react';
 
 interface ServicePackageConfiguratorProps {
     currentCodes: string[];
@@ -11,6 +11,7 @@ interface ServicePackageConfiguratorProps {
     fuelType?: string; // e.g. 'Electric', 'Diesel'
     onPriceUpdate: (additionalCost: number) => void;
     onSelectionChange: (codes: string[]) => void;
+    isDark?: boolean;
 }
 
 export function ServicePackageConfigurator({
@@ -18,7 +19,8 @@ export function ServicePackageConfigurator({
     seriesCode,
     fuelType,
     onPriceUpdate,
-    onSelectionChange
+    onSelectionChange,
+    isDark = false
 }: ServicePackageConfiguratorProps) {
     const [packages, setPackages] = useState<ServicePackage[]>([]);
     const [prices, setPrices] = useState<Record<string, number>>({});
@@ -44,9 +46,6 @@ export function ServicePackageConfigurator({
             ]);
             setPackages(pkgData.filter(p => {
                 // Filter by vehicle_type
-                // If package says 'ELECTRIC', only show if fuelType is 'Electric'
-                // If package says 'ICE_PHEV', show if fuelType != 'Electric'
-                // If package says 'ALL', show always
                 const vType: string = (p as any).vehicle_type || 'ALL';
                 if (vType === 'ALL') return true;
 
@@ -61,7 +60,7 @@ export function ServicePackageConfigurator({
             setIsLoading(false);
         };
         loadData();
-    }, [seriesCode]);
+    }, [seriesCode, fuelType]);
 
     // Initialize selection based on currentCodes
     useEffect(() => {
@@ -119,16 +118,13 @@ export function ServicePackageConfigurator({
 
 
     if (isLoading) return <div className="py-8 text-center text-gray-300"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>;
-    // if (packages.length === 0) return null; // Keep showing even if empty? no.
 
     // Derived Data
     const baseBri = packages.find(p => p.type === 'BRI' && currentCodes.includes(p.code));
     const baseBriPrice = baseBri ? (prices[baseBri.id] || 0) : 0;
-    const showStandardBri = !baseBri;
 
     const baseBsi = packages.find(p => (p.type === 'BSI' || p.type === 'BSI_PLUS') && currentCodes.includes(p.code));
     const baseBsiPrice = baseBsi ? (prices[baseBsi.id] || 0) : 0;
-    const showStandardBsi = !baseBsi;
 
     const briPackages = packages.filter(p => p.type === 'BRI');
     const bsiPackages = packages.filter(p => p.type === 'BSI').sort((a, b) => a.duration_months - b.duration_months || a.mileage_limit - b.mileage_limit);
@@ -151,21 +147,17 @@ export function ServicePackageConfigurator({
 
     // Helper: Summary Tile Text Logic
     const getSummaryText = (code: string | null, baseCode: string | undefined, baseP: number) => {
-        // If included (selected == base) -> "Zmień pakiet"
-        // If upgrade -> Green Price
         const isBase = (code === baseCode) || (!code && !baseCode);
 
         if (isBase) return "Zmień pakiet";
 
         // Calculate diff
-        // We need to find the package for 'code' to get its price
         const pkg = packages.find(p => p.code === code);
         const currentP = pkg ? (prices[pkg.id] || 0) : 0;
 
         const diff = currentP - baseP;
 
         if (diff > 0) return `+ ${diff.toLocaleString()} PLN`;
-        // Should not happen if cheaper disabled, but just in case
         return "Zmień pakiet";
     };
 
@@ -184,7 +176,6 @@ export function ServicePackageConfigurator({
     ) => {
         const isStandard = pkg === null;
         const code = isStandard ? null : pkg.code;
-        // Fix: Use ID for price lookup
         const price = isStandard ? 0 : (prices[pkg!.id] || 0);
 
         if (!isStandard && price === undefined && code !== basePkgCode) return null;
@@ -248,82 +239,66 @@ export function ServicePackageConfigurator({
         );
     };
 
-    // Helper: Modal Wrapper
-    const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-2xl" }: { isOpen: boolean; onClose: () => void; title: string; children: React.ReactNode; maxWidth?: string }) => {
-        if (!isOpen) return null;
-        return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-
-                <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-                <div className={cn("relative bg-white rounded-lg shadow-2xl w-fit max-w-[95vw] sm:max-w-4xl max-h-[95vh] flex flex-col p-0", maxWidth)}>
-                    {/* Removed overflow-y-auto from main container, put it in content if needed, but we want NO scroll if possible. 
-                       Actually user said "nie będzie potrzeba scrollowania". So auto is fine, but we aim to fit.
-                       Removed p-6 to save space.
-                   */}
-                    <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-gray-50 shrink-0">
-                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">{title}</h3>
-                        <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition-colors"><X className="w-4 h-4 text-gray-500" /></button>
-                    </div>
-                    <div className="p-4 overflow-y-auto w-full">
-                        {children}
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-
     return (
-        <div className="mt-6 pt-6 border-t border-gray-100">
-            <div className="grid grid-cols-2 gap-3">
-                {/* BRI Summary Tile */}
-                <button
-                    onClick={() => setIsBriModalOpen(true)}
-                    className="group flex flex-col xl:flex-row items-center xl:items-start gap-2 p-2 bg-white border border-gray-100 rounded-sm hover:border-black hover:shadow-sm transition-all w-full text-left"
-                >
-                    <div className="w-10 h-10 shrink-0 bg-orange-50 rounded-sm flex items-center justify-center border border-orange-100 group-hover:border-orange-200">
-                        <Shield className="w-5 h-5 text-orange-500" />
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                        <span className="text-[9px] uppercase font-bold text-gray-400 mb-0.5 truncate w-full">Pakiet Naprawczy</span>
-                        <span className="text-xs font-bold text-gray-900 group-hover:text-black truncate w-full">
-                            {currentBriPkg ? `${(currentBriPkg.duration_months / 12)} ${(currentBriPkg.duration_months / 12) >= 2 && (currentBriPkg.duration_months / 12) <= 4 ? 'lata' : 'lat'} / ${currentBriPkg.mileage_limit.toLocaleString('de-DE')} km` : 'Standard 2 lata'}
-                        </span>
-                        <span className={cn("text-[10px] mt-0.5 truncate w-full", getSummaryTextColor(selectedBri, baseBri?.code))}>
-                            {getSummaryText(selectedBri, baseBri?.code, baseBriPrice)}
-                        </span>
-                    </div>
-                </button>
+        <div className={cn("grid grid-cols-2 gap-3", isDark ? "mt-0" : "mt-6 pt-6 border-t border-gray-100")}>
+            {/* BRI Summary Tile */}
+            <button
+                onClick={() => setIsBriModalOpen(true)}
+                className={cn(
+                    "group flex flex-col xl:flex-row items-center xl:items-start gap-2 p-2 rounded-sm border transition-all w-full text-left hover:shadow-sm",
+                    isDark ? "bg-[#1a1a1a] border-gray-800 hover:border-gray-600" : "bg-white border-gray-100 hover:border-black"
+                )}
+            >
+                <div className={cn(
+                    "w-10 h-10 shrink-0 rounded-sm flex items-center justify-center border group-hover:border-opacity-100",
+                    isDark ? "bg-orange-950/20 border-orange-900/30 group-hover:border-orange-700/50" : "bg-orange-50 border-orange-100 group-hover:border-orange-200"
+                )}>
+                    <Shield className="w-5 h-5 text-orange-500" />
+                </div>
+                <div className="flex flex-col flex-1 min-w-0">
+                    <span className="text-[9px] uppercase font-bold text-gray-400 mb-0.5 truncate w-full">Pakiet Naprawczy</span>
+                    <span className={cn("text-xs font-bold truncate w-full", isDark ? "text-gray-200 group-hover:text-white" : "text-gray-900 group-hover:text-black")}>
+                        {currentBriPkg ? `${(currentBriPkg.duration_months / 12)} ${(currentBriPkg.duration_months / 12) >= 2 && (currentBriPkg.duration_months / 12) <= 4 ? 'lata' : 'lat'} / ${currentBriPkg.mileage_limit.toLocaleString('de-DE')} km` : 'Standard 2 lata'}
+                    </span>
+                    <span className={cn("text-[10px] mt-0.5 truncate w-full", getSummaryTextColor(selectedBri, baseBri?.code))}>
+                        {getSummaryText(selectedBri, baseBri?.code, baseBriPrice)}
+                    </span>
+                </div>
+            </button>
 
-                {/* BSI Summary Tile */}
-                <button
-                    onClick={() => setIsBsiModalOpen(true)}
-                    className="group flex flex-col xl:flex-row items-center xl:items-start gap-2 p-2 bg-white border border-gray-100 rounded-sm hover:border-black hover:shadow-sm transition-all w-full text-left"
-                >
-                    <div className="w-10 h-10 shrink-0 bg-blue-50 rounded-sm flex items-center justify-center border border-blue-100 group-hover:border-blue-200">
-                        <Wrench className="w-5 h-5 text-blue-500" />
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                        <span className="text-[9px] uppercase font-bold text-gray-400 mb-0.5 truncate w-full">Pakiet Serwisowy</span>
-                        <span className="text-xs font-bold text-gray-900 group-hover:text-black truncate w-full">
-                            {currentBsiPkg
-                                ? `${currentBsiPkg.plus ? 'Plus ' : ''}${(currentBsiPkg.duration_months / 12)} ${(currentBsiPkg.duration_months / 12) >= 2 && (currentBsiPkg.duration_months / 12) <= 4 ? 'lata' : 'lat'} / ${currentBsiPkg.mileage_limit.toLocaleString('de-DE')} km`
-                                : 'Brak pakietu'}
-                        </span>
-                        <span className={cn("text-[10px] mt-0.5 truncate w-full", getSummaryTextColor(selectedBsi, baseBsi?.code))}>
-                            {getSummaryText(selectedBsi, baseBsi?.code, baseBsiPrice)}
-                        </span>
-                    </div>
-                </button>
-            </div>
+            {/* BSI Summary Tile */}
+            <button
+                onClick={() => setIsBsiModalOpen(true)}
+                className={cn(
+                    "group flex flex-col xl:flex-row items-center xl:items-start gap-2 p-2 rounded-sm border transition-all w-full text-left hover:shadow-sm",
+                    isDark ? "bg-[#1a1a1a] border-gray-800 hover:border-gray-600" : "bg-white border-gray-100 hover:border-black"
+                )}
+            >
+                <div className={cn(
+                    "w-10 h-10 shrink-0 rounded-sm flex items-center justify-center border group-hover:border-opacity-100",
+                    isDark ? "bg-blue-950/20 border-blue-900/30 group-hover:border-blue-700/50" : "bg-blue-50 border-blue-100 group-hover:border-blue-200"
+                )}>
+                    <Wrench className="w-5 h-5 text-blue-500" />
+                </div>
+                <div className="flex flex-col flex-1 min-w-0">
+                    <span className="text-[9px] uppercase font-bold text-gray-400 mb-0.5 truncate w-full">Pakiet Serwisowy</span>
+                    <span className={cn("text-xs font-bold truncate w-full", isDark ? "text-gray-200 group-hover:text-white" : "text-gray-900 group-hover:text-black")}>
+                        {currentBsiPkg
+                            ? `${currentBsiPkg.plus ? 'Plus ' : ''}${(currentBsiPkg.duration_months / 12)} ${(currentBsiPkg.duration_months / 12) >= 2 && (currentBsiPkg.duration_months / 12) <= 4 ? 'lata' : 'lat'} / ${currentBsiPkg.mileage_limit.toLocaleString('de-DE')} km`
+                            : 'Brak pakietu'}
+                    </span>
+                    <span className={cn("text-[10px] mt-0.5 truncate w-full", getSummaryTextColor(selectedBsi, baseBsi?.code))}>
+                        {getSummaryText(selectedBsi, baseBsi?.code, baseBsiPrice)}
+                    </span>
+                </div>
+            </button>
 
             {/* Modals */}
             <Modal isOpen={isBriModalOpen} onClose={() => setIsBriModalOpen(false)} title="Przedłużona Gwarancja (BRI)" maxWidth="max-w-3xl">
                 <div className="mb-4 text-[10px] text-gray-500 bg-orange-50 p-2 rounded border border-orange-100">
-                    Obejmuje naprawy usterek mechanicznych i elektrycznych po upływie fabrycznej gwarancji.
+                    Obejmuje naprawy usterek mechanicznych i elektrycznych w ramach gwarancji.
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center">
-                    {/* Always show standard tile, but check if enabled */}
                     {renderCompactTile(null, selectedBri, baseBri?.code, baseBriPrice, (c) => { setSelectedBri(c); })}
                     {briPackages.map(pkg => renderCompactTile(pkg, selectedBri, baseBri?.code, baseBriPrice, (c) => { setSelectedBri(c); }))}
                 </div>
@@ -331,7 +306,6 @@ export function ServicePackageConfigurator({
 
             <Modal isOpen={isBsiModalOpen} onClose={() => setIsBsiModalOpen(false)} title="Pakiet Serwisowy (BSI)" maxWidth="max-w-4xl">
                 <div className="space-y-5">
-
                     {/* BSI Section */}
                     <div>
                         <div className="flex items-end gap-2 mb-2 border-b border-gray-100 pb-1">
@@ -360,7 +334,26 @@ export function ServicePackageConfigurator({
                     )}
                 </div>
             </Modal>
-
         </div>
     );
 }
+
+// Helper: Modal Wrapper
+const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-2xl" }: { isOpen: boolean; onClose: () => void; title: string; children: React.ReactNode; maxWidth?: string }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+
+            <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+            <div className={cn("relative bg-white rounded-lg shadow-2xl w-fit max-w-[95vw] sm:max-w-4xl max-h-[95vh] flex flex-col p-0", maxWidth)}>
+                <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-gray-50 shrink-0">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">{title}</h3>
+                    <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition-colors"><X className="w-4 h-4 text-gray-500" /></button>
+                </div>
+                <div className="p-4 overflow-y-auto w-full">
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
+};

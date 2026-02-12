@@ -15,12 +15,83 @@ interface FilterSidebarProps {
         fuelTypes: string[];
         drivetrains: string[];
         powerLevels: string[];
+        colorGroups?: string[];
+        upholsteryGroups?: string[];
         minPrice: number;
         maxPrice: number;
         minPower: number;
         maxPower: number;
     };
 }
+
+const COLOR_MAP: Record<string, string> = {
+    // Polish
+    'Czarny': '#000000',
+    'Biały': '#ffffff',
+    'Szary': '#9ca3af', // Gray-400
+    'Grafitowy': '#374151', // Gray-700
+    'Srebrny': '#e5e7eb', // Gray-200 (Silver)
+    'Niebieski': '#2563eb', // Blue-600
+    'Błękitny': '#93c5fd', // Blue-300
+    'Granatowy': '#1e3a8a', // Blue-900
+    'Turkusowy': '#2dd4bf', // Teal-400
+    'Czerwony': '#dc2626', // Red-600
+    'Bordowy': '#7f1d1d', // Red-900
+    'Brązowy': '#78350f', // Amber-900
+    'Beżowy': '#f5f5dc', // Beige
+    'Kremowy': '#fef3c7', // Amber-100
+    'Zielony': '#15803d', // Green-700
+    'Oliwkowy': '#3f6212', // Lime-800
+    'Pomarańczowy': '#ea580c', // Orange-600
+    'Żółty': '#eab308', // Yellow-500
+    'Złoty': '#ca8a04', // Yellow-600
+    'Miedziany': '#b45309', // Amber-700
+    'Fioletowy': '#7e22ce', // Purple-700
+    'Różowy': '#db2777', // Pink-600
+
+    // English (just in case)
+    'Black': '#000000',
+    'White': '#ffffff',
+    'Gray': '#9ca3af',
+    'Grey': '#9ca3af',
+    'Silver': '#e5e7eb',
+    'Blue': '#2563eb',
+    'Red': '#dc2626',
+    'Brown': '#78350f',
+    'Beige': '#f5f5dc',
+    'Green': '#15803d',
+    'Orange': '#ea580c',
+    'Yellow': '#eab308',
+    'Gold': '#ca8a04',
+    'Purple': '#7e22ce',
+};
+
+// Helper to safely get color (case-insensitive)
+const getColor = (name: string) => {
+    if (!name) return '#e5e7eb';
+    const trimmed = name.trim();
+    // Try exact match
+    if (COLOR_MAP[trimmed]) return COLOR_MAP[trimmed];
+    // Try capitalized
+    const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+    if (COLOR_MAP[capitalized]) return COLOR_MAP[capitalized];
+
+    // Fallback based on substring
+    const lower = trimmed.toLowerCase();
+    if (lower.includes('czarn')) return COLOR_MAP['Czarny'];
+    if (lower.includes('biał')) return COLOR_MAP['Biały'];
+    if (lower.includes('szar')) return COLOR_MAP['Szary'];
+    if (lower.includes('srebr')) return COLOR_MAP['Srebrny'];
+    if (lower.includes('niebies')) return COLOR_MAP['Niebieski'];
+    if (lower.includes('czerwo')) return COLOR_MAP['Czerwony'];
+    if (lower.includes('brąz')) return COLOR_MAP['Brązowy'];
+    if (lower.includes('beż')) return COLOR_MAP['Beżowy'];
+    if (lower.includes('ziel')) return COLOR_MAP['Zielony'];
+
+    return '#e5e7eb'; // Default gray
+};
+
+
 
 const Section = ({ id, title, children, expanded, onToggle }: { id: string, title: string, children: React.ReactNode, expanded: boolean, onToggle: (id: string) => void }) => (
     <div className="border-b border-gray-100 py-6">
@@ -86,6 +157,8 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
         series: false,
         body: false,
+        colorGroup: false,
+        upholsteryGroup: false,
         fuel: false,
         drivetrain: false,
         power: false,
@@ -119,6 +192,8 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
 
     const activeSeries = searchParams.getAll('series');
     const activeBody = searchParams.getAll('body');
+    const activeColorGroup = searchParams.getAll('colorGroup');
+    const activeUpholsteryGroup = searchParams.getAll('upholsteryGroup');
     const activeFuel = searchParams.getAll('fuel');
     const activeDrivetrain = searchParams.getAll('drivetrain');
     const [sliderMax, setSliderMax] = useState(parseInt(searchParams.get('max') || options.maxPrice.toString()));
@@ -182,6 +257,8 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
 
     const hasActiveFilters = activeSeries.length > 0 ||
         activeBody.length > 0 ||
+        activeColorGroup.length > 0 ||
+        activeUpholsteryGroup.length > 0 ||
         activeFuel.length > 0 ||
         activeDrivetrain.length > 0 ||
         searchParams.has('q') ||
@@ -241,13 +318,13 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                     <div className="space-y-1">
                         {/* Series Filter */}
                         <Section id="series" title="Seria" expanded={expandedSections.series} onToggle={toggleSection}>
-                            <div className="grid grid-cols-1 gap-1">
+                            <div className="grid grid-cols-2 gap-2">
                                 {options.series.map(s => (
-                                    <FilterCheckbox
+                                    <FilterPill
                                         key={s}
                                         label={s}
-                                        checked={activeSeries.includes(s)}
-                                        onChange={() => toggleFilter('series', s)}
+                                        active={activeSeries.includes(s)}
+                                        onClick={() => toggleFilter('series', s)}
                                     />
                                 ))}
                             </div>
@@ -266,6 +343,64 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                 ))}
                             </div>
                         </Section>
+
+                        {/* Color Group Filter - VISUAL */}
+                        {options.colorGroups && options.colorGroups.length > 0 && (
+                            <Section id="colorGroup" title="Kolor" expanded={expandedSections.colorGroup} onToggle={toggleSection}>
+                                <div className="grid grid-cols-4 gap-3 px-1">
+                                    {options.colorGroups.map(c => (
+                                        <div key={c} className="flex flex-col items-center gap-1.5">
+                                            <button
+                                                onClick={() => toggleFilter('colorGroup', c)}
+                                                className={cn(
+                                                    "w-8 h-8 rounded-full shadow-sm border transaction-all duration-200 relative",
+                                                    activeColorGroup.includes(c) ? "ring-2 ring-blue-600 ring-offset-2 border-transparent" : "border-gray-200 hover:border-gray-400"
+                                                )}
+                                                style={{ backgroundColor: getColor(c) }}
+                                                title={c}
+                                            >
+                                                {/* Checkmark for active state */}
+                                                {activeColorGroup.includes(c) && (
+                                                    <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-md">
+                                                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                                    </span>
+                                                )}
+                                            </button>
+                                            <span className="text-[9px] uppercase tracking-wider text-gray-500 text-center leading-tight truncate w-full">{c}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Section>
+                        )}
+
+                        {/* Upholstery Group Filter - VISUAL/PILLS */}
+                        {options.upholsteryGroups && options.upholsteryGroups.length > 0 && (
+                            <Section id="upholsteryGroup" title="Tapicerka" expanded={expandedSections.upholsteryGroup} onToggle={toggleSection}>
+                                <div className="grid grid-cols-4 gap-3 px-1">
+                                    {options.upholsteryGroups.map(c => (
+                                        <div key={c} className="flex flex-col items-center gap-1.5">
+                                            <button
+                                                onClick={() => toggleFilter('upholsteryGroup', c)}
+                                                className={cn(
+                                                    "w-8 h-8 rounded-full shadow-sm border transaction-all duration-200 relative",
+                                                    activeUpholsteryGroup.includes(c) ? "ring-2 ring-blue-600 ring-offset-2 border-transparent" : "border-gray-200 hover:border-gray-400"
+                                                )}
+                                                style={{ backgroundColor: getColor(c) }}
+                                                title={c}
+                                            >
+                                                {/* Checkmark for active state */}
+                                                {activeUpholsteryGroup.includes(c) && (
+                                                    <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-md">
+                                                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                                    </span>
+                                                )}
+                                            </button>
+                                            <span className="text-[9px] uppercase tracking-wider text-gray-500 text-center leading-tight truncate w-full">{c}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Section>
+                        )}
 
                         {/* Fuel Type Filter - PILLS */}
                         <Section id="fuel" title="Paliwo" expanded={expandedSections.fuel} onToggle={toggleSection}>

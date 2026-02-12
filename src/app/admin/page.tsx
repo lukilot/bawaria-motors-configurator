@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { StockUploader } from '@/components/admin/StockUploader';
+import { BMWPLStockUploader } from '@/components/admin/BMWPLStockUploader';
 import { AdminCarList } from '@/components/admin/AdminCarList';
 import { DictionaryManager } from '@/components/admin/DictionaryManager';
 import { PackagesManager } from '@/components/admin/PackagesManager';
@@ -75,7 +76,10 @@ export default function AdminPage() {
                 <div className="flex-1 w-full max-w-7xl mx-auto p-8">
                     {view === 'stock' ? (
                         <div className="animate-in fade-in duration-500">
-                            <StockUploader onSyncSuccess={() => setRefreshTrigger(prev => prev + 1)} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                <StockUploader onSyncSuccess={() => setRefreshTrigger(prev => prev + 1)} />
+                                <BMWPLStockUploader onSyncSuccess={() => setRefreshTrigger(prev => prev + 1)} />
+                            </div>
                             <div className="my-12 h-px bg-gray-100" />
                             <AdminCarList refreshTrigger={refreshTrigger} />
                         </div>

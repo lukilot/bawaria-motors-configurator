@@ -2,29 +2,38 @@ import { supabase } from './supabase';
 import { StockCar } from '@/types/stock';
 
 export async function getAvailableCars(): Promise<StockCar[]> {
-    const { data, error } = await supabase
-        .from('stock_units')
-        .select('*')
-        .eq('visibility', 'PUBLIC') // Only show public cars
-        .order('list_price', { ascending: true }); // Default sort
+    let allCars: StockCar[] = [];
+    let from = 0;
+    const batchSize = 1000;
+    let more = true;
 
-    if (error) {
-        console.error('Error fetching stock:', error);
-        return [];
+    while (more) {
+        const { data, error } = await supabase
+            .from('stock_units')
+            .select('*')
+            .in('visibility', ['PUBLIC', 'SOLD'])
+            .order('list_price', { ascending: true })
+            .range(from, from + batchSize - 1);
+
+        if (error) {
+            console.error('Error fetching stock:', error);
+            break;
+        }
+
+        if (data && data.length > 0) {
+            allCars = [...allCars, ...data as any];
+
+            if (data.length < batchSize) {
+                more = false;
+            } else {
+                from += batchSize;
+            }
+        } else {
+            more = false;
+        }
     }
 
-    // Cast snake_case DB result to our camelCase TypeScript interface?
-    // Actually, our Interface uses snake_case for DB fields (status_code, model_code)
-    // Check types/stock.ts:
-    // export interface StockCar {
-    //   vin: string;
-    //   status_code: number;
-    //   ...
-    // }
-    // So the structure matches 1:1 with DB column names (except TypeScript usually prefers camelCase, but we kept snake_case in interface for simplicity).
-    // Wait, let's double check types/stock.ts
-
-    return (data as any[]) || [];
+    return allCars;
 }
 
 export async function getCarByVin(vin: string): Promise<StockCar | null> {
@@ -61,9 +70,41 @@ export async function getCarVariants(currentCar: StockCar): Promise<StockCar[]> 
 
     const currentFingerprint = getFingerprint(currentCar);
 
-    return allCars.filter(car =>
-        car.vin !== currentCar.vin &&
+    const sameSpecCars = allCars.filter(car =>
         car.model_code === currentCar.model_code &&
         getFingerprint(car) === currentFingerprint
     );
+
+    // Group by Color + Upholstery
+    const groupedVariants = new Map<string, StockCar[]>();
+
+    sameSpecCars.forEach(car => {
+        const key = `${car.color_code}|${car.upholstery_code}`;
+        if (!groupedVariants.has(key)) {
+            groupedVariants.set(key, []);
+        }
+        groupedVariants.get(key)!.push(car);
+    });
+
+    // Remove the current car's configuration group
+    const currentConfigKey = `${currentCar.color_code}|${currentCar.upholstery_code}`;
+    groupedVariants.delete(currentConfigKey);
+
+    // Return representatives for other configs
+    return Array.from(groupedVariants.values()).map(group => {
+        // Pick best representative (logic similar to groupIdenticalCars)
+        const sorted = group.sort((a, b) => {
+            // Prioritize Ready > Photos > Available
+            const score = (c: StockCar) => {
+                let s = 0;
+                if (c.status_code > 190) s += 100;
+                if (c.images && c.images.length > 0) s += 50;
+                return s;
+            };
+            return score(b) - score(a);
+        });
+        const rep = sorted[0];
+        // optional: attach count
+        return { ...rep, available_count: group.length };
+    });
 }

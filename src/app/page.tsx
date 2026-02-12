@@ -16,11 +16,15 @@ export const metadata: Metadata = {
 // Cache for 1 minute to improve navigation and scroll restoration stability
 export const revalidate = 60;
 
+import { groupIdenticalCars } from '@/lib/car-grouping';
+
 export default async function Home() {
-  const [cars, dictionaries] = await Promise.all([
+  const [rawCars, dictionaries] = await Promise.all([
     getAvailableCars(),
     getAllDictionaries()
   ]);
+
+  const cars = groupIdenticalCars(rawCars);
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 pb-20 font-sans">

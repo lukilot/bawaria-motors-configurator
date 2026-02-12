@@ -9,9 +9,10 @@ import { ContactOverlay } from './ContactOverlay';
 interface DynamicPricingSectionProps {
     car: StockCar;
     seriesCode: string;
+    isDark?: boolean;
 }
 
-export function DynamicPricingSection({ car, seriesCode }: DynamicPricingSectionProps) {
+export function DynamicPricingSection({ car, seriesCode, isDark = false }: DynamicPricingSectionProps) {
     // State for additional costs from service packages
     const [additionalCost, setAdditionalCost] = useState(0);
     const [selectedServiceCodes, setSelectedServiceCodes] = useState<string[]>([]);
@@ -40,13 +41,17 @@ export function DynamicPricingSection({ car, seriesCode }: DynamicPricingSection
                 fuelType={car.fuel_type}
                 onPriceUpdate={setAdditionalCost}
                 onSelectionChange={setSelectedServiceCodes}
+                isDark={isDark}
             />
 
             {/* Price Card */}
-            <div className="bg-gray-50 p-6 rounded-sm border border-gray-100 transition-all duration-300 ease-in-out">
+            <div className={cn(
+                "p-6 rounded-sm border transition-all duration-300 ease-in-out",
+                isDark ? "bg-[#1a1a1a] border-gray-800" : "bg-gray-50 border-gray-100"
+            )}>
                 {car.list_price > 0 && (
                     <div className="flex flex-col gap-1 mb-6">
-                        <span className="text-xs uppercase tracking-widest text-gray-500 font-semibold">Cena całkowita</span>
+                        <span className={cn("text-xs uppercase tracking-widest font-semibold", isDark ? "text-gray-400" : "text-gray-500")}>Cena całkowita</span>
 
                         {/* Show old price crossed out if there is a discount AND no added cost (or distinct display?)
                             Actually, if we add costs, the "list price" concept gets fuzzy. 
@@ -57,14 +62,14 @@ export function DynamicPricingSection({ car, seriesCode }: DynamicPricingSection
 
                         {hasDiscount ? (
                             <div className="flex flex-col">
-                                <span className="text-sm text-gray-400 line-through decoration-gray-300">
+                                <span className={cn("text-sm line-through decoration-gray-300", isDark ? "text-gray-500" : "text-gray-400")}>
                                     {formatPrice(car.list_price + additionalCost)}
                                     {/* Note: usually list price also increases if we add services, 
                                         so logically we add cost to both base and special */}
                                 </span>
                                 <span className={cn(
                                     "text-3xl font-bold tracking-tight transition-colors",
-                                    additionalCost > 0 ? "text-black" : "text-gray-900"
+                                    isDark ? "text-white" : (additionalCost > 0 ? "text-black" : "text-gray-900")
                                 )}>
                                     {formatPrice(finalPrice)}
                                 </span>
@@ -72,7 +77,7 @@ export function DynamicPricingSection({ car, seriesCode }: DynamicPricingSection
                         ) : (
                             <span className={cn(
                                 "text-3xl font-bold tracking-tight transition-colors",
-                                additionalCost > 0 ? "text-black" : "text-gray-900"
+                                isDark ? "text-white" : (additionalCost > 0 ? "text-black" : "text-gray-900")
                             )}>
                                 {formatPrice(finalPrice)}
                             </span>

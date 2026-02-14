@@ -41,6 +41,25 @@ export interface StockCar {
   // Grouping fields (virtual)
   available_count?: number;
   sibling_vins?: string[];
+  product_group_id?: string;
+}
+
+export interface ProductGroup {
+  id: string;
+  signature: string;
+  model_code: string;
+  color_code: string;
+  upholstery_code: string;
+  option_codes: string[];
+  production_year: number;
+  images?: { url: string; id: string; sort_order: number }[];
+  description?: string;
+  manual_price?: number;
+  // Virtual / Computed
+  available_units?: StockCar[];
+  available_count?: number;
+  min_price?: number;
+  max_price?: number;
 }
 
 export type ImportResult = {

@@ -1,7 +1,48 @@
 import { supabase } from './supabase';
 import { StockCar } from '@/types/stock';
 
+import { ProductGroup } from '@/types/stock';
+
+export async function getAvailableProductGroups(): Promise<ProductGroup[]> {
+    // Fetch groups that have at least one public stock unit
+    // We use !inner to filter groups that strictly have matching stock_units
+    const { data, error } = await supabase
+        .from('product_groups')
+        .select(`
+            *,
+            stock_units!inner(*)
+        `)
+        .eq('stock_units.visibility', 'PUBLIC');
+
+    if (error) {
+        console.error('Error fetching product groups:', error);
+        return [];
+    }
+
+    if (!data) return [];
+
+    // Transform to ProductGroup interface
+    return data.map((group: any) => {
+        const units = group.stock_units as StockCar[];
+
+        // Calculate min/max price
+        const prices = units.map(u => u.special_price || u.list_price).filter(p => p > 0);
+        const min_price = prices.length > 0 ? Math.min(...prices) : 0;
+        const max_price = prices.length > 0 ? Math.max(...prices) : 0;
+
+        return {
+            ...group,
+            available_units: units,
+            available_count: units.length,
+            min_price,
+            max_price
+        };
+    });
+}
+
 export async function getAvailableCars(): Promise<StockCar[]> {
+    // Deprecated or used for non-grouped view?
+    // Let's keep it working for fallback or legacy views
     let allCars: StockCar[] = [];
     let from = 0;
     const batchSize = 1000;

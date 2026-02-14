@@ -25,6 +25,7 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
     // Available if status > 190 (regardless of reservation, but logic below handles display)
     const isReady = car.status_code > 190;
     const isMSeries = (car.series || '').includes('Seria M');
+    const isElectric = car.fuel_type === 'Elektryczny';
 
     const hasImages = car.images && car.images.length > 0;
 
@@ -76,12 +77,19 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
             "group rounded-sm overflow-hidden transition-all duration-300 relative",
             isMSeries
                 ? "bg-[#1a1a1a] border border-[#333] hover:border-[#53A0DE]/30 hover:shadow-[0_20px_50px_-12px_rgba(83,160,222,0.2)]"
-                : "bg-white border border-gray-100 hover:shadow-lg",
+                : isElectric
+                    ? "bg-white border border-blue-100 hover:border-blue-300 hover:shadow-[0_10px_40px_-10px_rgba(6,83,182,0.15)]"
+                    : "bg-white border border-gray-100 hover:shadow-lg",
             isSold && "opacity-60 grayscale-[0.5] hover:shadow-none hover:opacity-60"
         )}>
             {/* Custom M Hover Gradient Shadow (Blur) - Subtle for List View */}
             {isMSeries && (
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#53A0DE] via-[#02256E] to-[#E40424] opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500 -z-10" />
+            )}
+
+            {/* Custom Electric Hover Gradient Shadow (Blue Glow) */}
+            {isElectric && !isMSeries && (
+                <div className="absolute -inset-0.5 bg-blue-400/20 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500 -z-10" />
             )}
 
             <Link href={`/cars/${encodeURIComponent(car.vin)}`} className={cn("flex flex-col md:flex-row h-full", isSold && "cursor-default pointer-events-none")}>
@@ -116,6 +124,14 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                             <div className="absolute top-0 right-0 z-20">
                                 <div className="relative bg-black/80 backdrop-blur-md text-white px-3 py-1 flex items-center gap-2 skew-x-[-12deg] mr-[-10px] mt-2 translate-x-2">
                                     <span className="text-[9px] font-bold uppercase tracking-widest skew-x-[12deg] pr-2">M Power</span>
+                                </div>
+                            </div>
+                        )}
+                        {/* Electric Badge on List View */}
+                        {isElectric && !isMSeries && (
+                            <div className="absolute top-0 right-0 z-20">
+                                <div className="relative bg-white/90 backdrop-blur-md text-[#0653B6] px-3 py-1 flex items-center gap-2 skew-x-[-12deg] mr-[-10px] mt-2 translate-x-2 border-l border-b border-blue-100 shadow-sm">
+                                    <span className="text-[9px] font-bold uppercase tracking-widest skew-x-[12deg] pr-2">BMW i</span>
                                 </div>
                             </div>
                         )}
@@ -223,12 +239,12 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                             <div className="flex flex-col">
                                 <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Moc</span>
                                 <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")}>
-                                    {car.power || '-'}
+                                    {car.power ? `${car.power} KM` : '-'}
                                 </span>
                             </div>
                             <div className="flex flex-col">
                                 <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Rodzaj paliwa</span>
-                                <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")}>
+                                <span className={cn("font-medium truncate text-xs", isElectric && !isMSeries ? "text-[#0653B6]" : isMSeries ? "text-gray-200" : "text-gray-900")}>
                                     {car.fuel_type || '-'}
                                 </span>
                             </div>
@@ -270,7 +286,10 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
 
                         <div className={cn(
                             "flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all",
-                            isSold ? "text-gray-400 cursor-not-allowed" : (isMSeries ? "text-gray-400 group-hover:text-blue-400" : "text-black group-hover:text-blue-700")
+                            isSold ? "text-gray-400 cursor-not-allowed" :
+                                (isMSeries ? "text-gray-400 group-hover:text-blue-400" :
+                                    isElectric ? "text-gray-400 group-hover:text-[#0653B6]" :
+                                        "text-black group-hover:text-blue-700")
                         )}>
                             {isSold ? (
                                 <span>Sprzedany</span>
@@ -290,6 +309,11 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                             <div className="w-1/3 bg-[#02256E]" />
                             <div className="w-1/3 bg-[#E40424]" />
                         </div>
+                    )}
+
+                    {/* Electric Bottom Border */}
+                    {isElectric && !isMSeries && (
+                        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-[#0653B6] to-[#2E95D3]" />
                     )}
                 </div>
 

@@ -17,6 +17,7 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
     const isAvailable = car.status_code >= 190 || ['SH', 'ST'].includes(car.processing_type);
     const hasMSport = car.option_codes.includes('337');
     const isMSeries = (car.series || '').includes('Seria M');
+    const isElectric = car.fuel_type === 'Elektryczny';
 
     // Pricing Formatter
     const formatPrice = (price: number) =>
@@ -29,12 +30,19 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
                 "group mt-1 overflow-hidden transition-all duration-300 ease-out cursor-pointer relative block",
                 isMSeries
                     ? "bg-[#1a1a1a] border-[#333] hover:shadow-[0_20px_50px_-12px_rgba(83,160,222,0.3)] hover:border-[#53A0DE]/30"
-                    : "bg-white border-gray-100 hover:shadow-xl hover:translate-y-[-2px]"
+                    : isElectric
+                        ? "bg-white border-blue-100 hover:border-blue-300 hover:shadow-[0_10px_40px_-10px_rgba(6,83,182,0.15)] hover:translate-y-[-2px]"
+                        : "bg-white border-gray-100 hover:shadow-xl hover:translate-y-[-2px]"
             )}
         >
             {/* Custom M Hover Gradient Shadow (Blur) */}
             {isMSeries && (
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#53A0DE] via-[#02256E] to-[#E40424] opacity-0 group-hover:opacity-40 blur-2xl transition-opacity duration-500 -z-10" />
+            )}
+
+            {/* Custom Electric Hover Gradient Shadow (Blue Glow) */}
+            {isElectric && !isMSeries && (
+                <div className="absolute -inset-0.5 bg-blue-400/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 -z-10" />
             )}
 
             <div className={cn("aspect-[16/9] relative overflow-hidden", isMSeries ? (car.images && car.images.length > 0 ? "bg-[#0f0f0f]" : "bg-gray-200") : "bg-gray-100")}>
@@ -81,6 +89,15 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
                                 <div className="w-1 h-2.5 bg-[#E40424]" />
                             </div>
                             <span className="text-[10px] font-bold uppercase tracking-widest skew-x-[12deg] pr-2">M Power</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Electric Badge (Top Right) - Only if NOT M Series */}
+                {isElectric && !isMSeries && (
+                    <div className="absolute top-0 right-0 z-20">
+                        <div className="relative bg-white/90 backdrop-blur-md text-[#0653B6] px-3 py-1.5 flex items-center gap-2 skew-x-[-12deg] mr-[-10px] mt-2 translate-x-2 border-l border-b border-blue-100 shadow-sm">
+                            <span className="text-[10px] font-bold uppercase tracking-widest skew-x-[12deg] pr-2">BMW i</span>
                         </div>
                     </div>
                 )}
@@ -133,7 +150,7 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
                     </div>
                     <div className="flex flex-col">
                         <span className="text-[8px] text-gray-400 uppercase font-bold tracking-wider">Specyfikacja</span>
-                        <span className={cn("text-[10px] font-bold uppercase truncate italic", isMSeries ? "text-gray-300" : "text-gray-900")}>
+                        <span className={cn("text-[10px] font-bold uppercase truncate italic", isElectric && !isMSeries ? "text-[#0653B6]" : isMSeries ? "text-gray-300" : "text-gray-900")}>
                             {car.fuel_type} • {car.drivetrain}
                         </span>
                     </div>
@@ -164,10 +181,18 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
                     </div>
 
                     <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform duration-300">
-                        <span className={cn("text-[10px] uppercase tracking-widest font-bold transition-colors", isMSeries ? "text-gray-400 group-hover:text-blue-400" : "text-gray-300 group-hover:text-black")}>
+                        <span className={cn("text-[10px] uppercase tracking-widest font-bold transition-colors",
+                            isMSeries ? "text-gray-400 group-hover:text-blue-400" :
+                                isElectric ? "text-gray-400 group-hover:text-[#0653B6]" :
+                                    "text-gray-300 group-hover:text-black"
+                        )}>
                             Szczegóły
                         </span>
-                        <ArrowRight className={cn("w-3 h-3 transition-colors", isMSeries ? "text-gray-400 group-hover:text-blue-400" : "text-gray-300 group-hover:text-black")} />
+                        <ArrowRight className={cn("w-3 h-3 transition-colors",
+                            isMSeries ? "text-gray-400 group-hover:text-blue-400" :
+                                isElectric ? "text-gray-300 group-hover:text-[#0653B6]" :
+                                    "text-gray-300 group-hover:text-black"
+                        )} />
                     </div>
                 </div>
             </div>
@@ -180,7 +205,11 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
                     <div className="w-1/3 bg-[#E40424]" />
                 </div>
             )}
-        </Link>
 
+            {/* Electric Bottom Border */}
+            {isElectric && !isMSeries && (
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-[#0653B6] to-[#2E95D3]" />
+            )}
+        </Link>
     );
 }

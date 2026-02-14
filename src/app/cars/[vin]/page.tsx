@@ -259,6 +259,8 @@ export default async function CarPage({ params }: PageProps) {
 
     // BMW M Branding Logic
     const isMSeries = (enrichedCar.series || '').includes('Seria M');
+    const isElectric = car.fuel_type === 'Elektryczny' || car.fuel_type === 'Electric';
+
     const theme = {
         bg: isMSeries ? 'bg-[#0f0f0f]' : 'bg-white',
         text: isMSeries ? 'text-gray-100' : 'text-gray-900',
@@ -266,8 +268,9 @@ export default async function CarPage({ params }: PageProps) {
         border: isMSeries ? 'border-[#222]' : 'border-gray-100',
         cardBg: isMSeries ? 'bg-[#1a1a1a]' : 'bg-white',
         cardBorder: isMSeries ? 'border-[#333]' : 'border-gray-100',
-        accordionTitle: isMSeries ? 'text-white group-hover:text-blue-400' : 'text-gray-900 group-hover:text-black',
+        accordionTitle: isMSeries ? 'text-white group-hover:text-blue-400' : isElectric ? 'text-gray-900 group-hover:text-[#0653B6]' : 'text-gray-900 group-hover:text-black',
         navBg: isMSeries ? 'bg-[#0f0f0f]/80' : 'bg-white/80',
+        accentText: isMSeries ? 'text-white' : isElectric ? 'text-[#0653B6]' : 'text-black',
     };
 
     return (
@@ -277,7 +280,7 @@ export default async function CarPage({ params }: PageProps) {
                 <div className="max-w-[1600px] mx-auto flex items-center gap-4">
                     <BackButton
                         label="Wróć do listy"
-                        className={cn("flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors", isMSeries ? "text-gray-400 hover:text-white pb-3" : "text-gray-500 hover:text-black")}
+                        className={cn("flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors pb-3", isMSeries ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-black")}
                     />
                     <div className={cn("h-4 w-px mx-2", isMSeries ? "bg-gray-800" : "bg-gray-200")} />
                     {totalAvailable > 1 ? (
@@ -287,6 +290,7 @@ export default async function CarPage({ params }: PageProps) {
                             {/* Select styling simplified for now */}
                             <select className={cn("text-xs font-mono bg-transparent border-none outline-none cursor-pointer hover:text-current", isMSeries ? "text-gray-400 hover:text-white" : "text-gray-400 hover:text-black")}>
                                 <option className="text-black">Zobacz VIN-y ({totalAvailable})</option>
+                                <option disabled className="text-black">Current: {car.vin}</option>
                                 {siblings.map(s => (
                                     <option key={s.vin} disabled className="text-black">
                                         {s.vin} {s.status_code > 190 ? '✅' : '⏳'}
@@ -306,6 +310,13 @@ export default async function CarPage({ params }: PageProps) {
                             <div className="w-1 h-3 bg-[#E40424] -skew-x-12" />
                         </div>
                     )}
+
+                    {/* Electric Logo in Nav if Electric */}
+                    {isElectric && !isMSeries && (
+                        <div className="ml-auto flex gap-1">
+                            <span className="text-[#0653B6] text-xs font-bold uppercase tracking-widest border border-blue-100 px-2 py-0.5 rounded-sm">BMW i</span>
+                        </div>
+                    )}
                 </div>
             </nav>
 
@@ -317,6 +328,7 @@ export default async function CarPage({ params }: PageProps) {
                         modelName={modelName}
                         images={car.images}
                         isDark={isMSeries}
+                        isElectric={isElectric && !isMSeries}
                     />
 
                     {/* Accordions - Desktop/Tablet Position (between gallery and options) */}
@@ -325,30 +337,30 @@ export default async function CarPage({ params }: PageProps) {
                             <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
                                 <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Moc</span>
-                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.power} KM</span>
+                                    <span className={cn("font-medium", theme.accentText)}>{enrichedCar.power} KM</span>
                                 </div>
 
                                 <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Przyspieszenie 0-100 km/h</span>
-                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.acceleration} s</span>
+                                    <span className={cn("font-medium", theme.accentText)}>{enrichedCar.acceleration} s</span>
                                 </div>
                                 <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Rodzaj paliwa</span>
-                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.fuel_type}</span>
+                                    <span className={cn("font-medium", theme.accentText)}>{isElectric ? 'Elektryczny' : enrichedCar.fuel_type}</span>
                                 </div>
                                 <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Rodzaj napędu</span>
-                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>
+                                    <span className={cn("font-medium", theme.accentText)}>
                                         {dictionaries.drivetrain[car.drivetrain || '']?.name || car.drivetrain}
                                     </span>
                                 </div>
                                 <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Prędkość maksymalna</span>
-                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.max_speed} km/h</span>
+                                    <span className={cn("font-medium", theme.accentText)}>{enrichedCar.max_speed} km/h</span>
                                 </div>
                                 <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Pojemność bagażnika</span>
-                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.trunk_capacity} l</span>
+                                    <span className={cn("font-medium", theme.accentText)}>{enrichedCar.trunk_capacity} l</span>
                                 </div>
                             </div>
                         </SpecsAccordion>
@@ -388,7 +400,7 @@ export default async function CarPage({ params }: PageProps) {
 
                     {/* Options List - Desktop Position */}
                     <div className="hidden lg:block mt-16 max-h-[800px] overflow-y-auto pr-4 -mr-4">
-                        <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} />
+                        <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} isElectric={isElectric && !isMSeries} />
                     </div>
                 </div>
 
@@ -507,29 +519,29 @@ export default async function CarPage({ params }: PageProps) {
                                 <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
                                     <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Moc</span>
-                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.power} KM</span>
+                                        <span className={cn("font-medium", theme.accentText)}>{enrichedCar.power} KM</span>
                                     </div>
                                     <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Przyspieszenie 0-100 km/h</span>
-                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.acceleration} s</span>
+                                        <span className={cn("font-medium", theme.accentText)}>{enrichedCar.acceleration} s</span>
                                     </div>
                                     <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Rodzaj paliwa</span>
-                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.fuel_type}</span>
+                                        <span className={cn("font-medium", theme.accentText)}>{isElectric ? 'Elektryczny' : enrichedCar.fuel_type}</span>
                                     </div>
                                     <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Rodzaj napędu</span>
-                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>
+                                        <span className={cn("font-medium", theme.accentText)}>
                                             {dictionaries.drivetrain[car.drivetrain || '']?.name || car.drivetrain}
                                         </span>
                                     </div>
                                     <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Prędkość maksymalna</span>
-                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.max_speed} km/h</span>
+                                        <span className={cn("font-medium", theme.accentText)}>{enrichedCar.max_speed} km/h</span>
                                     </div>
                                     <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Pojemność bagażnika</span>
-                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.trunk_capacity} l</span>
+                                        <span className={cn("font-medium", theme.accentText)}>{enrichedCar.trunk_capacity} l</span>
                                     </div>
                                 </div>
                             </SpecsAccordion>
@@ -575,7 +587,7 @@ export default async function CarPage({ params }: PageProps) {
 
                 {/* Mobile Options List (Bottom) */}
                 <div className="lg:hidden mt-2 pt-6 border-t border-gray-100 px-4">
-                    <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} />
+                    <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} isElectric={isElectric && !isMSeries} />
                 </div>
 
             </div >

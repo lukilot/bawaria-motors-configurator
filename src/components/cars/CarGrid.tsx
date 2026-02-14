@@ -15,6 +15,7 @@ interface CarGridProps {
     cars: StockCar[];
     totalCount?: number;
     onOpenFilters?: () => void;
+    isFiltersOpen?: boolean;
     dictionaries: {
         model: Record<string, DictionaryItem>;
         color: Record<string, DictionaryItem>;
@@ -24,7 +25,7 @@ interface CarGridProps {
     };
 }
 
-export function CarGrid({ cars, onOpenFilters, dictionaries }: CarGridProps) {
+export function CarGrid({ cars, onOpenFilters, isFiltersOpen, dictionaries }: CarGridProps) {
 
 
 
@@ -55,20 +56,22 @@ export function CarGrid({ cars, onOpenFilters, dictionaries }: CarGridProps) {
 
     return (
         <div className="w-full relative">
-            {/* Mobile Filter Button - Floating at Bottom with high Z-index to prevent click-through */}
-            <div className="lg:hidden fixed bottom-8 left-6 right-6 z-[100]">
-                <button
-                    type="button"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenFilters?.();
-                    }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-sm shadow-xl"
-                >
-                    <SlidersHorizontal className="w-4 h-4" />
-                    Filtry i Sortowanie
-                </button>
-            </div>
+            {/* Mobile Filter Button - Floating at Bottom. Hidden when filters are open. */}
+            {!isFiltersOpen && (
+                <div className="lg:hidden fixed bottom-8 left-6 right-6 z-[100]">
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenFilters?.();
+                        }}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-sm shadow-xl"
+                    >
+                        <SlidersHorizontal className="w-4 h-4" />
+                        Filtry i Sortowanie
+                    </button>
+                </div>
+            )}
 
             {/* SRP Top Bar */}
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-6 border-b border-gray-100 gap-4">

@@ -19,9 +19,10 @@ interface OptionsListProps {
     optionGroups: OptionGroup[];
     optionCodesCount: number;
     isDark?: boolean;
+    isElectric?: boolean;
 }
 
-export function OptionsList({ optionGroups, optionCodesCount, isDark = false }: OptionsListProps) {
+export function OptionsList({ optionGroups, optionCodesCount, isDark = false, isElectric = false }: OptionsListProps) {
     return (
         <div>
             <div className="flex items-center justify-between mb-8">
@@ -49,10 +50,12 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false }: 
                                 <div className="grid grid-cols-1 gap-4">
                                     {group.children.map((child, j) => (
                                         <div key={j} className={cn(
-                                            "flex items-center gap-4 p-4 shadow-sm rounded-sm transition-colors group",
+                                            "flex items-center gap-4 p-4 shadow-sm rounded-sm transition-all duration-300 group",
                                             isDark
                                                 ? "bg-[#1a1a1a] border border-gray-800 hover:border-gray-600"
-                                                : "bg-white border border-gray-100 hover:border-gray-300"
+                                                : isElectric
+                                                    ? "bg-white border border-blue-50 hover:border-[#0653B6] hover:shadow-[0_4px_20px_-8px_rgba(6,83,182,0.25)]"
+                                                    : "bg-white border border-gray-100 hover:border-gray-300"
                                         )}>
                                             {/* Thumbnail Placeholder */}
                                             <div className={cn(
@@ -73,7 +76,7 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false }: 
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex flex-col">
-                                                    <span className={cn("font-bold truncate", isDark ? "text-gray-200" : "text-gray-900")}>
+                                                    <span className={cn("font-bold truncate transition-colors", isDark ? "text-gray-200" : isElectric ? "text-gray-900 group-hover:text-[#0653B6]" : "text-gray-900")}>
                                                         {child.name || 'Opcja nieznana'}
                                                     </span>
                                                     <span className={cn("text-sm font-mono mt-1", isDark ? "text-gray-500" : "text-gray-400")}>
@@ -98,10 +101,12 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false }: 
                         {optionGroups.filter(g => g.type === 'standard').length > 0 ? (
                             optionGroups.filter(g => g.type === 'standard').map((group, i) => (
                                 <div key={i} className={cn(
-                                    "flex items-center gap-4 p-4 shadow-sm rounded-sm transition-colors group",
+                                    "flex items-center gap-4 p-4 shadow-sm rounded-sm transition-all duration-300 group",
                                     isDark
                                         ? "bg-[#1a1a1a] border border-gray-800 hover:border-gray-600"
-                                        : "bg-white border border-gray-100 hover:border-gray-300"
+                                        : isElectric
+                                            ? "bg-white border border-blue-50 hover:border-[#0653B6] hover:shadow-[0_4px_20px_-8px_rgba(6,83,182,0.25)]"
+                                            : "bg-white border border-gray-100 hover:border-gray-300"
                                 )}>
                                     {/* Thumbnail Placeholder */}
                                     <div className={cn(
@@ -122,7 +127,7 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false }: 
                                     {/* Content */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-col">
-                                            <span className={cn("font-bold truncate", isDark ? "text-gray-200" : "text-gray-900")}>
+                                            <span className={cn("font-bold truncate transition-colors", isDark ? "text-gray-200" : isElectric ? "text-gray-900 group-hover:text-[#0653B6]" : "text-gray-900")}>
                                                 {group.name || 'Opcja standardowa'}
                                             </span>
                                             <span className={cn("text-sm font-mono mt-1", isDark ? "text-gray-500" : "text-gray-400")}>

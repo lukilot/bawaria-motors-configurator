@@ -217,6 +217,7 @@ export function SRPLayout({ cars, dictionaries }: SRPLayoutProps) {
                         cars={filteredCars}
                         totalCount={cars.length}
                         onOpenFilters={() => setIsFiltersOpen(true)}
+                        isFiltersOpen={isFiltersOpen}
                         dictionaries={dictionaries}
                     />
                 </Suspense>

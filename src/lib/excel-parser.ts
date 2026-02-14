@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { StockCar, ImportResult } from '@/types/stock';
+import { CHASSIS_MAPPING } from './chassis-mapping';
 
 // Header mapping configuration
 const COL_MAP: Record<string, string[]> = {
@@ -404,14 +405,15 @@ export const parseBMWPLStock = async (fileBuffer: ArrayBuffer): Promise<ImportRe
                 return;
             }
 
-            // Body Group - Col E (Index 4) - First 3 chars
-            let bodyGroup = getVal(4);
-            if (bodyGroup.length > 3) {
-                bodyGroup = bodyGroup.substring(0, 3);
-            }
-
             // Model Code - Col G (Index 6)
             const modelCode = getVal(6);
+
+            // Body Group - Custom Mapping for BMW PL or Fallback to Col E
+            let bodyGroup = CHASSIS_MAPPING[modelCode] || getVal(4);
+
+            if (!CHASSIS_MAPPING[modelCode] && bodyGroup.length > 3) {
+                bodyGroup = bodyGroup.substring(0, 3);
+            }
 
             // Color - Col I (Index 8)
             const colorCode = getVal(8);

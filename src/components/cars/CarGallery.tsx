@@ -9,9 +9,10 @@ interface CarGalleryProps {
     modelName: string;
     images?: { url: string; sort_order: number }[];
     isDark?: boolean;
+    isElectric?: boolean;
 }
 
-export function CarGallery({ modelName, images = [], isDark = false }: CarGalleryProps) {
+export function CarGallery({ modelName, images = [], isDark = false, isElectric = false }: CarGalleryProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFullScreen, setIsFullScreen] = useState(false);
 
@@ -32,15 +33,25 @@ export function CarGallery({ modelName, images = [], isDark = false }: CarGaller
 
     return (
         <>
-            <div className="flex flex-col gap-4">
+            {/* Electric Gradient Background Glow */}
+            {isElectric && !isDark && (
+                <div className="absolute inset-0 bg-blue-400/5 blur-3xl -z-10 pointer-events-none" />
+            )}
+
+            <div className="flex flex-col gap-4 relative">
+
                 {/* Main Image */}
                 <div
                     className={cn(
                         "relative aspect-[4/3] overflow-hidden group rounded-sm cursor-zoom-in",
-                        isDark ? "bg-[#0f0f0f]" : "bg-white"
+                        isDark ? "bg-[#0f0f0f]" : "bg-white",
+                        isElectric && !isDark && "ring-1 ring-blue-200/50 shadow-[0_0_30px_-5px_rgba(6,83,182,0.1)]"
                     )}
                     onClick={() => hasImages && setIsFullScreen(true)}
                 >
+                    {isElectric && !isDark && (
+                        <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-[#0653B6] to-[#2E95D3] z-20" />
+                    )}
 
                     {hasImages ? (
                         <img
@@ -83,7 +94,7 @@ export function CarGallery({ modelName, images = [], isDark = false }: CarGaller
                                 <ChevronRight className="w-5 h-5" />
                             </button>
 
-                            <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-2">
+                            <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-2 mb-1">
                                 <Camera className="w-3 h-3" />
                                 {currentIndex + 1} / {images.length}
                             </div>
@@ -112,7 +123,7 @@ export function CarGallery({ modelName, images = [], isDark = false }: CarGaller
                                     "relative flex-shrink-0 w-24 h-16 rounded-sm overflow-hidden border-2 transition-all",
                                     isDark ? "bg-[#1a1a1a]" : "bg-gray-100",
                                     currentIndex === idx
-                                        ? "border-blue-600 opacity-100"
+                                        ? (isElectric && !isDark ? "border-[#0653B6] opacity-100" : "border-blue-600 opacity-100")
                                         : (isDark ? "border-transparent opacity-60 hover:opacity-100 invert-1" : "border-transparent opacity-60 hover:opacity-100")
                                 )}
                             >

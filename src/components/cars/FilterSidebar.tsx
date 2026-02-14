@@ -347,7 +347,7 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                         {/* Color Group Filter - VISUAL */}
                         {options.colorGroups && options.colorGroups.length > 0 && (
                             <Section id="colorGroup" title="Kolor" expanded={expandedSections.colorGroup} onToggle={toggleSection}>
-                                <div className="grid grid-cols-4 gap-3 px-1">
+                                <div className="grid grid-cols-4 gap-3 px-1 py-1">
                                     {options.colorGroups.map(c => (
                                         <div key={c} className="flex flex-col items-center gap-1.5">
                                             <button
@@ -376,7 +376,7 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                         {/* Upholstery Group Filter - VISUAL/PILLS */}
                         {options.upholsteryGroups && options.upholsteryGroups.length > 0 && (
                             <Section id="upholsteryGroup" title="Tapicerka" expanded={expandedSections.upholsteryGroup} onToggle={toggleSection}>
-                                <div className="grid grid-cols-4 gap-3 px-1">
+                                <div className="grid grid-cols-4 gap-3 px-1 py-1">
                                     {options.upholsteryGroups.map(c => (
                                         <div key={c} className="flex flex-col items-center gap-1.5">
                                             <button

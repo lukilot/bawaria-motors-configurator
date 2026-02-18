@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, X, RotateCcw, CarFront, Armchair } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, RotateCcw, SprayCan, Armchair } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Slider } from '@/components/ui/slider';
@@ -341,7 +341,7 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                     title="Kolor nadwozia"
                                 >
                                     <div className="flex items-center gap-1 opacity-50 border-r border-gray-300 pr-1.5 mr-0.5">
-                                        <CarFront className="w-3 h-3" />
+                                        <SprayCan className="w-3 h-3" />
                                     </div>
                                     <div className="w-2 h-2 rounded-full border border-gray-300" style={{ backgroundColor: getColor(c) }} />
                                     {c}

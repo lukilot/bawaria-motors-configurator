@@ -121,16 +121,25 @@ function ProductGroupRow({ group, modelMap }: { group: ProductGroup, modelMap: R
     const soldCount = units.filter(u => u.status_code === 500).length;
 
     const hasImages = (group.images && group.images.length > 0) || units.some(u => u.images && u.images.length > 0);
-    const displayName = modelMap[group.model_code] || group.model_code;
+    const modelName = modelMap[group.model_code];
+    const displayName = modelName ? `${group.model_code} - ${modelName}` : group.model_code;
 
-    // Calculate price range
+    // Calculate price display: prefer manual_price (catalogue price), fallback to unit price range
+    const cataloguePrice = group.manual_price && group.manual_price > 0 ? group.manual_price : 0;
     const prices = units.map(u => u.special_price || u.list_price).filter(p => p > 0);
     const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
     const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
 
-    const priceDisplay = minPrice === maxPrice
-        ? new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(minPrice)
-        : `${new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(minPrice)} - ${new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(maxPrice)}`;
+    const fmt = (v: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(v);
+
+    let priceDisplay: string;
+    if (cataloguePrice > 0) {
+        priceDisplay = fmt(cataloguePrice);
+    } else if (minPrice > 0) {
+        priceDisplay = minPrice === maxPrice ? fmt(minPrice) : `${fmt(minPrice)} - ${fmt(maxPrice)}`;
+    } else {
+        priceDisplay = '—';
+    }
 
     return (
         <>
@@ -140,8 +149,7 @@ function ProductGroupRow({ group, modelMap }: { group: ProductGroup, modelMap: R
                         {expanded ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
                         <div>
                             <div className="font-medium text-gray-900">
-                                <span className="text-gray-500 font-mono text-xs mr-2">{group.model_code}</span>
-                                {modelMap[group.model_code] || ''}
+                                {displayName}
                             </div>
                             <div className="text-xs text-gray-400 font-mono mt-0.5 flex gap-2">
                                 <span>{group.color_code}</span>

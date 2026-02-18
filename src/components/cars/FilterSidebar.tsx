@@ -293,19 +293,136 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                     </button>
                 </div>
 
-                {/* Filter Controls Header */}
-                <div className="flex items-center justify-between mb-8">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Konfiguracja</span>
-                    {hasActiveFilters && (
-                        <button
-                            onClick={clearFilters}
-                            className="text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-800 flex items-center gap-1.5 transition-colors"
-                        >
-                            <RotateCcw className="w-3 h-3" />
-                            Reset
-                        </button>
-                    )}
-                </div>
+                {/* Active Filters & Reset */}
+                {hasActiveFilters && (
+                    <div className="mb-8 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Aktywne filtry</span>
+                            <button
+                                onClick={clearFilters}
+                                className="text-[10px] font-bold uppercase tracking-widest text-red-600 hover:text-red-800 flex items-center gap-1.5 transition-colors"
+                            >
+                                <RotateCcw className="w-3 h-3" />
+                                Reset
+                            </button>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            {/* Series */}
+                            {activeSeries.map(s => (
+                                <button
+                                    key={`s-${s}`}
+                                    onClick={() => toggleFilter('series', s)}
+                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                >
+                                    {s}
+                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                </button>
+                            ))}
+
+                            {/* Body */}
+                            {activeBody.map(b => (
+                                <button
+                                    key={`b-${b}`}
+                                    onClick={() => toggleFilter('body', b)}
+                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                >
+                                    {b}
+                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                </button>
+                            ))}
+
+                            {/* Color */}
+                            {activeColorGroup.map(c => (
+                                <button
+                                    key={`c-${c}`}
+                                    onClick={() => toggleFilter('colorGroup', c)}
+                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                >
+                                    <div className="w-2 h-2 rounded-full border border-gray-300" style={{ backgroundColor: getColor(c) }} />
+                                    {c}
+                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                </button>
+                            ))}
+
+                            {/* Upholstery */}
+                            {activeUpholsteryGroup.map(u => (
+                                <button
+                                    key={`u-${u}`}
+                                    onClick={() => toggleFilter('upholsteryGroup', u)}
+                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                >
+                                    <div className="w-2 h-2 rounded-full border border-gray-300" style={{ backgroundColor: getColor(u) }} />
+                                    {u}
+                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                </button>
+                            ))}
+
+                            {/* Fuel */}
+                            {activeFuel.map(f => (
+                                <button
+                                    key={`f-${f}`}
+                                    onClick={() => toggleFilter('fuel', f)}
+                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                >
+                                    {f}
+                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                </button>
+                            ))}
+
+                            {/* Drivetrain */}
+                            {activeDrivetrain.map(d => (
+                                <button
+                                    key={`d-${d}`}
+                                    onClick={() => toggleFilter('drivetrain', d)}
+                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                >
+                                    {d}
+                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                </button>
+                            ))}
+
+                            {/* Price Range (Min/Max) */}
+                            {(activeMin > safeMinPrice || activeMax < safeMaxPrice) && (
+                                <button
+                                    onClick={() => {
+                                        const params = new URLSearchParams(searchParams.toString());
+                                        params.delete('min');
+                                        params.delete('max');
+                                        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+                                    }}
+                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                >
+                                    Cena
+                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                </button>
+                            )}
+
+                            {/* Power Range (Min/Max) */}
+                            {(pmin > 120 || pmax < safeMaxPower) && (
+                                <button
+                                    onClick={() => {
+                                        const params = new URLSearchParams(searchParams.toString());
+                                        params.delete('pmin');
+                                        params.delete('pmax');
+                                        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+                                    }}
+                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                >
+                                    Moc
+                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Filter Controls Header - Configuration Text */}
+                {!hasActiveFilters && (
+                    <div className="flex items-center justify-between mb-8">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Konfiguracja</span>
+                    </div>
+                )}
 
                 <div className="space-y-2">
                     {/* Text Search */}

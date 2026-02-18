@@ -344,17 +344,26 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
         return matchesGroup || matchesVin;
     });
 
-    // Groups with no images (Pending)
+    // Helper: a group is "internal" if ALL its non-sold units have visibility INTERNAL
+    const isInternalGroup = (g: ProductGroup) => {
+        const activeUnits = (g.available_units || []).filter(u => u.status_code !== 500);
+        return activeUnits.length > 0 && activeUnits.every(u => u.visibility === 'INTERNAL');
+    };
+
+    // Groups with no images (Pending) — exclude internal groups
     const pendingGroups = filteredGroups.filter(g => {
+        if (isInternalGroup(g)) return false;
         const hasGroupImages = g.images && g.images.length > 0;
         const hasUnitImages = (g.available_units || []).some(u => u.images && u.images.length > 0);
         return !hasGroupImages && !hasUnitImages;
     });
 
-    // Active Groups (Main List) - exclude pending?
-    // Let's show everything in main list, or separate like before.
-    // Before: Pending was separate. Let's keep it separate.
+    // Internal Groups — separate section regardless of image status
+    const internalGroups = filteredGroups.filter(g => isInternalGroup(g));
+
+    // Active Groups (Main List) — exclude pending and internal
     const activeGroups = filteredGroups.filter(g => {
+        if (isInternalGroup(g)) return false;
         const hasGroupImages = g.images && g.images.length > 0;
         const hasUnitImages = (g.available_units || []).some(u => u.images && u.images.length > 0);
         return hasGroupImages || hasUnitImages;
@@ -408,6 +417,37 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
                             </thead>
                             <tbody className="divide-y divide-orange-100">
                                 {pendingGroups.map(group => (
+                                    <ProductGroupRow key={group.id} group={group} modelMap={modelMap} />
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Internal Groups */}
+            {internalGroups.length > 0 && (
+                <div className="bg-purple-50 border border-purple-100 rounded-sm overflow-hidden shadow-sm">
+                    <div className="p-6 border-b border-purple-100 flex justify-between items-center bg-purple-50/50">
+                        <div>
+                            <h3 className="text-lg font-medium text-purple-900">🔒 Internal (DE / Not for Sale)</h3>
+                            <p className="text-xs text-purple-700 mt-1">These groups contain only internal units — not visible on the public site.</p>
+                        </div>
+                        <span className="text-xs font-mono text-purple-800 bg-purple-100 px-2 py-1 rounded-full">{internalGroups.length}</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-purple-50/50 text-purple-900 uppercase text-xs font-semibold tracking-wider">
+                                <tr>
+                                    <th className="px-6 py-3">Model / Specs</th>
+                                    <th className="px-6 py-3">Inventory</th>
+                                    <th className="px-6 py-3">Images</th>
+                                    <th className="px-6 py-3">Price</th>
+                                    <th className="px-6 py-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-purple-100">
+                                {internalGroups.map(group => (
                                     <ProductGroupRow key={group.id} group={group} modelMap={modelMap} />
                                 ))}
                             </tbody>

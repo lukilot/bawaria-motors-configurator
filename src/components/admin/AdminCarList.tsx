@@ -121,7 +121,10 @@ function ProductGroupRow({ group, modelMap }: { group: ProductGroup, modelMap: R
     const soldCount = units.filter(u => u.status_code === 500).length;
 
     const hasImages = (group.images && group.images.length > 0) || units.some(u => u.images && u.images.length > 0);
-    const modelName = modelMap[group.model_code];
+    // Resolve model name: dictionary first, then fallback to model_name from any unit
+    const dictName = modelMap[group.model_code];
+    const unitName = units.find(u => u.model_name)?.model_name;
+    const modelName = dictName || unitName;
     const displayName = modelName ? `${group.model_code} - ${modelName}` : group.model_code;
 
     // Calculate price display: prefer manual_price (catalogue price), fallback to unit price range

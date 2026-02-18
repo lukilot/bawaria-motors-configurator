@@ -369,11 +369,9 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                             strokeLinejoin="round"
                                             className="w-3 h-3"
                                         >
-                                            {/* Car Seat Side View */}
-                                            <path d="M5 21v-2a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2" />
-                                            <path d="M19 17V9a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v8" />
-                                            <path d="M5 11h14" />
-                                            <path d="M5 11l-1.5-6.5A2 2 0 0 1 5.5 2h13a2 2 0 0 1 2 2.5L19 11" />
+                                            {/* Car Seat Front View */}
+                                            <path d="M8 2h8a2 2 0 0 1 2 2v3h-12v-3a2 2 0 0 1 2-2z" />
+                                            <path d="M5 9h14a2 2 0 0 1 2 2v7a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3v-7a2 2 0 0 1 2-2z" />
                                         </svg>
                                     </div>
                                     <div className="w-2 h-2 rounded-full border border-gray-300" style={{ backgroundColor: getColor(u) }} />

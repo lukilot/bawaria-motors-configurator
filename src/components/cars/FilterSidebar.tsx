@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, X, RotateCcw } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, RotateCcw, CarFront, Armchair } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Slider } from '@/components/ui/slider';
@@ -338,7 +338,11 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                     key={`c-${c}`}
                                     onClick={() => toggleFilter('colorGroup', c)}
                                     className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                    title="Kolor nadwozia"
                                 >
+                                    <div className="flex items-center gap-1 opacity-50 border-r border-gray-300 pr-1.5 mr-0.5">
+                                        <CarFront className="w-3 h-3" />
+                                    </div>
                                     <div className="w-2 h-2 rounded-full border border-gray-300" style={{ backgroundColor: getColor(c) }} />
                                     {c}
                                     <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
@@ -351,7 +355,11 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                     key={`u-${u}`}
                                     onClick={() => toggleFilter('upholsteryGroup', u)}
                                     className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                    title="Tapicerka"
                                 >
+                                    <div className="flex items-center gap-1 opacity-50 border-r border-gray-300 pr-1.5 mr-0.5">
+                                        <Armchair className="w-3 h-3" />
+                                    </div>
                                     <div className="w-2 h-2 rounded-full border border-gray-300" style={{ backgroundColor: getColor(u) }} />
                                     {u}
                                     <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />

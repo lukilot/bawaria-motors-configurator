@@ -387,7 +387,7 @@ export default function AdminGroupEditor() {
                         <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 mb-6">Stock Units ({units.length})</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="bg-gray-50 text-gray-500 uppercase text-xs font-semibold tracking-wider">
+                                <thead className="bg-gray-50 text-gray-700 uppercase text-xs font-semibold tracking-wider">
                                     <tr>
                                         <th className="px-4 py-3">VIN</th>
                                         <th className="px-4 py-3">Status</th>
@@ -403,7 +403,7 @@ export default function AdminGroupEditor() {
 
                                         return (
                                             <tr key={unit.vin} className={cn("hover:bg-gray-50", !isActive && "opacity-60")}>
-                                                <td className="px-4 py-3 font-mono text-xs">{unit.vin}</td>
+                                                <td className="px-4 py-3 font-mono text-xs text-gray-800">{unit.vin}</td>
                                                 <td className="px-4 py-3">
                                                     <span className={cn(
                                                         "px-1.5 py-0.5 rounded-sm text-[10px] font-bold",
@@ -412,7 +412,7 @@ export default function AdminGroupEditor() {
                                                         {unit.status_code}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3 font-mono text-xs">
+                                                <td className="px-4 py-3 font-mono text-xs text-gray-800">
                                                     {(() => {
                                                         const unitPrice = unit.special_price || unit.list_price;
                                                         if (unitPrice > 0) {
@@ -464,41 +464,41 @@ export default function AdminGroupEditor() {
 
                         <div className="space-y-4 mb-6">
                             <div>
-                                <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Model</label>
-                                <p className="font-medium text-lg">{modelName}</p>
-                                <p className="font-mono text-xs text-gray-500">{group.model_code}</p>
+                                <label className="block text-gray-700 text-[10px] uppercase font-bold mb-1">Model</label>
+                                <p className="font-medium text-lg text-gray-900">{modelName}</p>
+                                <p className="font-mono text-xs text-gray-700">{group.model_code}</p>
                             </div>
                             <div>
-                                <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Specs</label>
+                                <label className="block text-gray-700 text-[10px] uppercase font-bold mb-1">Specs</label>
                                 <div className="flex gap-2">
-                                    <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{group.color_code}</span>
-                                    <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{group.upholstery_code}</span>
+                                    <span className="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs font-mono">{group.color_code}</span>
+                                    <span className="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs font-mono">{group.upholstery_code}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="border-t border-gray-100 pt-6 mb-6">
-                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Catalogue Price (PLN)</label>
+                            <label className="block text-xs font-semibold uppercase text-gray-700 mb-2">Catalogue Price (PLN)</label>
                             <input
                                 type="number"
                                 value={manualPrice}
                                 onChange={(e) => setManualPrice(e.target.value)}
                                 placeholder="Catalogue price for all units..."
-                                className="w-full p-2 border border-blue-100 rounded-sm text-sm focus:border-blue-500 outline-none font-bold"
+                                className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 focus:border-blue-500 outline-none font-bold placeholder:text-gray-400"
                             />
-                            <p className="text-[10px] text-gray-500 mt-1">
+                            <p className="text-[10px] text-gray-600 mt-1">
                                 Sets the catalogue price (before discount) for all units in this group.
                                 <br />Current Range: <b>{new Intl.NumberFormat('pl-PL').format(minPrice)} - {new Intl.NumberFormat('pl-PL').format(maxPrice)} PLN</b>
                             </p>
                         </div>
 
                         <div className="border-t border-gray-100 pt-6">
-                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Description / Note</label>
+                            <label className="block text-xs font-semibold uppercase text-gray-700 mb-2">Description / Note</label>
                             <textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={4}
-                                className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                                className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
                                 placeholder="Internal notes or public description..."
                             />
                         </div>

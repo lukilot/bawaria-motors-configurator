@@ -362,11 +362,11 @@ export default function AdminCarEditor() {
                         <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 mb-4">Vehicle Data</h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-sm">
                             <div>
-                                <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Model</label>
+                                <label className="block text-gray-700 text-[10px] uppercase font-bold mb-1">Model</label>
                                 <p className="font-medium">{car.model_name || car.model_code}</p>
                             </div>
                             <div>
-                                <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Status</label>
+                                <label className="block text-gray-700 text-[10px] uppercase font-bold mb-1">Status</label>
                                 <p className="font-medium text-blue-600">{car.status_code} - {car.order_status}</p>
                             </div>
                             <div>
@@ -403,11 +403,11 @@ export default function AdminCarEditor() {
 
                         {/* Visibility */}
                         <div className="mb-6">
-                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Visibility</label>
+                            <label className="block text-xs font-semibold uppercase text-gray-700 mb-2">Visibility</label>
                             <select
                                 value={visibility}
                                 onChange={(e) => setVisibility(e.target.value as any)}
-                                className="w-full p-2 border border-gray-200 rounded-sm text-sm focus:border-black outline-none"
+                                className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 focus:border-black outline-none"
                             >
                                 <option value="INTERNAL">Internal Only (Hidden)</option>
                                 <option value="PUBLIC">Public (Visible)</option>
@@ -417,25 +417,25 @@ export default function AdminCarEditor() {
 
                         {/* Pricing */}
                         <div className="mb-4">
-                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">List Price (PLN)</label>
+                            <label className="block text-xs font-semibold uppercase text-gray-700 mb-2">List Price (PLN)</label>
                             <input
                                 type="number"
                                 value={listPrice}
                                 onChange={(e) => setListPrice(e.target.value)}
-                                className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                                className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900"
                             />
                         </div>
 
                         <div className="mb-4">
-                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Special Price (PLN)</label>
+                            <label className="block text-xs font-semibold uppercase text-gray-700 mb-2">Special Price (PLN)</label>
                             <input
                                 type="number"
                                 value={specialPrice}
                                 onChange={(e) => setSpecialPrice(e.target.value)}
                                 placeholder="Optional"
-                                className="w-full p-2 border border-2 border-blue-100 rounded-sm text-sm focus:border-blue-500 outline-none font-bold"
+                                className="w-full p-2 border border-2 border-gray-300 rounded-sm text-sm text-gray-900 focus:border-blue-500 outline-none font-bold placeholder:text-gray-400"
                             />
-                            <p className="text-[10px] text-gray-500 mt-1">Leave empty to use List Price.</p>
+                            <p className="text-[10px] text-gray-600 mt-1">Leave empty to use List Price.</p>
                         </div>
                     </div>
 
@@ -445,34 +445,34 @@ export default function AdminCarEditor() {
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Rodzaj paliwa</label>
+                                    <label className="block text-xs font-semibold uppercase text-gray-700 mb-2">Rodzaj paliwa</label>
                                     <input
                                         type="text"
                                         value={fuelType}
                                         onChange={(e) => setFuelType(e.target.value)}
                                         placeholder="e.g. Diesel"
-                                        className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                                        className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Moc (KM/kW)</label>
+                                    <label className="block text-xs font-semibold uppercase text-gray-700 mb-2">Moc (KM/kW)</label>
                                     <input
                                         type="text"
                                         value={power}
                                         onChange={(e) => setPower(e.target.value)}
                                         placeholder="e.g. 286 KM"
-                                        className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                                        className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Układ napędowy</label>
+                                <label className="block text-xs font-semibold uppercase text-gray-700 mb-2">Układ napędowy</label>
                                 <input
                                     type="text"
                                     value={drivetrain}
                                     onChange={(e) => setDrivetrain(e.target.value)}
                                     placeholder="e.g. xDrive"
-                                    className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                                    className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
                                 />
                             </div>
                         </div>

@@ -264,6 +264,7 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [modelMap, setModelMap] = useState<Record<string, string>>({});
+    const [internalExpanded, setInternalExpanded] = useState(false);
 
     const fetchGroups = async () => {
         setLoading(true);
@@ -425,37 +426,6 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
                 </div>
             )}
 
-            {/* Internal Groups */}
-            {internalGroups.length > 0 && (
-                <div className="bg-purple-50 border border-purple-100 rounded-sm overflow-hidden shadow-sm">
-                    <div className="p-6 border-b border-purple-100 flex justify-between items-center bg-purple-50/50">
-                        <div>
-                            <h3 className="text-lg font-medium text-purple-900">🔒 Internal (DE / Not for Sale)</h3>
-                            <p className="text-xs text-purple-700 mt-1">These groups contain only internal units — not visible on the public site.</p>
-                        </div>
-                        <span className="text-xs font-mono text-purple-800 bg-purple-100 px-2 py-1 rounded-full">{internalGroups.length}</span>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-purple-50/50 text-purple-900 uppercase text-xs font-semibold tracking-wider">
-                                <tr>
-                                    <th className="px-6 py-3">Model / Specs</th>
-                                    <th className="px-6 py-3">Inventory</th>
-                                    <th className="px-6 py-3">Images</th>
-                                    <th className="px-6 py-3">Price</th>
-                                    <th className="px-6 py-3 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-purple-100">
-                                {internalGroups.map(group => (
-                                    <ProductGroupRow key={group.id} group={group} modelMap={modelMap} />
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-
             {/* Main Inventory */}
             <div className="bg-white border border-gray-100 rounded-sm overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center">
@@ -491,6 +461,45 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
                     </table>
                 </div>
             </div>
+
+            {/* Internal Groups — collapsed by default, last on page */}
+            {internalGroups.length > 0 && (
+                <div className="bg-purple-50 border border-purple-100 rounded-sm overflow-hidden shadow-sm">
+                    <div
+                        className="p-6 flex justify-between items-center bg-purple-50/50 cursor-pointer hover:bg-purple-100/50 transition-colors"
+                        onClick={() => setInternalExpanded(!internalExpanded)}
+                    >
+                        <div className="flex items-center gap-3">
+                            {internalExpanded ? <ChevronDown className="w-4 h-4 text-purple-400" /> : <ChevronRight className="w-4 h-4 text-purple-400" />}
+                            <div>
+                                <h3 className="text-lg font-medium text-purple-900">🔒 Internal (DE / Not for Sale)</h3>
+                                <p className="text-xs text-purple-700 mt-1">These groups contain only internal units — not visible on the public site.</p>
+                            </div>
+                        </div>
+                        <span className="text-xs font-mono text-purple-800 bg-purple-100 px-2 py-1 rounded-full">{internalGroups.length}</span>
+                    </div>
+                    {internalExpanded && (
+                        <div className="overflow-x-auto border-t border-purple-100">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-purple-50/50 text-purple-900 uppercase text-xs font-semibold tracking-wider">
+                                    <tr>
+                                        <th className="px-6 py-3">Model / Specs</th>
+                                        <th className="px-6 py-3">Inventory</th>
+                                        <th className="px-6 py-3">Images</th>
+                                        <th className="px-6 py-3">Price</th>
+                                        <th className="px-6 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-purple-100">
+                                    {internalGroups.map(group => (
+                                        <ProductGroupRow key={group.id} group={group} modelMap={modelMap} />
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

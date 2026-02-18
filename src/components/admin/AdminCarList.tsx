@@ -292,11 +292,16 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
             setGroups(mappedGroups);
         }
 
-        // 2. Fetch Model Dictionary
-        const { data: dictData } = await supabase.from('dictionary_models').select('code, name');
+        // 2. Fetch Model Dictionary from Knowledge Base
+        const { data: dictData } = await supabase
+            .from('dictionaries')
+            .select('code, data')
+            .eq('type', 'model');
         if (dictData) {
             const map: Record<string, string> = {};
-            dictData.forEach((item: any) => map[item.code] = item.name);
+            dictData.forEach((item: any) => {
+                if (item.data?.name) map[item.code] = item.data.name;
+            });
             setModelMap(map);
         }
 

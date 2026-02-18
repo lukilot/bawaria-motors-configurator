@@ -130,14 +130,15 @@ export default function AdminGroupEditor() {
                 setManualPrice(groupData.manual_price ? String(groupData.manual_price) : '');
                 setDescription(groupData.description || '');
 
-                // Enrich model name
+                // Enrich model name from Knowledge Base
                 const { data: dictData } = await supabase
-                    .from('dictionary_models')
-                    .select('name')
+                    .from('dictionaries')
+                    .select('data')
+                    .eq('type', 'model')
                     .eq('code', groupData.model_code)
                     .single();
 
-                setModelName(dictData ? dictData.name : groupData.model_code);
+                setModelName(dictData?.data?.name || groupData.model_code);
             }
             setLoading(false);
         };

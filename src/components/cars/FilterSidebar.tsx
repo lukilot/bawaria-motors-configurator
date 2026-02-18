@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, X, RotateCcw, SprayCan, Armchair } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, RotateCcw, SprayCan } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Slider } from '@/components/ui/slider';
@@ -358,7 +358,23 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                     title="Tapicerka"
                                 >
                                     <div className="flex items-center gap-1 opacity-50 border-r border-gray-300 pr-1.5 mr-0.5">
-                                        <Armchair className="w-3 h-3" />
+                                        <svg
+                                            width="12"
+                                            height="12"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className="w-3 h-3"
+                                        >
+                                            {/* Car Seat Side View */}
+                                            <path d="M5 21v-2a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2" />
+                                            <path d="M19 17V9a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v8" />
+                                            <path d="M5 11h14" />
+                                            <path d="M5 11l-1.5-6.5A2 2 0 0 1 5.5 2h13a2 2 0 0 1 2 2.5L19 11" />
+                                        </svg>
                                     </div>
                                     <div className="w-2 h-2 rounded-full border border-gray-300" style={{ backgroundColor: getColor(u) }} />
                                     {u}

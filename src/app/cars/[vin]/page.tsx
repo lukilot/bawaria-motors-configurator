@@ -331,9 +331,10 @@ export default async function CarPage({ params }: PageProps) {
 
                 {/* LEFT: Gallery + Specs + Options */}
                 <div className="lg:col-span-8">
+                    {/* Merge group images (shared gallery) with car-specific images */}
                     <CarGallery
                         modelName={modelName}
-                        images={car.images}
+                        images={[...(car as any).group_images || [], ...(car.images || [])]}
                         isDark={isMSeries}
                         isElectric={isElectric && !isMSeries}
                     />

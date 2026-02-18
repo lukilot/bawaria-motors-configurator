@@ -86,7 +86,7 @@ export async function getAvailableCars(): Promise<StockCar[]> {
 export async function getCarByVin(vin: string): Promise<StockCar | null> {
     const { data, error } = await supabase
         .from('stock_units')
-        .select('*, product_groups!product_group_id(manual_price)')
+        .select('*, product_groups!product_group_id(manual_price, images)')
         .eq('vin', vin)
         .single();
 
@@ -103,6 +103,8 @@ export async function getCarByVin(vin: string): Promise<StockCar | null> {
     if (groupPrice && groupPrice > 0) {
         car.list_price = groupPrice;
     }
+    // Store group images separately for gallery merging
+    car.group_images = car.product_groups?.images || [];
     // Clean up the joined data
     delete car.product_groups;
 

@@ -47,8 +47,6 @@ export async function getAvailableProductGroups(): Promise<ProductGroup[]> {
 }
 
 export async function getAvailableCars(): Promise<StockCar[]> {
-    // Deprecated or used for non-grouped view?
-    // Let's keep it working for fallback or legacy views
     let allCars: StockCar[] = [];
     let from = 0;
     const batchSize = 1000;
@@ -57,7 +55,7 @@ export async function getAvailableCars(): Promise<StockCar[]> {
     while (more) {
         const { data, error } = await supabase
             .from('stock_units')
-            .select('*')
+            .select('*, product_groups!product_group_id(manual_price, images)')
             .in('visibility', ['PUBLIC', 'SOLD'])
             .order('list_price', { ascending: true })
             .range(from, from + batchSize - 1);
@@ -68,7 +66,22 @@ export async function getAvailableCars(): Promise<StockCar[]> {
         }
 
         if (data && data.length > 0) {
-            allCars = [...allCars, ...data as any];
+            const enriched = data.map((row: any) => {
+                const groupImages = row.product_groups?.images || [];
+                const groupPrice = row.product_groups?.manual_price;
+                const car = { ...row };
+                // Merge group images before car's own images
+                if (groupImages.length > 0) {
+                    car.images = [...groupImages, ...(car.images || [])];
+                }
+                // Inherit group manual_price
+                if (groupPrice && groupPrice > 0) {
+                    car.list_price = groupPrice;
+                }
+                delete car.product_groups;
+                return car;
+            });
+            allCars = [...allCars, ...enriched];
 
             if (data.length < batchSize) {
                 more = false;

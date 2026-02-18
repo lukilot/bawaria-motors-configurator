@@ -95,7 +95,7 @@ export function BMWPLStockUploader({ onSyncSuccess }: BMWPLStockUploaderProps) {
                         </div>
                     </Button>
 
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-500">
                         {status === 'Idle' ? 'Waiting for file...' : status}
                     </span>
                 </div>

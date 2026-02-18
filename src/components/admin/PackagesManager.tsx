@@ -91,7 +91,7 @@ export function PackagesManager() {
             </div>
 
             {loading ? (
-                <div className="py-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-300" /></div>
+                <div className="py-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-500" /></div>
             ) : (
                 <div className="grid gap-4">
                     {packages.filter(p => p.type === activeTab).map(pkg => (
@@ -131,7 +131,7 @@ export function PackagesManager() {
                             </div>
 
                             <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                <span className="text-xs text-gray-400">
+                                <span className="text-xs text-gray-500">
                                     {prices.filter(p => p.package_id === pkg.id).length} zdefiniowanych cen
                                 </span>
                                 <button
@@ -270,7 +270,7 @@ function PriceModal({ pkg, allPrices, onClose, onUpdate }: { pkg: ServicePackage
                 <div className="flex justify-between items-center mb-4">
                     <div>
                         <h2 className="text-lg font-bold">Ceny: {pkg.name}</h2>
-                        <p className="text-xs text-gray-400">{pkg.code}</p>
+                        <p className="text-xs text-gray-500">{pkg.code}</p>
                     </div>
                     <button onClick={onClose}><X className="w-5 h-5" /></button>
                 </div>
@@ -312,7 +312,7 @@ function PriceModal({ pkg, allPrices, onClose, onUpdate }: { pkg: ServicePackage
                             ))}
                             {allPrices.length === 0 && (
                                 <tr>
-                                    <td colSpan={3} className="p-8 text-center text-gray-400">Brak zdefiniowanych cen dla poszczególnych serii.</td>
+                                    <td colSpan={3} className="p-8 text-center text-gray-500">Brak zdefiniowanych cen dla poszczególnych serii.</td>
                                 </tr>
                             )}
                         </tbody>

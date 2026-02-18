@@ -295,7 +295,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                             Code
                         </button>
                     </div>
-                    <span className="text-xs bg-gray-50 text-gray-400 px-2 py-1 rounded-full uppercase tracking-wider">
+                    <span className="text-xs bg-gray-50 text-gray-600 px-2 py-1 rounded-full uppercase tracking-wider">
                         {filteredItems.length} items
                     </span>
                 </div>
@@ -305,7 +305,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
             <form onSubmit={handleAdd} className="p-6 bg-gray-50/50 border-b border-gray-100">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Code</label>
+                        <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Code</label>
                         <input
                             type="text"
                             value={newCode}
@@ -318,7 +318,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                     {type === 'model' ? (
                         <>
                             <div>
-                                <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Series</label>
+                                <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Series</label>
                                 <input
                                     type="text"
                                     value={formData.series || ''}
@@ -329,7 +329,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Name</label>
+                                <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Name</label>
                                 <input
                                     type="text"
                                     value={formData.name || ''}
@@ -340,7 +340,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Body Type</label>
+                                <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Body Type</label>
                                 <input
                                     type="text"
                                     value={formData.body_type || ''}
@@ -350,7 +350,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Fuel</label>
+                                <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Fuel</label>
                                 <input
                                     type="text"
                                     value={formData.fuel || ''}
@@ -360,7 +360,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Drivetrain</label>
+                                <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Drivetrain</label>
                                 <input
                                     type="text"
                                     value={formData.drivetrain || ''}
@@ -370,7 +370,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Power [KM]</label>
+                                <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Power [KM]</label>
                                 <input
                                     type="text"
                                     value={formData.power || ''}
@@ -380,7 +380,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Accel 0-100</label>
+                                <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Accel 0-100</label>
                                 <input
                                     type="text"
                                     value={formData.acceleration || ''}
@@ -390,7 +390,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Trunk [l]</label>
+                                <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Trunk [l]</label>
                                 <input
                                     type="text"
                                     value={formData.trunk_capacity || ''}
@@ -403,7 +403,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                     ) : (
                         <>
                             <div>
-                                <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Name</label>
+                                <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Name</label>
                                 <input
                                     type="text"
                                     value={formData.name || ''}
@@ -425,7 +425,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                             </div>
                             {type === 'upholstery' && (
                                 <div>
-                                    <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">Type</label>
+                                    <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Type</label>
                                     <select
                                         value={formData.type || ''}
                                         onChange={(e) => handleDataChange('type', e.target.value)}
@@ -464,7 +464,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                             {variations.map((variation, index) => (
                                                 <div key={variation.id} className="flex items-start gap-4 p-3 bg-gray-50 border border-gray-200 rounded-sm">
                                                     <div className="flex-1">
-                                                        <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">
+                                                        <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">
                                                             Body Groups
                                                         </label>
                                                         <select
@@ -477,11 +477,11 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                                                 <option key={bg} value={bg}>{bg}</option>
                                                             ))}
                                                         </select>
-                                                        <p className="text-xs text-gray-400 mt-1">Hold Cmd/Ctrl to select multiple</p>
+                                                        <p className="text-xs text-gray-500 mt-1">Hold Cmd/Ctrl to select multiple</p>
                                                     </div>
 
                                                     <div className="w-48">
-                                                        <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">
+                                                        <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">
                                                             Variation Image
                                                         </label>
                                                         {variation.image ? (
@@ -560,7 +560,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                         <Loader2 className="w-6 h-6 text-gray-300 animate-spin" />
                     </div>
                 ) : items.length === 0 ? (
-                    <div className="p-12 text-center text-gray-400 text-sm italic">
+                    <div className="p-12 text-center text-gray-500 text-sm italic">
                         No items found for this category.
                     </div>
                 ) : (
@@ -616,7 +616,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                         {type === 'model' ? (
                                             <div className="flex flex-col">
                                                 <span className="font-medium">{item.data.name}</span>
-                                                <span className="text-xs text-gray-400">
+                                                <span className="text-xs text-gray-500">
                                                     {item.data.series} • {item.data.body_type} • {item.data.fuel} • {item.data.drivetrain}
                                                 </span>
                                             </div>
@@ -629,14 +629,14 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                                     </span>
                                                 )}
                                                 {type === 'upholstery' && item.data.type && (
-                                                    <span className="text-xs text-gray-400 mt-0.5">{item.data.type}</span>
+                                                    <span className="text-xs text-gray-500 mt-0.5">{item.data.type}</span>
                                                 )}
                                                 {item.data.variations && item.data.variations.length > 0 && (
                                                     <div className="mt-2 text-xs">
                                                         <span className="font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-sm">
                                                             {item.data.variations.length} Variants
                                                         </span>
-                                                        <div className="text-gray-400 mt-1 pl-1 border-l-2 border-gray-100">
+                                                        <div className="text-gray-500 mt-1 pl-1 border-l-2 border-gray-100">
                                                             {item.data.variations.map((v: any, idx: number) => (
                                                                 <div key={idx} className="truncate max-w-[200px]" title={v.body_groups.join(', ')}>
                                                                     • {v.body_groups.join(', ')}

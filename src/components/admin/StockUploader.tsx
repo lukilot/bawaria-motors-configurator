@@ -110,7 +110,7 @@ export function StockUploader({ onSyncSuccess }: { onSyncSuccess?: () => void })
                                 <SyncButton cars={importResult.cars} onSyncSuccess={onSyncSuccess} />
                             </>
                         ) : (
-                            <p className="text-gray-400 text-sm">No valid cars found to sync.</p>
+                            <p className="text-gray-500 text-sm">No valid cars found to sync.</p>
                         )}
                     </div>
                 </div>

@@ -266,7 +266,7 @@ export default function AdminCarEditor() {
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
-    if (loading) return <div className="p-12 text-center text-gray-400 font-light">Loading vehicle data...</div>;
+    if (loading) return <div className="p-12 text-center text-gray-500 font-light">Loading vehicle data...</div>;
     if (!car) return <div className="p-12 text-center text-red-500">Vehicle not found.</div>;
 
     return (
@@ -278,7 +278,7 @@ export default function AdminCarEditor() {
                     </Link>
                     <div>
                         <h1 className="text-xl font-light text-gray-900 tracking-tight">Edit Vehicle</h1>
-                        <p className="text-xs text-gray-400 font-mono">{car.vin}</p>
+                        <p className="text-xs text-gray-600 font-mono">{car.vin}</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -301,7 +301,7 @@ export default function AdminCarEditor() {
                         <div className="flex items-center justify-between mb-6">
                             <div>
                                 <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900">Gallery</h3>
-                                <p className="text-[10px] text-gray-400 uppercase mt-1">Drag photos to reorder. The first photo is the main one.</p>
+                                <p className="text-[10px] text-gray-500 uppercase mt-1">Drag photos to reorder. The first photo is the main one.</p>
                             </div>
                             {car.images && car.images.length > 0 && (
                                 <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-sm">
@@ -349,9 +349,9 @@ export default function AdminCarEditor() {
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center">
-                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                                    <Upload className="w-8 h-8 text-gray-500 mb-2" />
                                     <p className="text-sm text-gray-500 font-light">Drop photos here or click to upload</p>
-                                    <p className="text-[10px] text-gray-400 uppercase mt-2">Auto-optimized to FullHD WebP</p>
+                                    <p className="text-[10px] text-gray-500 uppercase mt-2">Auto-optimized to FullHD WebP</p>
                                 </div>
                             )}
                         </div>
@@ -362,23 +362,23 @@ export default function AdminCarEditor() {
                         <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 mb-4">Vehicle Data</h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-sm">
                             <div>
-                                <label className="block text-gray-400 text-[10px] uppercase font-bold mb-1">Model</label>
+                                <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Model</label>
                                 <p className="font-medium">{car.model_name || car.model_code}</p>
                             </div>
                             <div>
-                                <label className="block text-gray-400 text-[10px] uppercase font-bold mb-1">Status</label>
+                                <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Status</label>
                                 <p className="font-medium text-blue-600">{car.status_code} - {car.order_status}</p>
                             </div>
                             <div>
-                                <label className="block text-gray-400 text-[10px] uppercase font-bold mb-1">Color</label>
+                                <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Color</label>
                                 <p className="font-medium">{car.color_code}</p>
                             </div>
                             <div>
-                                <label className="block text-gray-400 text-[10px] uppercase font-bold mb-1">Upholstery</label>
+                                <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Upholstery</label>
                                 <p className="font-medium">{car.upholstery_code}</p>
                             </div>
                             <div>
-                                <label className="block text-gray-400 text-[10px] uppercase font-bold mb-1">Production</label>
+                                <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Production</label>
                                 <p className="font-medium">{car.production_date ? new Date(car.production_date).toLocaleDateString() : '-'}</p>
                             </div>
                         </div>
@@ -435,7 +435,7 @@ export default function AdminCarEditor() {
                                 placeholder="Optional"
                                 className="w-full p-2 border border-2 border-blue-100 rounded-sm text-sm focus:border-blue-500 outline-none font-bold"
                             />
-                            <p className="text-[10px] text-gray-400 mt-1">Leave empty to use List Price.</p>
+                            <p className="text-[10px] text-gray-500 mt-1">Leave empty to use List Price.</p>
                         </div>
                     </div>
 

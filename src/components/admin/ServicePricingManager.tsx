@@ -141,7 +141,7 @@ export function ServicePricingManager() {
                                 )}>
                                     {pkg.code}
                                 </span>
-                                <span className="text-[10px] text-gray-400">
+                                <span className="text-[10px] text-gray-500">
                                     {getPricesForPackage(pkg.code).length} cen
                                 </span>
                             </div>
@@ -175,11 +175,11 @@ export function ServicePricingManager() {
                             <h2 className="text-lg text-gray-700 mb-4">{selectedPackage.name}</h2>
                             <div className="flex gap-6 text-sm text-gray-500 border-t border-gray-100 pt-4">
                                 <div>
-                                    <span className="block text-[10px] uppercase tracking-wider text-gray-400">Czas trwania</span>
+                                    <span className="block text-[10px] uppercase tracking-wider text-gray-500">Czas trwania</span>
                                     <span className="font-medium text-black">{selectedPackage.duration_months / 12} lat</span>
                                 </div>
                                 <div>
-                                    <span className="block text-[10px] uppercase tracking-wider text-gray-400">Limit przebiegu</span>
+                                    <span className="block text-[10px] uppercase tracking-wider text-gray-500">Limit przebiegu</span>
                                     <span className="font-medium text-black">{selectedPackage.mileage_limit.toLocaleString()} km</span>
                                 </div>
                             </div>
@@ -237,20 +237,20 @@ export function ServicePricingManager() {
                         <div className="bg-white border border-gray-100 rounded-sm overflow-hidden">
                             <div className="bg-gray-50 px-6 py-3 border-b border-gray-100 flex justify-between items-center">
                                 <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500">Zdefiniowane ceny</h3>
-                                <span className="text-xs text-gray-400">{getPricesForPackage(selectedPackage.code).length} serii</span>
+                                <span className="text-xs text-gray-500">{getPricesForPackage(selectedPackage.code).length} serii</span>
                             </div>
 
                             {getPricesForPackage(selectedPackage.code).length === 0 ? (
-                                <div className="p-8 text-center text-gray-400 text-sm">
+                                <div className="p-8 text-center text-gray-500 text-sm">
                                     Brak zdefiniowanych cen dla tego pakietu.
                                 </div>
                             ) : (
                                 <table className="w-full">
                                     <thead className="bg-gray-50 text-left">
                                         <tr>
-                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 w-32">Seria</th>
-                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">Cena</th>
-                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 text-right">Akcje</th>
+                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-600 w-32">Seria</th>
+                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-500">Cena</th>
+                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-600 text-right">Akcje</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
@@ -262,7 +262,7 @@ export function ServicePricingManager() {
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     {/* Placeholder for future delete/edit */}
-                                                    <span className="text-xs text-gray-400 group-hover:text-gray-500">
+                                                    <span className="text-xs text-gray-500 group-hover:text-gray-500">
                                                         {new Date(0).toLocaleDateString()} {/* Just a placeholder for date if needed */}
                                                     </span>
                                                 </td>
@@ -274,7 +274,7 @@ export function ServicePricingManager() {
                         </div>
                     </>
                 ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-gray-300 p-12 text-center border ransparent">
+                    <div className="h-full flex flex-col items-center justify-center text-gray-500 p-12 text-center border ransparent">
                         <Search className="w-12 h-12 mb-4 opacity-20" />
                         <p className="text-sm uppercase tracking-widest font-semibold">Wybierz pakiet z listy aby zarządzać cenami</p>
                     </div>

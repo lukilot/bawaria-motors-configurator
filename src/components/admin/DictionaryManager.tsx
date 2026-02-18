@@ -61,7 +61,7 @@ export function DictionaryManager() {
                 )}
             </div>
 
-            <p className="mt-6 text-xs text-gray-400 italic">
+            <p className="mt-6 text-xs text-gray-500 italic">
                 * These mappings are used to translate technical codes (e.g. 475) to human-readable names (e.g. Sapphire Black) across the application.
             </p>
         </div>

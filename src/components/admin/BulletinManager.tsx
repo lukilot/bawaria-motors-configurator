@@ -184,9 +184,9 @@ export function BulletinManager() {
             )}
 
             {loading ? (
-                <div className="py-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-300" /></div>
+                <div className="py-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-500" /></div>
             ) : bulletins.length === 0 ? (
-                <div className="py-20 text-center text-gray-400">
+                <div className="py-20 text-center text-gray-500">
                     <p className="text-lg font-light mb-2">Brak biuletynów</p>
                     <p className="text-sm">Kliknij "Dodaj Biuletyn" aby utworzyć pierwszy biuletyn rabatowy.</p>
                 </div>
@@ -210,7 +210,7 @@ export function BulletinManager() {
                                     </div>
 
                                     {b.description && (
-                                        <p className="text-sm text-gray-400 mb-2">{b.description}</p>
+                                        <p className="text-sm text-gray-500 mb-2">{b.description}</p>
                                     )}
 
                                     <div className="flex flex-wrap gap-3 mt-3">
@@ -634,7 +634,7 @@ function RuleEditor({
                         onRemove={(code) => onUpdate({ model_codes: (rule.model_codes || []).filter(c => c !== code) })}
                         placeholder="Szukaj po nazwie lub kodzie (np. M5, 81FK)..."
                     />
-                    <p className="text-[10px] text-gray-400 mt-1">Puste = dotyczy wszystkich modeli</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Puste = dotyczy wszystkich modeli</p>
                 </div>
 
                 {/* Body Groups */}
@@ -649,7 +649,7 @@ function RuleEditor({
                         onRemove={(bg) => onUpdate({ body_groups: (rule.body_groups || []).filter(g => g !== bg) })}
                         placeholder="Szukaj serii (np. G60, G90)..."
                     />
-                    <p className="text-[10px] text-gray-400 mt-1">Puste = dotyczy wszystkich serii</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Puste = dotyczy wszystkich serii</p>
                 </div>
 
                 {/* Production Year Range */}
@@ -704,7 +704,7 @@ function RuleEditor({
                         />
                     </div>
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1">Procent od ceny katalogowej, następnie kwota. Wynik zaokrąglony do 1 000 PLN w górę.</p>
+                <p className="text-[10px] text-gray-500 mt-1">Procent od ceny katalogowej, następnie kwota. Wynik zaokrąglony do 1 000 PLN w górę.</p>
             </div>
         </div>
     );

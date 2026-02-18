@@ -154,7 +154,7 @@ function ProductGroupRow({ group, modelMap }: { group: ProductGroup, modelMap: R
                             <div className="font-medium text-gray-900">
                                 {displayName}
                             </div>
-                            <div className="text-xs text-gray-400 font-mono mt-0.5 flex gap-2">
+                            <div className="text-xs text-gray-600 font-mono mt-0.5 flex gap-2">
                                 <span>{group.color_code}</span>
                                 <span>•</span>
                                 <span>{group.upholstery_code}</span>
@@ -174,7 +174,7 @@ function ProductGroupRow({ group, modelMap }: { group: ProductGroup, modelMap: R
                                 {soldCount} Sold
                             </span>
                         )}
-                        {units.length === 0 && <span className="text-gray-400 text-xs italic">Empty Group</span>}
+                        {units.length === 0 && <span className="text-gray-500 text-xs italic">Empty Group</span>}
                     </div>
                 </td>
                 <td className="px-6 py-4">
@@ -208,7 +208,7 @@ function ProductGroupRow({ group, modelMap }: { group: ProductGroup, modelMap: R
                     <td colSpan={5} className="bg-gray-50/50 p-0">
                         <div className="border-t border-b border-gray-100">
                             <table className="w-full text-sm text-left bg-gray-50/30">
-                                <thead className="text-xs text-gray-400 uppercase tracking-wider">
+                                <thead className="text-xs text-gray-500 uppercase tracking-wider">
                                     <tr>
                                         <th className="px-6 py-2 pl-16">VIN</th>
                                         <th className="px-6 py-2">Status</th>
@@ -371,7 +371,7 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
     });
 
 
-    if (loading && groups.length === 0) return <div className="p-8 text-center text-gray-400">Loading inventory...</div>;
+    if (loading && groups.length === 0) return <div className="p-8 text-center text-gray-500">Loading inventory...</div>;
 
     return (
         <div className="space-y-8">
@@ -431,7 +431,7 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                     <div>
                         <h3 className="text-lg font-light">Inventory Management</h3>
-                        <span className="text-xs font-mono text-gray-400">Total Active Groups: {activeGroups.length}</span>
+                        <span className="text-xs font-mono text-gray-600">Total Active Groups: {activeGroups.length}</span>
                     </div>
                 </div>
                 <div className="overflow-x-auto">
@@ -448,7 +448,7 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
                         <tbody className="divide-y divide-gray-50">
                             {activeGroups.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                                         No active product groups found.
                                     </td>
                                 </tr>

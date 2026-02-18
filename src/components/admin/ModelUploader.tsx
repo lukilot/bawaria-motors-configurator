@@ -65,7 +65,7 @@ export function ModelUploader({ onComplete }: { onComplete: () => void }) {
             <div className="flex items-center justify-between mb-4">
                 <div>
                     <h4 className="text-sm font-medium text-gray-900">Bulk Upload Models</h4>
-                    <p className="text-xs text-gray-400">Upload your Model Codes Excel file to update the database.</p>
+                    <p className="text-xs text-gray-500">Upload your Model Codes Excel file to update the database.</p>
                 </div>
                 {status === 'SUCCESS' ? (
                     <div className="flex items-center gap-2 text-green-600 text-sm font-medium animate-in fade-in zoom-in">

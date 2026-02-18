@@ -281,7 +281,7 @@ export default function AdminGroupEditor() {
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
-    if (loading) return <div className="p-12 text-center text-gray-400 font-light">Loading group data...</div>;
+    if (loading) return <div className="p-12 text-center text-gray-500 font-light">Loading group data...</div>;
     if (!group) return <div className="p-12 text-center text-red-500">Group not found.</div>;
 
     // Price Stats — use group manual_price as fallback for units with no price
@@ -302,7 +302,7 @@ export default function AdminGroupEditor() {
                     </Link>
                     <div>
                         <h1 className="text-xl font-light text-gray-900 tracking-tight">Edit Product Group</h1>
-                        <p className="text-xs text-gray-400 font-mono">{group.signature.substring(0, 16)}...</p>
+                        <p className="text-xs text-gray-600 font-mono">{group.signature.substring(0, 16)}...</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -326,7 +326,7 @@ export default function AdminGroupEditor() {
                         <div className="flex items-center justify-between mb-6">
                             <div>
                                 <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900">Shared Gallery</h3>
-                                <p className="text-[10px] text-gray-400 uppercase mt-1">Photos upload here apply to ALL cars in this group.</p>
+                                <p className="text-[10px] text-gray-500 uppercase mt-1">Photos upload here apply to ALL cars in this group.</p>
                             </div>
                             {group.images && group.images.length > 0 && (
                                 <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-sm">
@@ -374,9 +374,9 @@ export default function AdminGroupEditor() {
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center">
-                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                                    <Upload className="w-8 h-8 text-gray-500 mb-2" />
                                     <p className="text-sm text-gray-500 font-light">Drop photos here or click to upload</p>
-                                    <p className="text-[10px] text-gray-400 uppercase mt-2">Auto-optimized to FullHD WebP</p>
+                                    <p className="text-[10px] text-gray-500 uppercase mt-2">Auto-optimized to FullHD WebP</p>
                                 </div>
                             )}
                         </div>
@@ -427,7 +427,7 @@ export default function AdminGroupEditor() {
                                                     {hasOwnImages ? (
                                                         <span className="text-green-600 text-[10px] font-bold">OWN</span>
                                                     ) : (
-                                                        <span className="text-gray-400 text-[10px]">Inherited</span>
+                                                        <span className="text-gray-600 text-[10px]">Inherited</span>
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
@@ -464,12 +464,12 @@ export default function AdminGroupEditor() {
 
                         <div className="space-y-4 mb-6">
                             <div>
-                                <label className="block text-gray-400 text-[10px] uppercase font-bold mb-1">Model</label>
+                                <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Model</label>
                                 <p className="font-medium text-lg">{modelName}</p>
-                                <p className="font-mono text-xs text-gray-400">{group.model_code}</p>
+                                <p className="font-mono text-xs text-gray-500">{group.model_code}</p>
                             </div>
                             <div>
-                                <label className="block text-gray-400 text-[10px] uppercase font-bold mb-1">Specs</label>
+                                <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Specs</label>
                                 <div className="flex gap-2">
                                     <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{group.color_code}</span>
                                     <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{group.upholstery_code}</span>
@@ -486,7 +486,7 @@ export default function AdminGroupEditor() {
                                 placeholder="Catalogue price for all units..."
                                 className="w-full p-2 border border-blue-100 rounded-sm text-sm focus:border-blue-500 outline-none font-bold"
                             />
-                            <p className="text-[10px] text-gray-400 mt-1">
+                            <p className="text-[10px] text-gray-500 mt-1">
                                 Sets the catalogue price (before discount) for all units in this group.
                                 <br />Current Range: <b>{new Intl.NumberFormat('pl-PL').format(minPrice)} - {new Intl.NumberFormat('pl-PL').format(maxPrice)} PLN</b>
                             </p>

@@ -121,7 +121,7 @@ export function SettingsEditor() {
             <div className="space-y-6">
                 {/* Desktop Media URL */}
                 <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-gray-500">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-gray-700">
                         Intro Media (Desktop)
                     </label>
                     <div className="flex gap-2">
@@ -156,7 +156,7 @@ export function SettingsEditor() {
 
                 {/* Mobile Media URL */}
                 <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-gray-500">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-gray-700">
                         Intro Media (Mobile)
                     </label>
                     <div className="flex gap-2">
@@ -193,7 +193,7 @@ export function SettingsEditor() {
 
                 {/* Contact Phone */}
                 <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-gray-500">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-gray-700">
                         Contact Phone
                     </label>
                     <input

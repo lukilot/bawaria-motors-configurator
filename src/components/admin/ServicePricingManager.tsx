@@ -92,7 +92,7 @@ export function ServicePricingManager() {
                         onClick={() => { setActiveTab('BRI'); setSelectedPackage(null); }}
                         className={cn(
                             "flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors",
-                            activeTab === 'BRI' ? "bg-black text-white" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                            activeTab === 'BRI' ? "bg-black text-white" : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                         )}
                     >
                         Repair (BRI)
@@ -101,7 +101,7 @@ export function ServicePricingManager() {
                         onClick={() => { setActiveTab('BSI'); setSelectedPackage(null); }}
                         className={cn(
                             "flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors",
-                            activeTab === 'BSI' ? "bg-black text-white" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                            activeTab === 'BSI' ? "bg-black text-white" : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                         )}
                     >
                         Service (BSI)
@@ -141,12 +141,12 @@ export function ServicePricingManager() {
                                 )}>
                                     {pkg.code}
                                 </span>
-                                <span className="text-[10px] text-gray-500">
+                                <span className="text-[10px] text-gray-700">
                                     {getPricesForPackage(pkg.code).length} cen
                                 </span>
                             </div>
                             <span className="text-sm font-medium text-gray-900 line-clamp-1">{pkg.name}</span>
-                            <div className="flex gap-2 text-[10px] text-gray-500 uppercase tracking-wide">
+                            <div className="flex gap-2 text-[10px] text-gray-600 uppercase tracking-wide">
                                 <span>{pkg.duration_months / 12} lat</span>
                                 <span>•</span>
                                 <span>{pkg.mileage_limit.toLocaleString()} km</span>
@@ -175,11 +175,11 @@ export function ServicePricingManager() {
                             <h2 className="text-lg text-gray-700 mb-4">{selectedPackage.name}</h2>
                             <div className="flex gap-6 text-sm text-gray-500 border-t border-gray-100 pt-4">
                                 <div>
-                                    <span className="block text-[10px] uppercase tracking-wider text-gray-500">Czas trwania</span>
+                                    <span className="block text-[10px] uppercase tracking-wider text-gray-600">Czas trwania</span>
                                     <span className="font-medium text-black">{selectedPackage.duration_months / 12} lat</span>
                                 </div>
                                 <div>
-                                    <span className="block text-[10px] uppercase tracking-wider text-gray-500">Limit przebiegu</span>
+                                    <span className="block text-[10px] uppercase tracking-wider text-gray-600">Limit przebiegu</span>
                                     <span className="font-medium text-black">{selectedPackage.mileage_limit.toLocaleString()} km</span>
                                 </div>
                             </div>
@@ -193,7 +193,7 @@ export function ServicePricingManager() {
                             </h3>
                             <form onSubmit={handleAddPrice} className="flex gap-4 items-end">
                                 <div className="w-32">
-                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-semibold mb-2">Seria (np. G60)</label>
+                                    <label className="block text-[10px] uppercase tracking-widest text-gray-700 font-semibold mb-2">Seria (np. G60)</label>
                                     <input
                                         type="text"
                                         value={newSeriesCode}
@@ -204,7 +204,7 @@ export function ServicePricingManager() {
                                     />
                                 </div>
                                 <div className="w-40">
-                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-semibold mb-2">Cena (PLN)</label>
+                                    <label className="block text-[10px] uppercase tracking-widest text-gray-700 font-semibold mb-2">Cena (PLN)</label>
                                     <input
                                         type="number"
                                         value={newPrice}
@@ -236,8 +236,8 @@ export function ServicePricingManager() {
                         {/* Prices List */}
                         <div className="bg-white border border-gray-100 rounded-sm overflow-hidden">
                             <div className="bg-gray-50 px-6 py-3 border-b border-gray-100 flex justify-between items-center">
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500">Zdefiniowane ceny</h3>
-                                <span className="text-xs text-gray-500">{getPricesForPackage(selectedPackage.code).length} serii</span>
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-700">Zdefiniowane ceny</h3>
+                                <span className="text-xs text-gray-700">{getPricesForPackage(selectedPackage.code).length} serii</span>
                             </div>
 
                             {getPricesForPackage(selectedPackage.code).length === 0 ? (
@@ -248,9 +248,9 @@ export function ServicePricingManager() {
                                 <table className="w-full">
                                     <thead className="bg-gray-50 text-left">
                                         <tr>
-                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-600 w-32">Seria</th>
-                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-500">Cena</th>
-                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-600 text-right">Akcje</th>
+                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-700 w-32">Seria</th>
+                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-700">Cena</th>
+                                            <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-700 text-right">Akcje</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">

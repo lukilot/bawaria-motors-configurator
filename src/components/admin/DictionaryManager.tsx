@@ -33,10 +33,10 @@ export function DictionaryManager() {
                                 "flex items-center gap-2 py-4 px-2 border-b-2 transition-all relative text-sm font-medium",
                                 isActive
                                     ? "border-black text-black"
-                                    : "border-transparent text-gray-400 hover:text-gray-600"
+                                    : "border-transparent text-gray-600 hover:text-gray-900"
                             )}
                         >
-                            <Icon className={cn("w-4 h-4", isActive ? "text-black" : "text-gray-400")} />
+                            <Icon className={cn("w-4 h-4", isActive ? "text-black" : "text-gray-600")} />
                             {section.label}
                         </button>
                     );

@@ -34,7 +34,7 @@ export default function AdminPage() {
                                 onClick={() => setView('stock')}
                                 className={cn(
                                     "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
-                                    view === 'stock' ? "bg-white text-black shadow-sm" : "text-gray-400 hover:text-gray-600"
+                                    view === 'stock' ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900"
                                 )}
                             >
                                 <LayoutDashboard className="w-4 h-4" />
@@ -44,7 +44,7 @@ export default function AdminPage() {
                                 onClick={() => setView('dictionaries')}
                                 className={cn(
                                     "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
-                                    view === 'dictionaries' ? "bg-white text-black shadow-sm" : "text-gray-400 hover:text-gray-600"
+                                    view === 'dictionaries' ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900"
                                 )}
                             >
                                 <Library className="w-4 h-4" />
@@ -54,7 +54,7 @@ export default function AdminPage() {
                                 onClick={() => setView('pricing')}
                                 className={cn(
                                     "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
-                                    view === 'pricing' ? "bg-white text-black shadow-sm" : "text-gray-400 hover:text-gray-600"
+                                    view === 'pricing' ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900"
                                 )}
                             >
                                 <Coins className="w-4 h-4" />
@@ -64,7 +64,7 @@ export default function AdminPage() {
                                 onClick={() => setView('settings')}
                                 className={cn(
                                     "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
-                                    view === 'settings' ? "bg-white text-black shadow-sm" : "text-gray-400 hover:text-gray-600"
+                                    view === 'settings' ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900"
                                 )}
                             >
                                 <LayoutDashboard className="w-4 h-4 rotate-90" />
@@ -74,7 +74,7 @@ export default function AdminPage() {
                                 onClick={() => setView('bulletins')}
                                 className={cn(
                                     "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
-                                    view === 'bulletins' ? "bg-white text-black shadow-sm" : "text-gray-400 hover:text-gray-600"
+                                    view === 'bulletins' ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900"
                                 )}
                             >
                                 <Tag className="w-4 h-4" />

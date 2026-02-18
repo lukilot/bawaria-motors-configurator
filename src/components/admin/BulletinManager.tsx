@@ -203,7 +203,7 @@ export function BulletinManager() {
                                         <h3 className="font-bold text-gray-900">{b.name}</h3>
                                         <span className={cn(
                                             "text-[10px] font-bold uppercase px-2 py-0.5 rounded-sm",
-                                            b.is_active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-400"
+                                            b.is_active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"
                                         )}>
                                             {b.is_active ? 'Aktywny' : 'Nieaktywny'}
                                         </span>
@@ -494,7 +494,7 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
                 <div className="space-y-5">
                     {/* Name */}
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nazwa biuletynu *</label>
+                        <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Nazwa biuletynu *</label>
                         <input
                             className="w-full border border-gray-300 rounded p-2.5 text-sm"
                             placeholder="np. Biuletyn Wyprzedaż Seria M"
@@ -505,7 +505,7 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
 
                     {/* Description */}
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Opis (opcjonalny)</label>
+                        <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Opis (opcjonalny)</label>
                         <textarea
                             className="w-full border border-gray-300 rounded p-2.5 text-sm resize-none"
                             rows={2}
@@ -518,7 +518,7 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
                     {/* Validity Section */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Ważny od</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Ważny od</label>
                             <input
                                 type="date"
                                 className="w-full border border-gray-300 rounded p-2.5 text-sm"
@@ -527,7 +527,7 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Ważny do</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Ważny do</label>
                             <input
                                 type="date"
                                 className="w-full border border-gray-300 rounded p-2.5 text-sm"
@@ -540,7 +540,7 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
                     {/* Rules Section */}
                     <div>
                         <div className="flex justify-between items-center mb-3">
-                            <h4 className="text-xs font-bold text-gray-500 uppercase">Zasady rabatowe</h4>
+                            <h4 className="text-xs font-bold text-gray-700 uppercase">Zasady rabatowe</h4>
                             <button
                                 onClick={addRule}
                                 className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800"
@@ -606,7 +606,7 @@ function RuleEditor({
     return (
         <div className="border border-gray-200 rounded-sm p-4 bg-gray-50 relative">
             <div className="flex justify-between items-center mb-3">
-                <h5 className="text-xs font-bold text-gray-500 uppercase">
+                <h5 className="text-xs font-bold text-gray-700 uppercase">
                     Zasada {index + 1}
                 </h5>
                 {total > 1 && (
@@ -624,7 +624,7 @@ function RuleEditor({
             <div className="space-y-3 mb-4">
                 {/* Model Codes */}
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                    <label className="block text-xs font-medium text-gray-800 mb-1">
                         Kody modelu
                     </label>
                     <SearchableSelect
@@ -634,12 +634,12 @@ function RuleEditor({
                         onRemove={(code) => onUpdate({ model_codes: (rule.model_codes || []).filter(c => c !== code) })}
                         placeholder="Szukaj po nazwie lub kodzie (np. M5, 81FK)..."
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Puste = dotyczy wszystkich modeli</p>
+                    <p className="text-[10px] text-gray-600 mt-1">Puste = dotyczy wszystkich modeli</p>
                 </div>
 
                 {/* Body Groups */}
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                    <label className="block text-xs font-medium text-gray-800 mb-1">
                         Seria nadwoziowa
                     </label>
                     <SearchableSelect
@@ -649,12 +649,12 @@ function RuleEditor({
                         onRemove={(bg) => onUpdate({ body_groups: (rule.body_groups || []).filter(g => g !== bg) })}
                         placeholder="Szukaj serii (np. G60, G90)..."
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Puste = dotyczy wszystkich serii</p>
+                    <p className="text-[10px] text-gray-600 mt-1">Puste = dotyczy wszystkich serii</p>
                 </div>
 
                 {/* Production Year Range */}
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Rok produkcji</label>
+                    <label className="block text-xs font-medium text-gray-800 mb-1">Rok produkcji</label>
                     <div className="grid grid-cols-2 gap-3">
                         <input
                             type="number"
@@ -676,10 +676,10 @@ function RuleEditor({
 
             {/* Discount */}
             <div className="border-t border-gray-200 pt-3">
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Wartość rabatu</label>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Wartość rabatu</label>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="block text-[11px] text-gray-500 mb-0.5">Rabat procentowy (%)</label>
+                        <label className="block text-[11px] text-gray-700 mb-0.5">Rabat procentowy (%)</label>
                         <input
                             type="number"
                             step="0.1"
@@ -692,7 +692,7 @@ function RuleEditor({
                         />
                     </div>
                     <div>
-                        <label className="block text-[11px] text-gray-500 mb-0.5">Rabat kwotowy (PLN)</label>
+                        <label className="block text-[11px] text-gray-700 mb-0.5">Rabat kwotowy (PLN)</label>
                         <input
                             type="number"
                             step="100"
@@ -704,7 +704,7 @@ function RuleEditor({
                         />
                     </div>
                 </div>
-                <p className="text-[10px] text-gray-500 mt-1">Procent od ceny katalogowej, następnie kwota. Wynik zaokrąglony do 1 000 PLN w górę.</p>
+                <p className="text-[10px] text-gray-600 mt-1">Procent od ceny katalogowej, następnie kwota. Wynik zaokrąglony do 1 000 PLN w górę.</p>
             </div>
         </div>
     );

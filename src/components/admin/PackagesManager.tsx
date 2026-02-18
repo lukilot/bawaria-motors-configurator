@@ -81,7 +81,7 @@ export function PackagesManager() {
                         onClick={() => setActiveTab(type)}
                         className={cn(
                             "px-4 py-2 text-sm font-medium transition-colors relative",
-                            activeTab === type ? "text-black" : "text-gray-400 hover:text-gray-600"
+                            activeTab === type ? "text-black" : "text-gray-600 hover:text-gray-900"
                         )}
                     >
                         {type === 'BRI' ? 'Przedłużona Gwarancja (BRI)' : type === 'BSI' ? 'Service Inclusive (BSI)' : 'Service Inclusive Plus'}
@@ -100,7 +100,7 @@ export function PackagesManager() {
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <h3 className="font-bold text-gray-900">{pkg.name}</h3>
-                                        <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-mono">{pkg.code}</span>
+                                        <span className="text-[10px] bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded font-mono">{pkg.code}</span>
                                         {((pkg as any).vehicle_type && (pkg as any).vehicle_type !== 'ALL') && (
                                             <span className={cn(
                                                 "text-[10px] px-1.5 py-0.5 rounded font-bold uppercase",
@@ -131,7 +131,7 @@ export function PackagesManager() {
                             </div>
 
                             <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-gray-700">
                                     {prices.filter(p => p.package_id === pkg.id).length} zdefiniowanych cen
                                 </span>
                                 <button
@@ -192,11 +192,11 @@ function PackageModal({ pkg, onClose, onSave }: { pkg: ServicePackage | null, on
                     {/* Fields... copied from previous step for consistency if overwriting */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Kod (Unique)</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Kod (Unique)</label>
                             <input className="w-full border border-gray-300 rounded p-2 text-sm" value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Typ</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Typ</label>
                             <select className="w-full border border-gray-300 rounded p-2 text-sm" value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value as any })}>
                                 <option value="BRI">BRI</option>
                                 <option value="BSI">BSI</option>
@@ -205,21 +205,21 @@ function PackageModal({ pkg, onClose, onSave }: { pkg: ServicePackage | null, on
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nazwa</label>
+                        <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Nazwa</label>
                         <input className="w-full border border-gray-300 rounded p-2 text-sm" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Miesiące</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Miesiące</label>
                             <input type="number" className="w-full border border-gray-300 rounded p-2 text-sm" value={formData.duration_months} onChange={e => setFormData({ ...formData, duration_months: parseInt(e.target.value) })} />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Limit km</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Limit km</label>
                             <input type="number" className="w-full border border-gray-300 rounded p-2 text-sm" value={formData.mileage_limit} onChange={e => setFormData({ ...formData, mileage_limit: parseInt(e.target.value) })} />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Dostępność dla napędu</label>
+                        <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Dostępność dla napędu</label>
                         <select className="w-full border border-gray-300 rounded p-2 text-sm bg-gray-50" value={(formData as any).vehicle_type || 'ALL'} onChange={e => setFormData({ ...formData, vehicle_type: e.target.value } as any)}>
                             <option value="ALL">Wszystkie (All)</option>
                             <option value="ELECTRIC">Tylko Elektryczne (BEV)</option>
@@ -277,11 +277,11 @@ function PriceModal({ pkg, allPrices, onClose, onUpdate }: { pkg: ServicePackage
 
                 <div className="flex gap-2 mb-4 p-4 bg-gray-50 rounded-sm items-end">
                     <div>
-                        <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Seria (np. G60)</label>
+                        <label className="block text-[10px] font-bold uppercase text-gray-700 mb-1">Seria (np. G60)</label>
                         <input className="border p-2 rounded text-sm w-32 uppercase" placeholder="G60" value={seriesCode} onChange={e => setSeriesCode(e.target.value)} />
                     </div>
                     <div>
-                        <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Cena (PLN)</label>
+                        <label className="block text-[10px] font-bold uppercase text-gray-700 mb-1">Cena (PLN)</label>
                         <input type="number" className="border p-2 rounded text-sm w-32" value={price} onChange={e => setPrice(e.target.value)} />
                     </div>
                     <button onClick={handleAddPrice} disabled={loading} className="bg-black text-white px-4 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50">
@@ -293,8 +293,8 @@ function PriceModal({ pkg, allPrices, onClose, onUpdate }: { pkg: ServicePackage
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50 sticky top-0">
                             <tr>
-                                <th className="text-left p-3 font-medium text-gray-500 text-xs uppercase">Seria</th>
-                                <th className="text-right p-3 font-medium text-gray-500 text-xs uppercase">Cena</th>
+                                <th className="text-left p-3 font-medium text-gray-700 text-xs uppercase">Seria</th>
+                                <th className="text-right p-3 font-medium text-gray-700 text-xs uppercase">Cena</th>
                                 <th className="w-10"></th>
                             </tr>
                         </thead>

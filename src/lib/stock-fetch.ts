@@ -23,7 +23,13 @@ export async function getAvailableProductGroups(): Promise<ProductGroup[]> {
 
     // Transform to ProductGroup interface
     return data.map((group: any) => {
-        const units = group.stock_units as StockCar[];
+        const units = (group.stock_units as StockCar[]).map(u => {
+            // Inherit group manual_price as list_price for all units
+            if (group.manual_price && group.manual_price > 0) {
+                return { ...u, list_price: group.manual_price };
+            }
+            return u;
+        });
 
         // Calculate min/max price
         const prices = units.map(u => u.special_price || u.list_price).filter(p => p > 0);
@@ -80,7 +86,7 @@ export async function getAvailableCars(): Promise<StockCar[]> {
 export async function getCarByVin(vin: string): Promise<StockCar | null> {
     const { data, error } = await supabase
         .from('stock_units')
-        .select('*')
+        .select('*, product_groups!product_group_id(manual_price)')
         .eq('vin', vin)
         .single();
 
@@ -89,7 +95,18 @@ export async function getCarByVin(vin: string): Promise<StockCar | null> {
         return null;
     }
 
-    return (data as any) || null;
+    if (!data) return null;
+
+    const car = data as any;
+    // Inherit group manual_price as list_price (catalogue price)
+    const groupPrice = car.product_groups?.manual_price;
+    if (groupPrice && groupPrice > 0) {
+        car.list_price = groupPrice;
+    }
+    // Clean up the joined data
+    delete car.product_groups;
+
+    return car as StockCar;
 }
 
 export async function getCarVariants(currentCar: StockCar): Promise<StockCar[]> {

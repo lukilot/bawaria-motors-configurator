@@ -12,9 +12,10 @@ export async function POST(request: NextRequest) {
         const formData = await request.formData();
         const file = formData.get('file') as File;
         const vin = formData.get('vin') as string;
+        const groupId = formData.get('groupId') as string;
 
-        if (!file || !vin) {
-            return NextResponse.json({ error: 'Missing file or VIN' }, { status: 400 });
+        if (!file || (!vin && !groupId)) {
+            return NextResponse.json({ error: 'Missing file or identifier (VIN/GroupId)' }, { status: 400 });
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
@@ -31,7 +32,9 @@ export async function POST(request: NextRequest) {
         const optimizedBuffer = Buffer.from(processed);
 
         // Generate filename
-        const filename = `${vin}/${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+        // If Group ID is present, organize in 'groups/{id}' folder
+        const pathPrefix = groupId ? `groups/${groupId}` : vin;
+        const filename = `${pathPrefix}/${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
 
         // Upload to Supabase
         const { data, error } = await supabase.storage

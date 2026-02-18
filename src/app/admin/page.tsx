@@ -6,14 +6,15 @@ import { BMWPLStockUploader } from '@/components/admin/BMWPLStockUploader';
 import { AdminCarList } from '@/components/admin/AdminCarList';
 import { DictionaryManager } from '@/components/admin/DictionaryManager';
 import { PackagesManager } from '@/components/admin/PackagesManager';
+import { BulletinManager } from '@/components/admin/BulletinManager';
 import { SettingsEditor } from '@/components/admin/SettingsEditor';
 import { AdminAuth } from '@/components/admin/AdminAuth';
 import Link from 'next/link';
-import { ArrowLeft, LayoutDashboard, Library, Coins } from 'lucide-react';
+import { ArrowLeft, LayoutDashboard, Library, Coins, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function AdminPage() {
-    const [view, setView] = useState<'stock' | 'dictionaries' | 'pricing' | 'settings'>('stock');
+    const [view, setView] = useState<'stock' | 'dictionaries' | 'pricing' | 'bulletins' | 'settings'>('stock');
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     return (
@@ -69,6 +70,16 @@ export default function AdminPage() {
                                 <LayoutDashboard className="w-4 h-4 rotate-90" />
                                 Config
                             </button>
+                            <button
+                                onClick={() => setView('bulletins')}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
+                                    view === 'bulletins' ? "bg-white text-black shadow-sm" : "text-gray-400 hover:text-gray-600"
+                                )}
+                            >
+                                <Tag className="w-4 h-4" />
+                                Warunki
+                            </button>
                         </nav>
                     </div>
                 </header>
@@ -90,6 +101,10 @@ export default function AdminPage() {
                     ) : view === 'pricing' ? (
                         <div className="animate-in fade-in duration-500">
                             <PackagesManager />
+                        </div>
+                    ) : view === 'bulletins' ? (
+                        <div className="animate-in fade-in duration-500">
+                            <BulletinManager />
                         </div>
                     ) : (
                         <div className="animate-in fade-in duration-500">

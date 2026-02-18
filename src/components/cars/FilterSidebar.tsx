@@ -196,12 +196,16 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
     const activeUpholsteryGroup = searchParams.getAll('upholsteryGroup');
     const activeFuel = searchParams.getAll('fuel');
     const activeDrivetrain = searchParams.getAll('drivetrain');
-    const [sliderMax, setSliderMax] = useState(parseInt(searchParams.get('max') || options.maxPrice.toString()));
+    const safeMinPrice = options.minPrice ?? 0;
+    const safeMaxPrice = options.maxPrice ?? 1000000;
+    const safeMaxPower = options.maxPower ?? 600;
+
+    const [sliderMax, setSliderMax] = useState(parseInt(searchParams.get('max') || safeMaxPrice.toString()));
     const [search, setSearch] = useState(searchParams.get('q') || '');
 
     // Power range state
     const [pmin, setPmin] = useState(parseInt(searchParams.get('pmin') || '120'));
-    const [pmax, setPmax] = useState(parseInt(searchParams.get('pmax') || options.maxPower.toString()));
+    const [pmax, setPmax] = useState(parseInt(searchParams.get('pmax') || safeMaxPower.toString()));
 
     // Synchronize local states with URL (only when not actively typing)
     useEffect(() => {
@@ -211,16 +215,16 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
     }, [searchParams]);
 
     useEffect(() => {
-        setSliderMax(parseInt(searchParams.get('max') || options.maxPrice.toString()));
-    }, [searchParams, options.maxPrice]);
+        setSliderMax(parseInt(searchParams.get('max') || safeMaxPrice.toString()));
+    }, [searchParams, safeMaxPrice]);
 
     useEffect(() => {
         const urlMin = parseInt(searchParams.get('pmin') || '120');
-        const urlMax = parseInt(searchParams.get('pmax') || options.maxPower.toString());
+        const urlMax = parseInt(searchParams.get('pmax') || safeMaxPower.toString());
         if (pmin !== urlMin) setPmin(urlMin);
         if (pmax !== urlMax) setPmax(urlMax);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams, options.maxPower]);
+    }, [searchParams, safeMaxPower]);
 
     // Debounced URL updates for Sliders and Search
     useEffect(() => {
@@ -233,14 +237,14 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
             else params.delete('q');
 
             // Price
-            if (sliderMax < options.maxPrice) params.set('max', sliderMax.toString());
+            if (sliderMax < safeMaxPrice) params.set('max', sliderMax.toString());
             else params.delete('max');
 
             // Power
             if (pmin > 120) params.set('pmin', pmin.toString());
             else params.delete('pmin');
 
-            if (pmax < options.maxPower) params.set('pmax', pmax.toString());
+            if (pmax < safeMaxPower) params.set('pmax', pmax.toString());
             else params.delete('pmax');
 
             if (params.toString() !== searchParams.toString()) {
@@ -249,11 +253,11 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
             isTypingRef.current = false;
         }, 300);
         return () => clearTimeout(timer);
-    }, [search, sliderMax, pmin, pmax, options.maxPrice, options.maxPower, pathname, router, searchParams]);
+    }, [search, sliderMax, pmin, pmax, safeMaxPrice, safeMaxPower, pathname, router, searchParams]);
 
     const activeMax = sliderMax;
-    const sliderMin = Math.max(100000, options.minPrice);
-    const activeMin = parseInt(searchParams.get('min') || options.minPrice.toString());
+    const sliderMin = Math.max(100000, safeMinPrice);
+    const activeMin = parseInt(searchParams.get('min') || safeMinPrice.toString());
 
     const hasActiveFilters = activeSeries.length > 0 ||
         activeBody.length > 0 ||
@@ -440,10 +444,10 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
 
                                 <div className="px-1">
                                     <Slider
-                                        defaultValue={[120, options.maxPower]}
+                                        defaultValue={[120, safeMaxPower]}
                                         value={[pmin, pmax]}
                                         min={120}
-                                        max={options.maxPower}
+                                        max={safeMaxPower}
                                         step={10}
                                         minStepsBetweenThumbs={1}
                                         onValueChange={([min, max]) => {
@@ -468,7 +472,7 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                         defaultValue={[sliderMax]}
                                         value={[sliderMax]}
                                         min={sliderMin}
-                                        max={options.maxPrice}
+                                        max={safeMaxPrice}
                                         step={5000}
                                         onValueChange={([val]) => setSliderMax(val)}
                                     />

@@ -13,9 +13,10 @@ interface CarRowProps {
         option: Record<string, any>;
         drivetrain: Record<string, any>;
     };
+    discountedPrice?: number;
 };
 
-export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
+export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRowProps) {
     // Logic to determine availability
     // Logic to determine availability
     // Logic to determine availability
@@ -266,22 +267,28 @@ export function CarRow({ car, modelName, dictionaries }: CarRowProps) {
                     {/* Footer: Price & CTA */}
                     <div className={cn("mt-auto flex items-end justify-between border-t pt-4", isMSeries ? "border-gray-800" : "border-gray-50")}>
                         <div className="flex flex-col">
-                            {car.list_price > 0 && (
-                                car.special_price && car.special_price < car.list_price ? (
+                            {car.list_price > 0 && (() => {
+                                // Priority: manual special_price > bulletin discountedPrice > list_price
+                                const hasManualDiscount = car.special_price && car.special_price < car.list_price;
+                                const hasBulletinDiscount = !hasManualDiscount && discountedPrice && discountedPrice < car.list_price;
+                                const effectivePrice = hasManualDiscount ? car.special_price! : hasBulletinDiscount ? discountedPrice! : car.list_price;
+                                const showCrossedOut = hasManualDiscount || hasBulletinDiscount;
+
+                                return showCrossedOut ? (
                                     <>
                                         <span className="text-xs text-gray-400 line-through mb-0.5">
                                             {formatPrice(car.list_price)}
                                         </span>
                                         <span className={cn("text-2xl font-bold tracking-tight", isMSeries ? "text-white" : "text-gray-900")}>
-                                            {formatPrice(car.special_price)}
+                                            {formatPrice(effectivePrice)}
                                         </span>
                                     </>
                                 ) : (
                                     <span className={cn("text-2xl font-bold tracking-tight", isMSeries ? "text-white" : "text-gray-900")}>
                                         {formatPrice(car.list_price)}
                                     </span>
-                                )
-                            )}
+                                );
+                            })()}
                         </div>
 
                         <div className={cn(

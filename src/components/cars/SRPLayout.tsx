@@ -15,9 +15,10 @@ interface SRPLayoutProps {
         option: Record<string, Record<string, unknown>>;
         drivetrain: Record<string, Record<string, unknown>>;
     };
+    bulletinPrices?: Record<string, number>;
 }
 
-export function SRPLayout({ cars, dictionaries }: SRPLayoutProps) {
+export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps) {
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
     const searchParams = useSearchParams();
 
@@ -146,6 +147,8 @@ export function SRPLayout({ cars, dictionaries }: SRPLayoutProps) {
         };
     }, [enrichedCars]);
 
+    const [sortOrder, setSortOrder] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
+
     // 2. Filter cars based on URL params
     const filteredCars = useMemo(() => {
         const query = searchParams.get('q')?.toLowerCase() || '';
@@ -186,7 +189,7 @@ export function SRPLayout({ cars, dictionaries }: SRPLayoutProps) {
             return matchesQuery && matchesSeries && matchesBody && matchesFuel && matchesDrivetrain && matchesColorGroup && matchesUpholsteryGroup && matchesPrice && matchesPowerRange;
         });
 
-        // Sort by availability status priority
+        // Sort by availability status priority THEN by user selection
         return filtered.sort((a, b) => {
             const getStatusPriority = (car: typeof a) => {
                 const isSold = (car.order_status || '').includes('Sprzedany');
@@ -197,9 +200,33 @@ export function SRPLayout({ cars, dictionaries }: SRPLayoutProps) {
                 return 1; // Available/Reserved first
             };
 
-            return getStatusPriority(a) - getStatusPriority(b);
+            const statusA = getStatusPriority(a);
+            const statusB = getStatusPriority(b);
+
+            if (statusA !== statusB) {
+                return statusA - statusB;
+            }
+
+            // Secondary Sort: User Selection
+            if (sortOrder === 'newest') {
+                const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return dateB - dateA; // Newest first
+            }
+            if (sortOrder === 'price_asc') {
+                const priceA = a.special_price || a.list_price;
+                const priceB = b.special_price || b.list_price;
+                return priceA - priceB;
+            }
+            if (sortOrder === 'price_desc') {
+                const priceA = a.special_price || a.list_price;
+                const priceB = b.special_price || b.list_price;
+                return priceB - priceA;
+            }
+
+            return 0;
         });
-    }, [enrichedCars, searchParams]);
+    }, [enrichedCars, searchParams, sortOrder]);
 
     return (
         <div className="max-w-[1600px] mx-auto px-6 flex flex-col-reverse lg:flex-row gap-12 pt-8">
@@ -219,6 +246,9 @@ export function SRPLayout({ cars, dictionaries }: SRPLayoutProps) {
                         onOpenFilters={() => setIsFiltersOpen(true)}
                         isFiltersOpen={isFiltersOpen}
                         dictionaries={dictionaries}
+                        sortOrder={sortOrder}
+                        onSortChange={setSortOrder}
+                        bulletinPrices={bulletinPrices}
                     />
                 </Suspense>
             </div>

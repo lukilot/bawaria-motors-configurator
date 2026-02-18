@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getCarByVin, getCarVariants, getAvailableCars } from '@/lib/stock-fetch';
 import { getAllDictionaries } from '@/lib/dictionary-fetch';
 import { getServicePackages } from '@/lib/service-packages';
+import { getActiveBulletins, getCarDiscountedPrice } from '@/lib/bulletin-fetch';
 import { CarGallery } from '@/components/cars/CarGallery';
 import { SpecsAccordion } from '@/components/cars/SpecsAccordion';
 import { BackButton } from '@/components/cars/BackButton';
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { Metadata } from 'next';
 import { DynamicPricingSection } from '@/components/cars/DynamicPricingSection';
 import Link from 'next/link';
+import { getModelAttributes } from '@/lib/model-attributes';
 
 export const revalidate = 60;
 
@@ -186,10 +188,11 @@ export default async function CarPage({ params }: PageProps) {
     const { vin } = await params;
     const decodedVin = decodeURIComponent(vin);
 
-    const [car, dictionaries, servicePkgs] = await Promise.all([
+    const [car, dictionaries, servicePkgs, bulletins] = await Promise.all([
         getCarByVin(decodedVin),
         getAllDictionaries(),
-        getServicePackages()
+        getServicePackages(),
+        getActiveBulletins()
     ]);
 
     if (!car) {
@@ -203,17 +206,21 @@ export default async function CarPage({ params }: PageProps) {
     const colorName = dictionaries.color[car.color_code]?.name || car.color_code;
     const upholsteryName = dictionaries.upholstery[car.upholstery_code]?.name || car.upholstery_code;
 
+    const staticAttrs = getModelAttributes(car.model_code);
+
     // Merge dictionary specs into car object for easier access
     const enrichedCar = {
         ...car,
-        series: modelDict.series,
-        body_type: modelDict.body_type,
+        series: staticAttrs.series || modelDict.series,
+        body_type: staticAttrs.body_type || modelDict.body_type,
         power: modelDict.power || car.power,
-        fuel_type: modelDict.fuel || car.fuel_type,
+        fuel_type: staticAttrs.fuel_type || modelDict.fuel || car.fuel_type,
         drivetrain: modelDict.drivetrain || car.drivetrain,
         acceleration: modelDict.acceleration,
         max_speed: modelDict.max_speed,
-        trunk_capacity: modelDict.trunk_capacity
+        trunk_capacity: modelDict.trunk_capacity,
+        body_group: staticAttrs.body_group || car.body_group, // Ensure we have a body group (series code)
+        // Note: car.body_group might be null in stock feed
     };
 
     const formatPrice = (price: number) =>
@@ -511,7 +518,7 @@ export default async function CarPage({ params }: PageProps) {
 
 
                         {/* Price Card & Service Configurator */}
-                        <DynamicPricingSection car={car} seriesCode={car.body_group || ''} isDark={isMSeries} />
+                        <DynamicPricingSection car={car} seriesCode={enrichedCar.body_group || ''} isDark={isMSeries} fuelType={enrichedCar.fuel_type} bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)} />
 
                         {/* Accordions - Mobile Only */}
                         <div className="lg:hidden space-y-px border-t border-gray-100 pt-6">

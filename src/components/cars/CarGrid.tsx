@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { StockCar } from '@/types/stock';
 import { CarRow } from '@/components/cars/CarRow';
 import { CarCard } from '@/components/cars/CarCard';
-import { SlidersHorizontal, LayoutGrid, List } from 'lucide-react';
+import { SlidersHorizontal, LayoutGrid, List, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SearchFooter } from './SearchFooter';
 
@@ -16,6 +16,8 @@ interface CarGridProps {
     totalCount?: number;
     onOpenFilters?: () => void;
     isFiltersOpen?: boolean;
+    sortOrder?: 'newest' | 'price_asc' | 'price_desc';
+    onSortChange?: (order: 'newest' | 'price_asc' | 'price_desc') => void;
     dictionaries: {
         model: Record<string, DictionaryItem>;
         color: Record<string, DictionaryItem>;
@@ -23,9 +25,10 @@ interface CarGridProps {
         option: Record<string, DictionaryItem>;
         drivetrain: Record<string, DictionaryItem>;
     };
+    bulletinPrices?: Record<string, number>;
 }
 
-export function CarGrid({ cars, onOpenFilters, isFiltersOpen, dictionaries }: CarGridProps) {
+export function CarGrid({ cars, onOpenFilters, isFiltersOpen, dictionaries, sortOrder = 'newest', onSortChange, bulletinPrices }: CarGridProps) {
 
 
 
@@ -75,10 +78,34 @@ export function CarGrid({ cars, onOpenFilters, isFiltersOpen, dictionaries }: Ca
 
             {/* SRP Top Bar */}
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-6 border-b border-gray-100 gap-4">
-                <div className="flex items-center gap-6 justify-between w-full md:w-auto">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-widest mr-4">
+                {/* Left: Results Count */}
+                <div>
+                    <span className="text-xs font-medium text-gray-500 uppercase tracking-widest">
                         {cars.length} Wyników
                     </span>
+                </div>
+
+                {/* Right: Controls */}
+                <div className="flex items-center gap-6 justify-end w-full md:w-auto">
+                    {/* Sort Dropdown */}
+                    <div className="relative group mr-4 flex items-center">
+                        <span className="text-xs font-bold uppercase tracking-widest text-right mr-2 cursor-pointer group-hover:text-gray-600 transition-colors">
+                            {sortOrder === 'newest' && 'Najnowsze'}
+                            {sortOrder === 'price_asc' && 'Cena: Rosnąco'}
+                            {sortOrder === 'price_desc' && 'Cena: Malejąco'}
+                        </span>
+                        <ChevronDown className="w-3 h-3 text-gray-400" />
+
+                        <select
+                            value={sortOrder}
+                            onChange={(e) => onSortChange?.(e.target.value as any)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        >
+                            <option value="newest">Najnowsze</option>
+                            <option value="price_asc">Cena: Rosnąco</option>
+                            <option value="price_desc">Cena: Malejąco</option>
+                        </select>
+                    </div>
 
                     {/* Desktop Layout Toggle (Hidden on Mobile) */}
                     <div className="hidden md:flex bg-gray-50 p-1 rounded-sm border border-gray-100">
@@ -134,6 +161,7 @@ export function CarGrid({ cars, onOpenFilters, isFiltersOpen, dictionaries }: Ca
                                     car={car}
                                     modelName={dictionaries.model[car.model_code]?.name || car.model_name || `BMW ${car.model_code}`}
                                     dictionaries={dictionaries}
+                                    discountedPrice={bulletinPrices?.[car.vin]}
                                 />
                             ))}
                         </div>

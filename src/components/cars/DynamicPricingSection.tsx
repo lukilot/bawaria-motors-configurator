@@ -10,9 +10,11 @@ interface DynamicPricingSectionProps {
     car: StockCar;
     seriesCode: string;
     isDark?: boolean;
+    fuelType?: string;
+    bulletinDiscountedPrice?: number | null;
 }
 
-export function DynamicPricingSection({ car, seriesCode, isDark = false }: DynamicPricingSectionProps) {
+export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelType, bulletinDiscountedPrice }: DynamicPricingSectionProps) {
     // State for additional costs from service packages
     const [additionalCost, setAdditionalCost] = useState(0);
     const [selectedServiceCodes, setSelectedServiceCodes] = useState<string[]>([]);
@@ -24,9 +26,12 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false }: Dynam
     const isSold = (car.order_status || '').includes('Sprzedany');
 
     // Calculate final displayed price
-    const basePrice = car.special_price && car.special_price < car.list_price ? car.special_price : car.list_price;
+    // Priority: manual special_price > bulletin discount > list_price
+    const hasManualDiscount = car.special_price && car.special_price < car.list_price;
+    const hasBulletinDiscount = !hasManualDiscount && bulletinDiscountedPrice && bulletinDiscountedPrice < car.list_price;
+    const basePrice = hasManualDiscount ? car.special_price! : hasBulletinDiscount ? bulletinDiscountedPrice! : car.list_price;
     const finalPrice = basePrice + additionalCost;
-    const hasDiscount = car.special_price && car.special_price < car.list_price;
+    const hasDiscount = hasManualDiscount || hasBulletinDiscount;
 
     const handleContactClick = () => {
         setIsContactOpen(true);
@@ -38,7 +43,7 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false }: Dynam
             <ServicePackageConfigurator
                 currentCodes={car.option_codes}
                 seriesCode={seriesCode}
-                fuelType={car.fuel_type}
+                fuelType={fuelType || car.fuel_type}
                 onPriceUpdate={setAdditionalCost}
                 onSelectionChange={setSelectedServiceCodes}
                 isDark={isDark}

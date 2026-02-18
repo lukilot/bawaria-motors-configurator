@@ -49,7 +49,7 @@ export function ServicePackageConfigurator({
                 const vType: string = (p as any).vehicle_type || 'ALL';
                 if (vType === 'ALL') return true;
 
-                const isElectric = fuelType?.toUpperCase() === 'ELECTRIC';
+                const isElectric = fuelType?.toUpperCase() === 'ELECTRIC' || fuelType?.toUpperCase() === 'ELEKTRYCZNY';
 
                 if (vType === 'ELECTRIC') return isElectric;
                 if (vType === 'ICE_PHEV') return !isElectric;

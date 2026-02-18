@@ -42,6 +42,7 @@ export interface StockCar {
   available_count?: number;
   sibling_vins?: string[];
   product_group_id?: string;
+  created_at?: string;
 }
 
 export interface ProductGroup {
@@ -55,6 +56,7 @@ export interface ProductGroup {
   images?: { url: string; id: string; sort_order: number }[];
   description?: string;
   manual_price?: number;
+  created_at?: string;
   // Virtual / Computed
   available_units?: StockCar[];
   available_count?: number;

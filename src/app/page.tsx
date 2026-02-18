@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { getAvailableProductGroups } from '@/lib/stock-fetch';
 import { getAllDictionaries } from '@/lib/dictionary-fetch';
+import { getActiveBulletins, getCarDiscountedPrice } from '@/lib/bulletin-fetch';
 import { SRPLayout } from '@/components/cars/SRPLayout';
 import { IntroOverlay } from '@/components/cars/IntroOverlay';
 import { SiteHeader } from '@/components/layout/SiteHeader';
@@ -18,9 +19,10 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function Home() {
-  const [productGroups, dictionaries] = await Promise.all([
+  const [productGroups, dictionaries, bulletins] = await Promise.all([
     getAvailableProductGroups(),
-    getAllDictionaries()
+    getAllDictionaries(),
+    getActiveBulletins()
   ]);
 
   // Transform Product Groups into Representative Cars (for compatibility with SRP Layout)
@@ -49,14 +51,24 @@ export default async function Home() {
         : group.images,
 
       // Use Group overrides
-      list_price: representative.list_price, // Keep original
-      special_price: group.manual_price || representative.special_price,
+      list_price: group.manual_price || representative.list_price,
+      special_price: representative.special_price,
 
       // Grouping Metadata
       available_count: group.available_count,
-      product_group_id: group.id
+      product_group_id: group.id,
+      created_at: group.created_at
     } as StockCar;
   });
+
+  // Precompute bulletin-based discounted prices per car
+  const bulletinPrices: Record<string, number> = {};
+  for (const car of cars) {
+    const discountedPrice = getCarDiscountedPrice(car, bulletins);
+    if (discountedPrice !== null) {
+      bulletinPrices[car.vin] = discountedPrice;
+    }
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 pb-20 font-sans">
@@ -69,7 +81,7 @@ export default async function Home() {
       {/* Content Area */}
       <div className="pt-24">
         <Suspense fallback={<div className="max-w-[1600px] mx-auto px-6 py-20 text-center text-gray-400">Ładowanie ofert...</div>}>
-          <SRPLayout cars={cars} dictionaries={dictionaries} />
+          <SRPLayout cars={cars} dictionaries={dictionaries} bulletinPrices={bulletinPrices} />
         </Suspense>
       </div>
     </main>

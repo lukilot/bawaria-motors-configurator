@@ -83,9 +83,14 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
         return row;
     });
 
+    // Deduplicate by VIN — if the same VIN appears multiple times in the file,
+    // keep only the last occurrence to avoid "ON CONFLICT DO UPDATE cannot affect
+    // row a second time" error from Supabase.
+    const deduped = [...new Map(dbRows.map(r => [r.vin, r])).values()];
+
     const { error, count } = await supabase
         .from('stock_units')
-        .upsert(dbRows, {
+        .upsert(deduped, {
             onConflict: 'vin',
             ignoreDuplicates: false
         })

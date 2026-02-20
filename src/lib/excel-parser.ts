@@ -199,8 +199,8 @@ export const parseStockFile = async (fileBuffer: ArrayBuffer): Promise<ImportRes
 
             // --- GATEKEEPER ---
             const status = parseInt(getVal('status_code') || '0');
-            // Rule 1: < 150 REJECT
-            if (status < 150) {
+            // Rule 1: < 152 REJECT
+            if (status < 152) {
                 result.skipped_status++;
                 return;
             }
@@ -396,11 +396,11 @@ export const parseBMWPLStock = async (fileBuffer: ArrayBuffer): Promise<ImportRe
 
             // Filter out internal/low status if standard rules apply?
             // "if there is TAK... same as SPRZEDANY"
-            // Standard parseStockFile rejects status < 150. 
+            // Standard parseStockFile rejects status < 152. 
             // Should we do the same? 
             // If it's BMW PL stock available for dealers, usually they are 112, 150...
-            // Let's keep the filter "status < 150 REJECT" unless it is 500 (Sold).
-            if (rawStatus < 150 && rawStatus !== 500) {
+            // Let's keep the filter "status < 152 REJECT" unless it is 500 (Sold).
+            if (rawStatus < 152 && rawStatus !== 500) {
                 result.skipped_status++;
                 return;
             }

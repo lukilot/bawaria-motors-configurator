@@ -24,5 +24,5 @@ ALTER TABLE bulletins DROP COLUMN IF EXISTS model_codes;
 ALTER TABLE bulletins DROP COLUMN IF EXISTS body_groups;
 ALTER TABLE bulletins DROP COLUMN IF EXISTS production_year_min;
 ALTER TABLE bulletins DROP COLUMN IF EXISTS production_year_max;
-ALTER TABLE bulletins DROP COLUMN IF EXISTS discount_amount;
+ALTER TABLE bulletins DROP COLUMN IF EXISTS discount_amount;d
 ALTER TABLE bulletins DROP COLUMN IF EXISTS discount_percent;

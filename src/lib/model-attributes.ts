@@ -143,7 +143,6 @@ const MODEL_MAP: Record<string, ModelAttributes> = {
     '31GN': { fuel_type: 'Diesel', series: 'X2 / iX2', body_group: 'U10', body_type: 'SUV/Crossover' },
     '41GN': { fuel_type: 'Diesel', series: 'X2 / iX2', body_group: 'U10', body_type: 'SUV/Crossover' },
     '21GM': { fuel_type: 'Petrol', series: 'X2 / iX2', body_group: 'U10', body_type: 'SUV/Crossover' },
-    '51GM': { fuel_type: 'Diesel', series: 'X2 / iX2', body_group: 'U10', body_type: 'SUV/Crossover' },
     '51GM': { fuel_type: 'BEV', series: 'X2 / iX2', body_group: 'U10', body_type: 'SUV/Crossover' },
     '71GM': { fuel_type: 'BEV', series: 'X2 / iX2', body_group: 'U10', body_type: 'SUV/Crossover' },
     '31GP': { fuel_type: 'Petrol', series: 'X3 / iX3', body_group: 'G45', body_type: 'SUV/Crossover' },

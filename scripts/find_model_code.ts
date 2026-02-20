@@ -13,7 +13,7 @@ const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 const target = '81DB';
 const row = data.find((r: any) => r[1] === target);
 
-if (row) {
+if (row && Array.isArray(row)) {
     console.log('Found:', row);
     console.log('Model Code:', row[1]);
     console.log('Series Code (Body Group):', row[2]);

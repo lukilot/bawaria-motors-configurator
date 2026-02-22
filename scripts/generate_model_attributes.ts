@@ -69,10 +69,18 @@ export interface ModelAttributes {
     series?: string;
     body_group?: string; // critical for service pricing (e.g. G60)
     body_type?: string;
+    power?: string;
+    acceleration?: string;
+    max_speed?: string;
+    trunk_capacity?: string;
 }
 
 const MODEL_MAP: Record<string, ModelAttributes> = {
 ${entries.join('\n')}
+    
+    // Handcoded additions
+    '31CA': { fuel_type: 'Diesel', series: 'X4', body_group: 'G02', body_type: 'SUV/Crossover', power: '197', acceleration: '7.9', max_speed: '213', trunk_capacity: '525' },
+    '81CA': { fuel_type: 'Diesel', series: 'X4', body_group: 'G02', body_type: 'SUV/Crossover', power: '340', acceleration: '4.9', max_speed: '250', trunk_capacity: '525' },
 };
 
 export function getModelAttributes(code: string): ModelAttributes {

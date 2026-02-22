@@ -51,6 +51,10 @@ export const CHASSIS_MAPPING: Record<string, string> = {
     '31EY': 'G06', // X6 xDrive40d
     '41EY': 'G06', // X6 M60i xDrive
 
+    // X4
+    '31CA': 'G02', // X4 xDrive20d
+    '81CA': 'G02', // X4 M40d
+
     // X7
     '21EN': 'G07', // X7 xDrive40d (Verified)
     '31EN': 'G07', // X7 M60i xDrive

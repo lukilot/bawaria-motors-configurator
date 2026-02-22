@@ -106,6 +106,24 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
         });
     }, [cars, dictionaries.model, dictionaries.color, dictionaries.upholstery]);
 
+    // Helper to logically sort BMW Series names
+    const sortSeries = (a: string, b: string) => {
+        // Extract the first number found in the string (e.g., "Seria 3" -> 3, "X4" -> 4, "iX3" -> 3)
+        const matchA = a.match(/\d+/);
+        const matchB = b.match(/\d+/);
+
+        const numA = matchA ? parseInt(matchA[0], 10) : 999;
+        const numB = matchB ? parseInt(matchB[0], 10) : 999;
+
+        // Sort by numbers first
+        if (numA !== numB) {
+            return numA - numB;
+        }
+
+        // If numbers are identical (e.g. "Seria 3" vs "X3"), strictly sort alphabetically
+        return a.localeCompare(b);
+    };
+
     // 1. Calculate available filters from the enriched car list
     const filterOptions = useMemo(() => {
         const series = new Set<string>();
@@ -133,7 +151,7 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
         });
 
         return {
-            series: Array.from(series).sort(),
+            series: Array.from(series).sort(sortSeries),
             bodyTypes: Array.from(bodyTypes).sort(),
             powerLevels: Array.from(powerLevels).sort((a, b) => parseInt(a) - parseInt(b)),
             fuelTypes: Array.from(fuelTypes).filter(f => ['Benzyna', 'Diesel', 'Elektryczny', 'Plug-In Hybrid'].includes(f)).sort(),

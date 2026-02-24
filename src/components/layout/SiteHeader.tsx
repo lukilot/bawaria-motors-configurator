@@ -4,11 +4,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Search, Menu, ArrowRight } from 'lucide-react';
+import { ArrowRight, Warehouse } from 'lucide-react';
+import { useGarageStore } from '@/store/garageStore';
 
 export function SiteHeader() {
     const [isScrolled, setIsScrolled] = useState(false);
     const pathname = usePathname();
+    const { savedCars, openGarage } = useGarageStore();
+    const count = savedCars.length;
 
     useEffect(() => {
         const handleScroll = () => {
@@ -18,8 +21,6 @@ export function SiteHeader() {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    const isHome = pathname === '/';
 
     return (
         <header
@@ -48,7 +49,29 @@ export function SiteHeader() {
                 </Link>
 
                 {/* Right Actions */}
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3 md:gap-6">
+
+                    {/* Garage Trigger */}
+                    <button
+                        onClick={openGarage}
+                        className={cn(
+                            "relative flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 rounded-full transition-all text-xs font-bold uppercase tracking-widest border",
+                            count > 0
+                                ? "border-gray-900 bg-gray-900 text-white hover:bg-gray-800"
+                                : isScrolled
+                                    ? "border-gray-200 bg-white text-gray-700 hover:border-gray-900 hover:text-black"
+                                    : "border-white/20 bg-white/10 text-gray-800 hover:bg-white/30"
+                        )}
+                    >
+                        <Warehouse className="w-4 h-4 shrink-0" />
+                        <span className="hidden md:inline">Garaż</span>
+                        {count > 0 && (
+                            <span className="bg-white text-gray-900 text-[9px] min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full font-bold leading-none">
+                                {count}
+                            </span>
+                        )}
+                    </button>
+
                     <Link
                         href="/admin"
                         className={cn(

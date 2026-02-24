@@ -1,17 +1,24 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Warehouse, Scale } from 'lucide-react';
+import { BMWIndividualBadge } from './BMWIndividualBadge';
+import { useGarageStore } from '@/store/garageStore';
+import { useCompareStore } from '@/store/compareStore';
+import { useState, useEffect } from 'react';
 
 interface CarCardProps {
     car: StockCar;
     modelName?: string;
     colorName?: string;
     upholsteryName?: string;
+    individualColorName?: string;
 }
 
-export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardProps) {
+export function CarCard({ car, modelName, colorName, upholsteryName, individualColorName }: CarCardProps) {
     // Logic to determine badges
     // 337 is common code for M Sport Package
     const isAvailable = car.status_code >= 190 || ['SH', 'ST'].includes(car.processing_type);
@@ -23,6 +30,41 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
     const formatPrice = (price: number) =>
         new Intl.NumberFormat('pl-PL', { style: 'currency', currency: car.currency }).format(price);
 
+    const { addCar: addGarageCar, removeCar: removeGarageCar, isSaved } = useGarageStore();
+    const { compareCars, addCar: addCompareCar, removeCar: removeCompareCar } = useCompareStore();
+    // Direct selector — Zustand tracks this precisely so re-renders fire when compareCars changes
+    const isCarCompared = useCompareStore(state => state.compareCars.some(c => c.vin === car.vin));
+    const isCarSaved = useGarageStore(state => state.savedCars?.some((c: any) => c.vin === car.vin));
+
+    // Mounted guard — Zustand persist rehydrates asynchronously;
+    // without this the initial SSR snapshot (empty arrays) sticks
+    const [clientMounted, setClientMounted] = useState(false);
+    useEffect(() => { setClientMounted(true); }, []);
+
+    const saved = clientMounted && isCarSaved;
+    const compared = clientMounted && isCarCompared;
+
+    const toggleGarage = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (saved) removeGarageCar(car.vin);
+        else addGarageCar(car);
+    };
+
+    const toggleCompare = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (compared) {
+            removeCompareCar(car.vin);
+        } else {
+            if (compareCars.length >= 3) {
+                alert("Możesz porównywać maksymalnie 3 samochody jednocześnie.");
+                return;
+            }
+            addCompareCar(car);
+        }
+    };
+
     return (
         <Link
             href={`/cars/${encodeURIComponent(car.vin)}`}
@@ -32,7 +74,8 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
                     ? "bg-[#1a1a1a] border-[#333] hover:shadow-[0_20px_50px_-12px_rgba(83,160,222,0.3)] hover:border-[#53A0DE]/30"
                     : isElectric
                         ? "bg-white border-blue-100 hover:border-blue-300 hover:shadow-[0_10px_40px_-10px_rgba(6,83,182,0.15)] hover:translate-y-[-2px]"
-                        : "bg-white border-gray-100 hover:shadow-xl hover:translate-y-[-2px]"
+                        : "bg-white border-gray-100 hover:shadow-xl hover:translate-y-[-2px]",
+                compared && "ring-2 ring-blue-500 ring-offset-0"
             )}
         >
             {/* Custom M Hover Gradient Shadow (Blur) */}
@@ -46,6 +89,30 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
             )}
 
             <div className={cn("aspect-[16/9] relative overflow-hidden", isMSeries ? (car.images && car.images.length > 0 ? "bg-[#0f0f0f]" : "bg-gray-200") : "bg-gray-100")}>
+                {/* Action Buttons */}
+                <div className="absolute top-3 left-3 z-30 flex flex-col gap-2">
+                    <button
+                        onClick={toggleGarage}
+                        className={cn(
+                            "p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-sm",
+                            saved ? "bg-black text-white" : "bg-white/80 text-gray-900 border border-gray-200 hover:bg-white"
+                        )}
+                        title={saved ? "Usuń z garażu" : "Dodaj do garażu"}
+                    >
+                        <Warehouse className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={toggleCompare}
+                        className={cn(
+                            "p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-sm",
+                            compared ? "bg-blue-600 text-white ring-2 ring-blue-400 ring-offset-1 scale-110" : "bg-white/80 text-gray-900 border border-gray-200 hover:bg-white"
+                        )}
+                        title={compared ? "Usuń z porównania" : "Porównaj"}
+                    >
+                        <Scale className="w-4 h-4" />
+                    </button>
+                </div>
+
                 {car.images && car.images.length > 0 ? (
                     <div className="relative w-full h-full">
                         <Image
@@ -140,11 +207,15 @@ export function CarCard({ car, modelName, colorName, upholsteryName }: CarCardPr
                     {modelName || `BMW Model ${car.model_code}`}
                 </h3>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3 mb-6">
-                    <div className="flex flex-col">
+                    <div className="flex flex-col min-w-0">
                         <span className="text-[8px] text-gray-400 uppercase font-bold tracking-wider">Lakier</span>
-                        <span className={cn("text-[10px] font-bold uppercase truncate italic", isMSeries ? "text-gray-300" : "text-gray-900")}>{colorName || car.color_code}</span>
+                        {car.color_code === '490' ? (
+                            <BMWIndividualBadge compact colorName={individualColorName || car.individual_color} className="mt-0.5 max-w-full" />
+                        ) : (
+                            <span className={cn("text-[10px] font-bold uppercase truncate italic", isMSeries ? "text-gray-300" : "text-gray-900")}>{colorName || car.color_code}</span>
+                        )}
                     </div>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col min-w-0">
                         <span className="text-[8px] text-gray-400 uppercase font-bold tracking-wider">Tapicerka</span>
                         <span className="text-[10px] text-gray-500 font-bold uppercase truncate italic">{upholsteryName || car.upholstery_code}</span>
                     </div>

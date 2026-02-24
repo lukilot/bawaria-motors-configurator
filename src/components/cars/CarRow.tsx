@@ -1,7 +1,13 @@
+'use client';
+
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Warehouse, Scale } from 'lucide-react';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
+import { BMWIndividualBadge } from './BMWIndividualBadge';
+import { useGarageStore } from '@/store/garageStore';
+import { useCompareStore } from '@/store/compareStore';
+import { useState, useEffect } from 'react';
 
 interface CarRowProps {
     car: StockCar;
@@ -71,6 +77,39 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
         displayImages = displayImages.slice(0, 4);
     }
 
+    const { addCar: addGarageCar, removeCar: removeGarageCar } = useGarageStore();
+    const { compareCars, addCar: addCompareCar, removeCar: removeCompareCar } = useCompareStore();
+    // Direct selectors — tracked precisely by Zustand so re-renders fire when state changes
+    const isCarCompared = useCompareStore(state => state.compareCars.some(c => c.vin === car.vin));
+    const isCarSaved = useGarageStore(state => state.savedCars.some(c => c.vin === car.vin));
+
+    const [clientMounted, setClientMounted] = useState(false);
+    useEffect(() => { setClientMounted(true); }, []);
+
+    const saved = clientMounted && isCarSaved;
+    const compared = clientMounted && isCarCompared;
+
+    const toggleGarage = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (saved) removeGarageCar(car.vin);
+        else addGarageCar(car);
+    };
+
+    const toggleCompare = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (compared) {
+            removeCompareCar(car.vin);
+        } else {
+            if (compareCars.length >= 3) {
+                alert("Możesz porównywać maksymalnie 3 samochody jednocześnie.");
+                return;
+            }
+            addCompareCar(car);
+        }
+    };
+
     const displayedModelName = modelName || `BMW ${car.model_code}`;
 
     return (
@@ -96,7 +135,32 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
             <Link href={`/cars/${encodeURIComponent(car.vin)}`} className={cn("flex flex-col md:flex-row h-full", isSold && "cursor-default pointer-events-none")}>
 
                 {/* Left: Images (Grid) */}
-                <div className={cn("w-full md:w-[45%] lg:w-[40%] flex flex-col", isMSeries ? (hasImages ? "bg-[#0f0f0f]" : "bg-gray-200") : "bg-white")}>
+                <div className={cn("w-full md:w-[45%] lg:w-[40%] flex flex-col relative", isMSeries ? (hasImages ? "bg-[#0f0f0f]" : "bg-gray-200") : "bg-white")}>
+
+                    {/* Action Buttons */}
+                    <div className="absolute top-3 left-3 z-30 flex flex-col gap-2">
+                        <button
+                            onClick={toggleGarage}
+                            className={cn(
+                                "p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-sm",
+                                saved ? "bg-black text-white" : "bg-white/80 text-gray-900 border border-gray-200 hover:bg-white"
+                            )}
+                            title={saved ? "Usuń z garażu" : "Dodaj do garażu"}
+                        >
+                            <Warehouse className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={toggleCompare}
+                            className={cn(
+                                "p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-sm",
+                                compared ? "bg-black text-white" : "bg-white/80 text-gray-900 border border-gray-200 hover:bg-white"
+                            )}
+                            title={compared ? "Usuń z porównania" : "Porównaj"}
+                        >
+                            <Scale className="w-4 h-4" />
+                        </button>
+                    </div>
+
                     {/* Main Image */}
                     <div className="relative aspect-[4/3] md:aspect-[16/10] overflow-hidden">
                         {hasImages ? (
@@ -219,13 +283,17 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                         </div>
 
                         <div className={cn("grid grid-cols-2 gap-y-3 gap-x-8 mt-4 text-sm", isMSeries ? "text-gray-400" : "text-gray-600")}>
-                            <div className="flex flex-col">
+                            <div className="flex flex-col min-w-0">
                                 <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Lakier</span>
-                                <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")} title={car.color_code}>
-                                    {dictionaries.color[car.color_code]?.name || car.color_code}
-                                </span>
+                                {car.color_code === '490' ? (
+                                    <BMWIndividualBadge compact colorName={dictionaries.color[car.individual_color || '']?.name || car.individual_color} className="mt-0.5 w-fit max-w-full" />
+                                ) : (
+                                    <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")} title={car.color_code}>
+                                        {dictionaries.color[car.color_code]?.name || car.color_code}
+                                    </span>
+                                )}
                             </div>
-                            <div className="flex flex-col">
+                            <div className="flex flex-col min-w-0">
                                 <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Tapicerka</span>
                                 <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")} title={car.upholstery_code}>
                                     {dictionaries.upholstery[car.upholstery_code]?.name || car.upholstery_code}

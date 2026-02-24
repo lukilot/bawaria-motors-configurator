@@ -12,7 +12,9 @@ import { cn } from '@/lib/utils';
 import { Metadata } from 'next';
 import { DynamicPricingSection } from '@/components/cars/DynamicPricingSection';
 import Link from 'next/link';
+import { BMWIndividualBadge } from '@/components/cars/BMWIndividualBadge';
 import { getModelAttributes } from '@/lib/model-attributes';
+import { CarActionButtons } from '@/components/cars/CarActionButtons';
 
 export const revalidate = 60;
 
@@ -221,6 +223,7 @@ export default async function CarPage({ params }: PageProps) {
         trunk_capacity: modelDict.trunk_capacity,
         body_group: staticAttrs.body_group || car.body_group, // Ensure we have a body group (series code)
         // Note: car.body_group might be null in stock feed
+        special_price: getCarDiscountedPrice(car, bulletins) || car.special_price
     };
 
     const formatPrice = (price: number) =>
@@ -394,11 +397,15 @@ export default async function CarPage({ params }: PageProps) {
 
                         <SpecsAccordion title="Tapicerka i kolor" className={theme.border} titleClassName={theme.accordionTitle}>
                             <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
-                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
+                                <div className={cn("flex justify-between py-2 items-center border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Kolor</span>
-                                    <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{colorName}</span>
+                                    {car.color_code === '490' ? (
+                                        <BMWIndividualBadge compact colorName={dictionaries.color[car.individual_color || '']?.name || car.individual_color} />
+                                    ) : (
+                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{colorName}</span>
+                                    )}
                                 </div>
-                                <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
+                                <div className={cn("flex justify-between py-2 items-center border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Tapicerka</span>
                                     <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{upholsteryName}</span>
                                 </div>
@@ -450,9 +457,18 @@ export default async function CarPage({ params }: PageProps) {
                             <h1 className={cn("text-4xl md:text-5xl font-bold tracking-tight leading-[1.1] mb-2", theme.text)}>
                                 {modelName}
                             </h1>
-                            <p className={cn("text-lg font-light", theme.subtext)}>
-                                {colorName}
-                            </p>
+                            {car.color_code === '490' ? (
+                                <div className="mt-4 mb-2">
+                                    <BMWIndividualBadge colorName={dictionaries.color[car.individual_color || '']?.name || car.individual_color} />
+                                </div>
+                            ) : (
+                                <p className={cn("text-lg font-light", theme.subtext)}>
+                                    {colorName}
+                                </p>
+                            )}
+
+                            {/* Action Buttons: Garage & Compare */}
+                            <CarActionButtons car={enrichedCar} className="mt-6" />
 
                             {/* Car Variants (Config Twins) */}
                             {variants.length > 0 && (
@@ -576,11 +592,15 @@ export default async function CarPage({ params }: PageProps) {
 
                             <SpecsAccordion title="Tapicerka i kolor" className={theme.border} titleClassName={theme.accordionTitle}>
                                 <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
-                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
+                                    <div className={cn("flex justify-between py-2 items-center border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Kolor</span>
-                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{colorName}</span>
+                                        {car.color_code === '490' ? (
+                                            <BMWIndividualBadge compact colorName={dictionaries.color[car.individual_color || '']?.name || car.individual_color} />
+                                        ) : (
+                                            <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{colorName}</span>
+                                        )}
                                     </div>
-                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
+                                    <div className={cn("flex justify-between py-2 items-center border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                         <span>Tapicerka</span>
                                         <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{upholsteryName}</span>
                                     </div>
@@ -593,7 +613,6 @@ export default async function CarPage({ params }: PageProps) {
 
 
 
-                {/* Mobile Options List (Bottom) */}
                 <div className="lg:hidden mt-2 pt-6 border-t border-gray-100 px-4">
                     <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} isElectric={isElectric && !isMSeries} />
                 </div>

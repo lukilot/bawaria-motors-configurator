@@ -60,7 +60,7 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false, is
                                             {/* Thumbnail Placeholder */}
                                             <div className={cn(
                                                 "w-24 h-16 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden",
-                                                isDark ? "bg-[#0f0f0f]" : "bg-white"
+                                                isDark ? "bg-[#1a1a1a]" : "bg-white"
                                             )}>
                                                 <img
                                                     src={child.image || `https://placehold.co/100x60/f3f4f6/a3a3a3?text=${child.code}`}
@@ -111,7 +111,7 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false, is
                                     {/* Thumbnail Placeholder */}
                                     <div className={cn(
                                         "w-24 h-16 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden",
-                                        isDark ? "bg-[#0f0f0f]" : "bg-white"
+                                        isDark ? "bg-[#1a1a1a]" : "bg-white"
                                     )}>
                                         <img
                                             src={group.image || `https://placehold.co/100x60/f3f4f6/a3a3a3?text=${group.code}`}

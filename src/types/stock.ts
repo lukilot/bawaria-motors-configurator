@@ -22,6 +22,7 @@ export interface StockCar {
   body_type?: string;
   body_group?: string; // e.g., G20, G30, G45, G60
   color_code: string;
+  individual_color?: string; // Stored actual paint name for 490
   upholstery_code: string;
   fuel_type?: string;
   power?: string;

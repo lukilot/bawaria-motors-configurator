@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense, useMemo, useEffect } from 'react';
+import { useState, Suspense, useMemo, useEffect, useRef } from 'react';
 import { StockCar } from '@/types/stock';
 import { FilterSidebar } from '@/components/cars/FilterSidebar';
 import { CarGrid } from '@/components/cars/CarGrid';
@@ -18,49 +18,111 @@ interface SRPLayoutProps {
     bulletinPrices?: Record<string, number>;
 }
 
+const SESSION_KEY_SORT = 'bawaria_sort';
+const SESSION_KEY_LAYOUT = 'bawaria_layout';
+const SESSION_KEY_COUNT = 'bawaria_display_count';
+const SESSION_KEY_SCROLL = 'bawaria_scroll_pos';
+const SESSION_KEY_SRP = 'bawaria_last_srp';
+
+function readSession<T>(key: string, fallback: T): T {
+    if (typeof window === 'undefined') return fallback;
+    try {
+        const v = sessionStorage.getItem(key);
+        return v !== null ? JSON.parse(v) as T : fallback;
+    } catch { return fallback; }
+}
+
 export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps) {
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
     const searchParams = useSearchParams();
 
-    // Track last visited SRP URL for BackButton logic
+    // ── Persistent state ─────────────────────────────────────────────────────
+    const [sortOrder, setSortOrder] = useState<'newest' | 'price_asc' | 'price_desc'>(
+        () => readSession(SESSION_KEY_SORT, 'newest')
+    );
+    const [layout, setLayout] = useState<'grid' | 'list'>(
+        () => readSession(SESSION_KEY_LAYOUT, 'list')
+    );
+    const [displayCount, setDisplayCount] = useState<number>(
+        () => readSession(SESSION_KEY_COUNT, 12)
+    );
+
+    // Persist sort/layout/count on change
+    useEffect(() => { sessionStorage.setItem(SESSION_KEY_SORT, JSON.stringify(sortOrder)); }, [sortOrder]);
+    useEffect(() => { sessionStorage.setItem(SESSION_KEY_LAYOUT, JSON.stringify(layout)); }, [layout]);
+    useEffect(() => { sessionStorage.setItem(SESSION_KEY_COUNT, JSON.stringify(displayCount)); }, [displayCount]);
+
+    // ── SRP URL tracking ──────────────────────────────────────────────────────
     useEffect(() => {
-        // We save the full path including query params
         const url = window.location.pathname + window.location.search;
-        sessionStorage.setItem('bawaria_last_srp', url);
+        sessionStorage.setItem(SESSION_KEY_SRP, url);
     }, [searchParams]);
 
-    // Handle scroll persistence
+    // ── Scroll save ───────────────────────────────────────────────────────────
     useEffect(() => {
-        // Restore scroll if returning to same SRP
-        const savedUrl = sessionStorage.getItem('bawaria_last_srp');
-        const currentUrl = window.location.pathname + window.location.search;
-        const savedScroll = sessionStorage.getItem('bawaria_scroll_pos');
-
-        if (savedUrl === currentUrl && savedScroll) {
-            // Small timeout to allow layout to settle
-            setTimeout(() => {
-                window.scrollTo(0, parseInt(savedScroll));
-            }, 100);
-        }
-
-        // Save scroll on change
+        let tid: ReturnType<typeof setTimeout>;
         const handleScroll = () => {
-            sessionStorage.setItem('bawaria_scroll_pos', window.scrollY.toString());
+            clearTimeout(tid);
+            tid = setTimeout(() => {
+                sessionStorage.setItem(SESSION_KEY_SCROLL, window.scrollY.toString());
+            }, 80);
         };
-
-        // Debounce scroll event
-        let timeoutId: NodeJS.Timeout;
-        const debouncedScroll = () => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(handleScroll, 100);
-        };
-
-        window.addEventListener('scroll', debouncedScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => {
-            window.removeEventListener('scroll', debouncedScroll);
-            clearTimeout(timeoutId);
+            window.removeEventListener('scroll', handleScroll);
+            clearTimeout(tid);
         };
     }, []);
+
+    // ── Scroll restore ────────────────────────────────────────────────────────
+    // We must wait until displayCount items are actually painted in the DOM.
+    // Use a ref on the grid container and a ResizeObserver to detect when
+    // the height stabilises, then fire the scroll.
+    const gridRef = useRef<HTMLDivElement>(null);
+    const scrollRestored = useRef(false);
+
+    useEffect(() => {
+        // Only restore once per page visit
+        scrollRestored.current = false;
+    }, []); // reset when component mounts (new visit to SRP)
+
+    useEffect(() => {
+        if (scrollRestored.current) return;
+
+        const savedScroll = parseInt(sessionStorage.getItem(SESSION_KEY_SCROLL) || '0', 10);
+        if (!savedScroll || savedScroll < 50) {
+            scrollRestored.current = true;
+            return;
+        }
+
+        const el = gridRef.current;
+        if (!el) return;
+
+        // Use ResizeObserver — fires every time the grid grows.
+        // Once the content is tall enough to accommodate savedScroll, restore.
+        const ro = new ResizeObserver(() => {
+            const totalHeight = document.documentElement.scrollHeight;
+            if (totalHeight >= savedScroll + window.innerHeight) {
+                ro.disconnect();
+                if (!scrollRestored.current) {
+                    scrollRestored.current = true;
+                    window.scrollTo({ top: savedScroll, behavior: 'instant' });
+                }
+            }
+        });
+        ro.observe(el);
+
+        // Safety timeout — restore after 2s regardless
+        const fallback = setTimeout(() => {
+            if (!scrollRestored.current) {
+                scrollRestored.current = true;
+                window.scrollTo({ top: savedScroll, behavior: 'instant' });
+            }
+            ro.disconnect();
+        }, 2000);
+
+        return () => { ro.disconnect(); clearTimeout(fallback); };
+    }, [displayCount]); // re-run if displayCount changes (in case it was restored from session)
 
     // 0. Enrich cars with dictionary data
     const enrichedCars = useMemo(() => {
@@ -71,23 +133,16 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
             const rawFuel = (modelDict.fuel as string) || car.fuel_type || '';
             const rawDrive = (modelDict.drivetrain as string) || car.drivetrain || '';
 
-            // Normalize Fuel
             let fuel = rawFuel;
             if (['Gasoline', 'Benzyna'].includes(rawFuel)) fuel = 'Benzyna';
             if (['Diesel'].includes(rawFuel)) fuel = 'Diesel';
             if (['Electric', 'BEV', 'Elektryczny'].includes(rawFuel)) fuel = 'Elektryczny';
             if (['Hybrid', 'PHEV', 'Plug-In Hybrid'].includes(rawFuel)) fuel = 'Plug-In Hybrid';
 
-            // Normalize Drivetrain
             let drive = rawDrive;
             if (['xDrive', 'AWD', 'XDRIVE'].includes(rawDrive)) drive = 'xDrive';
             if (['FWD', 'Na przód'].includes(rawDrive)) drive = 'Na przód';
             if (['RWD', 'Na tył'].includes(rawDrive)) drive = 'Na tył';
-            // Assuming sDrive logic if needed, but for now passing through or mapping if known.
-            // If data comes as "sDrive", we might not know if it is RWD or FWD without more info.
-            // But if user didn't ask to map sDrive, we leave it or hide it? 
-            // "In NAPĘD section should be whis... AWD, FWD, RWD". 
-            // If I leave sDrive, it will appear. I'll check if I can map it later.
 
             return {
                 ...car,
@@ -101,30 +156,21 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                 max_speed: modelDict.max_speed as string,
                 trunk_capacity: modelDict.trunk_capacity as string,
                 color_group: (dictionaries.color[car.color_code] as any)?.group,
-                upholstery_group: (dictionaries.upholstery[car.upholstery_code] as any)?.group
+                upholstery_group: (dictionaries.upholstery[car.upholstery_code] as any)?.group,
+                special_price: bulletinPrices?.[car.vin] || car.special_price
             };
         });
-    }, [cars, dictionaries.model, dictionaries.color, dictionaries.upholstery]);
+    }, [cars, dictionaries.model, dictionaries.color, dictionaries.upholstery, bulletinPrices]);
 
-    // Helper to logically sort BMW Series names
     const sortSeries = (a: string, b: string) => {
-        // Extract the first number found in the string (e.g., "Seria 3" -> 3, "X4" -> 4, "iX3" -> 3)
         const matchA = a.match(/\d+/);
         const matchB = b.match(/\d+/);
-
         const numA = matchA ? parseInt(matchA[0], 10) : 999;
         const numB = matchB ? parseInt(matchB[0], 10) : 999;
-
-        // Sort by numbers first
-        if (numA !== numB) {
-            return numA - numB;
-        }
-
-        // If numbers are identical (e.g. "Seria 3" vs "X3"), strictly sort alphabetically
+        if (numA !== numB) return numA - numB;
         return a.localeCompare(b);
     };
 
-    // 1. Calculate available filters from the enriched car list
     const filterOptions = useMemo(() => {
         const series = new Set<string>();
         const bodyTypes = new Set<string>();
@@ -165,9 +211,7 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
         };
     }, [enrichedCars]);
 
-    const [sortOrder, setSortOrder] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
-
-    // 2. Filter cars based on URL params
+    // Filter + sort
     const filteredCars = useMemo(() => {
         const query = searchParams.get('q')?.toLowerCase() || '';
         const selectedSeries = searchParams.getAll('series');
@@ -186,77 +230,57 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
             const modelName = (car.model_name || '').toLowerCase();
             const vin = (car.vin || '').toLowerCase();
 
-            // Search query
             const matchesQuery = !query || modelName.includes(query) || vin.includes(query);
-
-            // Filters
             const matchesSeries = selectedSeries.length === 0 || (car.series && selectedSeries.includes(car.series));
             const matchesBody = selectedBody.length === 0 || (car.body_type && selectedBody.includes(car.body_type));
             const matchesFuel = selectedFuel.length === 0 || (car.fuel_type && selectedFuel.includes(car.fuel_type));
             const matchesDrivetrain = selectedDrivetrain.length === 0 || (car.drivetrain && selectedDrivetrain.includes(car.drivetrain));
             const matchesColorGroup = selectedColorGroups.length === 0 || ((car as any).color_group && selectedColorGroups.includes((car as any).color_group));
             const matchesUpholsteryGroup = selectedUpholsteryGroups.length === 0 || ((car as any).upholstery_group && selectedUpholsteryGroups.includes((car as any).upholstery_group));
-
-            // Price filter
             const matchesPrice = carPrice >= minP && carPrice <= maxP;
-
-            // Power filter
             const pValue = car.power ? parseInt(car.power) : 0;
             const matchesPowerRange = pValue >= minPower && pValue <= maxPower;
 
             return matchesQuery && matchesSeries && matchesBody && matchesFuel && matchesDrivetrain && matchesColorGroup && matchesUpholsteryGroup && matchesPrice && matchesPowerRange;
         });
 
-        // Sort by availability status priority THEN by user selection
         return filtered.sort((a, b) => {
             const getStatusPriority = (car: typeof a) => {
                 const isSold = (car.order_status || '').includes('Sprzedany');
                 const hasImages = car.images && car.images.length > 0;
-
-                if (isSold) return 3; // Sold cars last
-                if (!hasImages) return 2; // Pending setup (no images) second
-                return 1; // Available/Reserved first
+                if (isSold) return 3;
+                if (!hasImages) return 2;
+                return 1;
             };
 
             const statusA = getStatusPriority(a);
             const statusB = getStatusPriority(b);
+            if (statusA !== statusB) return statusA - statusB;
 
-            if (statusA !== statusB) {
-                return statusA - statusB;
-            }
-
-            // Secondary Sort: User Selection
             if (sortOrder === 'newest') {
                 const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
                 const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-                return dateB - dateA; // Newest first
+                return dateB - dateA;
             }
             if (sortOrder === 'price_asc') {
-                const priceA = a.special_price || a.list_price;
-                const priceB = b.special_price || b.list_price;
-                return priceA - priceB;
+                return (a.special_price || a.list_price) - (b.special_price || b.list_price);
             }
             if (sortOrder === 'price_desc') {
-                const priceA = a.special_price || a.list_price;
-                const priceB = b.special_price || b.list_price;
-                return priceB - priceA;
+                return (b.special_price || b.list_price) - (a.special_price || a.list_price);
             }
-
             return 0;
         });
     }, [enrichedCars, searchParams, sortOrder]);
 
     return (
         <div className="max-w-[1600px] mx-auto px-6 flex flex-col-reverse lg:flex-row gap-12 pt-8">
-            {/* Sidebar (Left on desktop, bottom on mobile flow) */}
             <FilterSidebar
                 isOpen={isFiltersOpen}
                 onClose={() => setIsFiltersOpen(false)}
                 options={filterOptions}
             />
 
-            {/* Product Grid/List (Right on desktop, top on mobile flow) */}
-            <div className="flex-1">
+            <div className="flex-1" ref={gridRef}>
                 <Suspense fallback={<div className="animate-pulse bg-gray-100 h-96 rounded-sm" />}>
                     <CarGrid
                         cars={filteredCars}
@@ -267,6 +291,10 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                         sortOrder={sortOrder}
                         onSortChange={setSortOrder}
                         bulletinPrices={bulletinPrices}
+                        layout={layout}
+                        onLayoutChange={setLayout}
+                        displayCount={displayCount}
+                        onDisplayCountChange={setDisplayCount}
                     />
                 </Suspense>
             </div>

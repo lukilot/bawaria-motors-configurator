@@ -91,9 +91,13 @@ export default function AdminCarEditor() {
     const [specialPrice, setSpecialPrice] = useState<string>('');
     const [listPrice, setListPrice] = useState<string>('');
     const [visibility, setVisibility] = useState<'PUBLIC' | 'INTERNAL' | 'HIDDEN'>('INTERNAL');
+    const [individualColor, setIndividualColor] = useState<string>('');
     const [fuelType, setFuelType] = useState<string>('');
     const [power, setPower] = useState<string>('');
     const [drivetrain, setDrivetrain] = useState<string>('');
+    const [colors, setColors] = useState<{ code: string, name: string }[]>([]);
+    const [colorSearch, setColorSearch] = useState('');
+    const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
 
     // DND Sensors
     const sensors = useSensors(
@@ -118,6 +122,7 @@ export default function AdminCarEditor() {
                 setSpecialPrice(data.special_price ? String(data.special_price) : '');
                 setListPrice(String(data.list_price));
                 setVisibility(data.visibility);
+                setIndividualColor(data.individual_color || '');
                 setFuelType(data.fuel_type || '');
                 setPower(data.power || '');
                 setDrivetrain(data.drivetrain || '');
@@ -126,6 +131,37 @@ export default function AdminCarEditor() {
         };
         fetchCar();
     }, [vin]);
+
+    // Fetch Colors Dictionary
+    useEffect(() => {
+        const fetchColors = async () => {
+            const { data } = await supabase
+                .from('dictionaries')
+                .select('code, data')
+                .eq('type', 'color');
+            if (data) {
+                setColors(data.map(c => ({
+                    code: c.code,
+                    name: c.data.name || ''
+                })));
+            }
+        };
+        fetchColors();
+    }, []);
+
+    // Sync color search input when a color is selected or loaded
+    useEffect(() => {
+        if (individualColor && colors.length > 0 && !isColorDropdownOpen) {
+            const match = colors.find(c => c.code === individualColor);
+            if (match) {
+                setColorSearch(`${match.code} - ${match.name}`);
+            } else {
+                setColorSearch(individualColor);
+            }
+        } else if (!individualColor && !isColorDropdownOpen) {
+            setColorSearch('');
+        }
+    }, [individualColor, colors, isColorDropdownOpen]);
 
     // Save Handler for Prices/Visibility
     const handleSave = async () => {
@@ -137,6 +173,7 @@ export default function AdminCarEditor() {
                 special_price: specialPrice ? parseFloat(specialPrice) : null,
                 list_price: parseFloat(listPrice),
                 visibility: visibility,
+                individual_color: individualColor || null,
                 fuel_type: fuelType,
                 power: power,
                 drivetrain: drivetrain,
@@ -214,7 +251,7 @@ export default function AdminCarEditor() {
 
             for (const file of acceptedFiles) {
                 // Client-side compression
-                let fileToUpload = file;
+                let fileToUpload: File | Blob = file;
                 if (file.type.startsWith('image/')) {
                     try {
                         fileToUpload = await compressImage(file);
@@ -224,7 +261,7 @@ export default function AdminCarEditor() {
                 }
 
                 const formData = new FormData();
-                formData.append('file', fileToUpload);
+                formData.append('file', fileToUpload, file.name.replace(/\.[^/.]+$/, "") + ".webp");
                 formData.append('vin', car.vin);
 
                 const response = await fetch('/api/admin/upload-images', {
@@ -233,11 +270,18 @@ export default function AdminCarEditor() {
                 });
 
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Upload failed');
+                    let errMsg = 'Upload failed';
+                    try {
+                        const errorData = await response.json();
+                        errMsg = errorData.error || errMsg;
+                    } catch {
+                        errMsg = `Server Error [${response.status}]: ${await response.text()}`;
+                    }
+                    throw new Error(errMsg);
                 }
 
-                const { url } = await response.json();
+                const responseData = await response.json();
+                const url = responseData.url;
 
                 newImages.push({
                     url: url,
@@ -437,6 +481,62 @@ export default function AdminCarEditor() {
                             />
                             <p className="text-[10px] text-gray-600 mt-1">Leave empty to use List Price.</p>
                         </div>
+
+                        {car.color_code === '490' && (
+                            <div className="mb-4 relative">
+                                <label className="block text-xs font-semibold uppercase text-blue-700 mb-2 flex items-center gap-2">
+                                    <span>BMW Individual Paint</span>
+                                    <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-sm text-[8px]">SPECIAL</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={colorSearch}
+                                    onChange={(e) => {
+                                        setColorSearch(e.target.value);
+                                        setIsColorDropdownOpen(true);
+                                        setIndividualColor(''); // clear exact selection while typing
+                                    }}
+                                    onFocus={() => setIsColorDropdownOpen(true)}
+                                    // small delay to allow click on option
+                                    onBlur={() => setTimeout(() => setIsColorDropdownOpen(false), 200)}
+                                    placeholder="Wyszukaj kod lub nazwę..."
+                                    className="w-full p-2 border border-blue-200 rounded-sm text-sm text-gray-900 focus:border-blue-500 outline-none placeholder:text-gray-400 bg-blue-50/30"
+                                />
+                                {isColorDropdownOpen && (
+                                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-sm shadow-lg max-h-60 overflow-y-auto">
+                                        {colors
+                                            .filter(c =>
+                                                c.code.toLowerCase().includes(colorSearch.toLowerCase()) ||
+                                                c.name.toLowerCase().includes(colorSearch.toLowerCase())
+                                            )
+                                            .map(c => (
+                                                <button
+                                                    key={c.code}
+                                                    type="button"
+                                                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex flex-col items-start gap-0.5"
+                                                    onMouseDown={(e) => {
+                                                        // use onMouseDown instead of onClick to fire before input onBlur
+                                                        e.preventDefault();
+                                                        setIndividualColor(c.code);
+                                                        setColorSearch(`${c.code} - ${c.name}`);
+                                                        setIsColorDropdownOpen(false);
+                                                    }}
+                                                >
+                                                    <span className="font-bold">{c.code}</span>
+                                                    <span className="text-xs text-gray-500">{c.name}</span>
+                                                </button>
+                                            ))}
+                                        {colors.filter(c =>
+                                            c.code.toLowerCase().includes(colorSearch.toLowerCase()) ||
+                                            c.name.toLowerCase().includes(colorSearch.toLowerCase())
+                                        ).length === 0 && (
+                                                <div className="px-3 py-2 text-xs text-gray-500 italic">Brak wyników</div>
+                                            )}
+                                    </div>
+                                )}
+                                <p className="text-[10px] text-gray-500 mt-1">Wyszukaj po kodzie lub nazwie, aby przypisać lakier z bazy.</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Specyfikacja Card */}

@@ -423,6 +423,52 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                     <label htmlFor="new-visible" className="text-sm text-gray-600">Visible on site</label>
                                 </div>
                             </div>
+                            {type === 'color' && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Paint Type</label>
+                                        <input
+                                            type="text"
+                                            list="color-types"
+                                            value={formData.type || ''}
+                                            onChange={(e) => handleDataChange('type', e.target.value)}
+                                            placeholder="e.g. Lakier metalizowany"
+                                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-sm focus:outline-none focus:border-black transition-colors text-sm"
+                                        />
+                                        <datalist id="color-types">
+                                            <option value="Lakier niemetalizowany" />
+                                            <option value="Lakier metalizowany" />
+                                            <option value="BMW Individual" />
+                                        </datalist>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Base Color (SRP Filter)</label>
+                                        <select
+                                            value={formData.group || ''}
+                                            onChange={(e) => handleDataChange('group', e.target.value)}
+                                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-sm focus:outline-none focus:border-black transition-colors text-sm"
+                                        >
+                                            <option value="">Select base color...</option>
+                                            <option value="Czarny">Czarny</option>
+                                            <option value="Biały">Biały</option>
+                                            <option value="Szary">Szary</option>
+                                            <option value="Srebrny">Srebrny</option>
+                                            <option value="Niebieski">Niebieski</option>
+                                            <option value="Granatowy">Granatowy</option>
+                                            <option value="Czerwony">Czerwony</option>
+                                            <option value="Bordowy">Bordowy</option>
+                                            <option value="Brązowy">Brązowy</option>
+                                            <option value="Beżowy">Beżowy</option>
+                                            <option value="Zielony">Zielony</option>
+                                            <option value="Oliwkowy">Oliwkowy</option>
+                                            <option value="Złoty">Złoty</option>
+                                            <option value="Fioletowy">Fioletowy</option>
+                                            <option value="Pomarańczowy">Pomarańczowy</option>
+                                            <option value="Żółty">Żółty</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
                             {type === 'upholstery' && (
                                 <div>
                                     <label className="block text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1">Type</label>
@@ -623,11 +669,18 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                         ) : (
                                             <div className="flex flex-col">
                                                 <span>{item.data.name}</span>
-                                                {item.data.group && (
-                                                    <span className="text-xs text-blue-600 font-medium bg-blue-50 px-1.5 py-0.5 rounded-sm self-start mt-1">
-                                                        {item.data.group}
-                                                    </span>
-                                                )}
+                                                <div className="flex gap-2 mt-1">
+                                                    {item.data.type && type === 'color' && (
+                                                        <span className="text-xs text-purple-600 font-medium bg-purple-50 px-1.5 py-0.5 rounded-sm self-start">
+                                                            {item.data.type}
+                                                        </span>
+                                                    )}
+                                                    {item.data.group && (
+                                                        <span className="text-xs text-blue-600 font-medium bg-blue-50 px-1.5 py-0.5 rounded-sm self-start">
+                                                            {item.data.group}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 {type === 'upholstery' && item.data.type && (
                                                     <span className="text-xs text-gray-500 mt-0.5">{item.data.type}</span>
                                                 )}

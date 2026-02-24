@@ -7,6 +7,7 @@ import { getActiveBulletins, getCarDiscountedPrice } from '@/lib/bulletin-fetch'
 import { SRPLayout } from '@/components/cars/SRPLayout';
 import { IntroOverlay } from '@/components/cars/IntroOverlay';
 import { SiteHeader } from '@/components/layout/SiteHeader';
+import { SRPFallback } from '@/components/cars/CarCardSkeleton';
 import { Metadata } from 'next';
 import { StockCar } from '@/types/stock';
 
@@ -78,9 +79,8 @@ export default async function Home() {
       {/* Site Header */}
       <SiteHeader />
 
-      {/* Content Area */}
       <div className="pt-24">
-        <Suspense fallback={<div className="max-w-[1600px] mx-auto px-6 py-20 text-center text-gray-400">Ładowanie ofert...</div>}>
+        <Suspense fallback={<SRPFallback />}>
           <SRPLayout cars={cars} dictionaries={dictionaries} bulletinPrices={bulletinPrices} />
         </Suspense>
       </div>

@@ -12,6 +12,7 @@ export function groupIdenticalCars(cars: StockCar[]): StockCar[] {
         const key = [
             car.model_code,
             car.color_code,
+            car.individual_color || '', // Ensure distinct Individual paints are not grouped together
             car.upholstery_code,
             sortedOptions,
             prodYear

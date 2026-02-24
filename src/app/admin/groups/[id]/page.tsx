@@ -229,7 +229,7 @@ export default function AdminGroupEditor() {
 
             for (const file of acceptedFiles) {
                 // Client-side compression
-                let fileToUpload = file;
+                let fileToUpload: File | Blob = file;
                 if (file.type.startsWith('image/')) {
                     try {
                         fileToUpload = await compressImage(file);
@@ -239,7 +239,8 @@ export default function AdminGroupEditor() {
                 }
 
                 const formData = new FormData();
-                formData.append('file', fileToUpload);
+                // Pass the original file name as the 3rd argument since fileToUpload might be a Blob now
+                formData.append('file', fileToUpload, file.name.replace(/\.[^/.]+$/, "") + ".webp");
                 formData.append('groupId', group.id); // Identifying as group upload
 
                 const response = await fetch('/api/admin/upload-images', {
@@ -248,11 +249,18 @@ export default function AdminGroupEditor() {
                 });
 
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Upload failed');
+                    let errMsg = 'Upload failed';
+                    try {
+                        const errorData = await response.json();
+                        errMsg = errorData.error || errMsg;
+                    } catch {
+                        errMsg = `Server Error [${response.status}]: ${await response.text()}`;
+                    }
+                    throw new Error(errMsg);
                 }
 
-                const { url } = await response.json();
+                const responseData = await response.json();
+                const url = responseData.url;
 
                 newImages.push({
                     url: url,

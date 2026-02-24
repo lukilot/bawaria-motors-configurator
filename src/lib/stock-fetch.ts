@@ -116,8 +116,12 @@ export async function getCarByVin(vin: string): Promise<StockCar | null> {
     if (groupPrice && groupPrice > 0) {
         car.list_price = groupPrice;
     }
-    // Store group images separately for gallery merging
-    car.group_images = car.product_groups?.images || [];
+    // Store group images separately for gallery merging and also merge into main images array
+    const groupImages = car.product_groups?.images || [];
+    car.group_images = groupImages;
+    if (groupImages.length > 0) {
+        car.images = [...groupImages, ...(car.images || [])];
+    }
     // Clean up the joined data
     delete car.product_groups;
 

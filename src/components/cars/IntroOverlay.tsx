@@ -94,12 +94,12 @@ export function IntroOverlay() {
             bottom: "auto",
             position: "fixed",
             zIndex: 1001, // Keep it high but compatible with SiteHeader (z-[1000])
-            backgroundColor: "rgba(255, 255, 255, 0.4)",
-            backdropFilter: "blur(40px)",
-            borderLeft: "1px solid rgba(255, 255, 255, 0.2)",
-            borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-            borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
-            boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)",
+            backgroundColor: "#000000",
+            backdropFilter: "blur(20px)",
+            borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
+            borderRight: "1px solid rgba(255, 255, 255, 0.1)",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+            boxShadow: "0 10px 30px -10px rgba(0,0,0,0.3)",
             transition: {
                 type: "spring",
                 stiffness: 70,
@@ -254,7 +254,7 @@ export function IntroOverlay() {
                             className="flex items-center gap-4 px-6 py-3 min-w-[200px] justify-between text-nowrap"
                         >
                             {/* Left Side: Phone + Kontakt */}
-                            <div className="flex items-center gap-3 text-gray-900">
+                            <div className="flex items-center gap-3 text-white">
                                 <Phone className="w-3 h-3" />
                                 <span className="text-[10px] uppercase font-bold tracking-[0.15em] leading-none">
                                     Kontakt
@@ -263,8 +263,8 @@ export function IntroOverlay() {
 
                             {/* Right Side: Divider + Chevron */}
                             <div className="flex items-center gap-3">
-                                <div className="w-px h-3 bg-black/10" />
-                                <ChevronDown className="w-3 h-3 text-gray-500 group-hover:text-black transition-colors" />
+                                <div className="w-px h-3 bg-white/20" />
+                                <ChevronDown className="w-3 h-3 text-white/50 group-hover:text-white transition-colors" />
                             </div>
                         </motion.div>
                     )}

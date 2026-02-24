@@ -11,6 +11,7 @@ interface GarageState {
     clearGarage: () => void;
     openGarage: () => void;
     closeGarage: () => void;
+    toggleGarage: () => void;
 }
 
 export const useGarageStore = create<GarageState>()(
@@ -33,6 +34,7 @@ export const useGarageStore = create<GarageState>()(
             clearGarage: () => set({ savedCars: [] }),
             openGarage: () => set({ isOpen: true }),
             closeGarage: () => set({ isOpen: false }),
+            toggleGarage: () => set({ isOpen: !get().isOpen }),
         }),
         {
             name: 'bawaria-garage-storage', // name of the item in the storage (must be unique)

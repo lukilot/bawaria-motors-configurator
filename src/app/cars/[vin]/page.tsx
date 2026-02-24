@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { BMWIndividualBadge } from '@/components/cars/BMWIndividualBadge';
 import { getModelAttributes } from '@/lib/model-attributes';
 import { CarActionButtons } from '@/components/cars/CarActionButtons';
+import { VdpStoreInit } from '@/components/cars/VdpStoreInit';
 
 export const revalidate = 60;
 
@@ -284,47 +285,11 @@ export default async function CarPage({ params }: PageProps) {
     };
 
     return (
-        <main className={cn("min-h-screen font-sans pb-20 pt-20 transition-colors duration-500", theme.bg, theme.text)}>
-            <div className="max-w-[1600px] mx-auto px-6 pt-4 flex items-center justify-between">
-                <BackButton
-                    label="Wróć do listy"
-                    className={cn("flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors", isMSeries ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-black")}
-                />
+        <main className={cn("min-h-screen font-sans pb-20 pt-24 transition-colors duration-500", theme.bg, theme.text)}>
+            <VdpStoreInit car={enrichedCar} siblings={siblings} />
 
-                <div className="flex items-center gap-4">
-                    {totalAvailable > 1 ? (
-                        <div className="flex items-center gap-2">
-                            <span className={cn("text-xs font-bold uppercase tracking-wider", isMSeries ? "text-white" : "text-gray-900")}>{totalAvailable} Dostępnych</span>
-                            <span className="text-xs text-gray-300">|</span>
-                            <select className={cn("text-xs font-mono bg-transparent border-none outline-none cursor-pointer hover:text-current", isMSeries ? "text-gray-400 hover:text-white" : "text-gray-400 hover:text-black")}>
-                                <option className="text-black">Zobacz VIN-y ({totalAvailable})</option>
-                                <option disabled className="text-black">Current: {car.vin}</option>
-                                {siblings.map(s => (
-                                    <option key={s.vin} disabled className="text-black">
-                                        {s.vin} {s.status_code > 190 ? '✅' : '⏳'}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    ) : (
-                        <span className="text-xs text-gray-400 font-mono tracking-wide">{car.vin}</span>
-                    )}
 
-                    {isMSeries && (
-                        <div className="flex gap-1">
-                            <div className="w-1 h-3 bg-[#53A0DE] -skew-x-12" />
-                            <div className="w-1 h-3 bg-[#02256E] -skew-x-12" />
-                            <div className="w-1 h-3 bg-[#E40424] -skew-x-12" />
-                        </div>
-                    )}
 
-                    {isElectric && !isMSeries && (
-                        <div className="flex gap-1">
-                            <span className="text-[#0653B6] text-xs font-bold uppercase tracking-widest border border-blue-100 px-2 py-0.5 rounded-sm">BMW i</span>
-                        </div>
-                    )}
-                </div>
-            </div>
 
             <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 px-6 pt-8">
 

@@ -88,7 +88,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
         minimized: {
             width: "auto",
             height: "auto",
-            borderRadius: "0px 0px 32px 32px",
+            borderRadius: "0px 0px 24px 24px",
             y: 0,
             x: "-50%",
             top: 0,
@@ -96,8 +96,13 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
             right: "auto",
             bottom: "auto",
             position: "fixed",
-            zIndex: 9990,
-            backgroundColor: "#000000",
+            zIndex: 9990, // Keep it high but compatible with SiteHeader (z-[100])
+            backgroundColor: "rgba(255, 255, 255, 0.4)",
+            backdropFilter: "blur(40px)",
+            borderLeft: "1px solid rgba(255, 255, 255, 0.2)",
+            borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)",
             transition: {
                 type: "spring",
                 stiffness: 70,
@@ -252,17 +257,17 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
                             className="flex items-center gap-4 px-6 py-3 min-w-[200px] justify-between text-nowrap"
                         >
                             {/* Left Side: Phone + Kontakt */}
-                            <div className="flex items-center gap-3 text-white/90">
+                            <div className="flex items-center gap-3 text-gray-900">
                                 <Phone className="w-3 h-3" />
-                                <span className="text-[10px] uppercase font-bold tracking-widest leading-none">
+                                <span className="text-[10px] uppercase font-bold tracking-[0.15em] leading-none">
                                     Kontakt
                                 </span>
                             </div>
 
                             {/* Right Side: Divider + Chevron */}
                             <div className="flex items-center gap-3">
-                                <div className="w-px h-3 bg-white/20" />
-                                <ChevronDown className="w-3 h-3 text-white/80 group-hover:text-white transition-colors" />
+                                <div className="w-px h-3 bg-black/10" />
+                                <ChevronDown className="w-3 h-3 text-gray-500 group-hover:text-black transition-colors" />
                             </div>
                         </motion.div>
                     )}

@@ -284,20 +284,18 @@ export default async function CarPage({ params }: PageProps) {
     };
 
     return (
-        <main className={cn("min-h-screen font-sans pb-20 transition-colors duration-500", theme.bg, theme.text)}>
-            {/* ... nav ... */}
-            <nav className={cn("py-6 px-6 sticky top-0 backdrop-blur-md z-50 border-b transition-colors duration-500", theme.navBg, theme.border)}>
-                <div className="max-w-[1600px] mx-auto flex items-center gap-4">
-                    <BackButton
-                        label="Wróć do listy"
-                        className={cn("flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors pb-3", isMSeries ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-black")}
-                    />
-                    <div className={cn("h-4 w-px mx-2", isMSeries ? "bg-gray-800" : "bg-gray-200")} />
+        <main className={cn("min-h-screen font-sans pb-20 pt-20 transition-colors duration-500", theme.bg, theme.text)}>
+            <div className="max-w-[1600px] mx-auto px-6 pt-4 flex items-center justify-between">
+                <BackButton
+                    label="Wróć do listy"
+                    className={cn("flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors", isMSeries ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-black")}
+                />
+
+                <div className="flex items-center gap-4">
                     {totalAvailable > 1 ? (
                         <div className="flex items-center gap-2">
                             <span className={cn("text-xs font-bold uppercase tracking-wider", isMSeries ? "text-white" : "text-gray-900")}>{totalAvailable} Dostępnych</span>
                             <span className="text-xs text-gray-300">|</span>
-                            {/* Select styling simplified for now */}
                             <select className={cn("text-xs font-mono bg-transparent border-none outline-none cursor-pointer hover:text-current", isMSeries ? "text-gray-400 hover:text-white" : "text-gray-400 hover:text-black")}>
                                 <option className="text-black">Zobacz VIN-y ({totalAvailable})</option>
                                 <option disabled className="text-black">Current: {car.vin}</option>
@@ -312,25 +310,23 @@ export default async function CarPage({ params }: PageProps) {
                         <span className="text-xs text-gray-400 font-mono tracking-wide">{car.vin}</span>
                     )}
 
-                    {/* M Logo in Nav if M Series */}
                     {isMSeries && (
-                        <div className="ml-auto flex gap-1">
+                        <div className="flex gap-1">
                             <div className="w-1 h-3 bg-[#53A0DE] -skew-x-12" />
                             <div className="w-1 h-3 bg-[#02256E] -skew-x-12" />
                             <div className="w-1 h-3 bg-[#E40424] -skew-x-12" />
                         </div>
                     )}
 
-                    {/* Electric Logo in Nav if Electric */}
                     {isElectric && !isMSeries && (
-                        <div className="ml-auto flex gap-1">
+                        <div className="flex gap-1">
                             <span className="text-[#0653B6] text-xs font-bold uppercase tracking-widest border border-blue-100 px-2 py-0.5 rounded-sm">BMW i</span>
                         </div>
                     )}
                 </div>
-            </nav>
+            </div>
 
-            <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 px-6 pt-12">
+            <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 px-6 pt-8">
 
                 {/* LEFT: Gallery + Specs + Options */}
                 <div className="lg:col-span-8">

@@ -28,9 +28,9 @@ export function SiteHeader() {
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             className={cn(
-                "fixed top-0 left-0 right-0 z-[100] transition-all duration-700 ease-in-out px-6 md:px-12",
+                "fixed top-0 left-0 right-0 z-[1000] transition-all duration-700 ease-in-out px-6 md:px-12",
                 isScrolled
-                    ? "py-3 bg-white/40 backdrop-blur-2xl border-b border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
+                    ? "py-3 bg-white/70 backdrop-blur-2xl border-b border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
                     : "py-6 md:py-8 bg-transparent border-b border-transparent"
             )}
         >

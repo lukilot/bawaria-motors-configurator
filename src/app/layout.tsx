@@ -5,6 +5,8 @@ import { GarageDrawer } from '@/components/layout/GarageDrawer';
 import { InitialPreloader } from '@/components/layout/InitialPreloader';
 import { CompareToolbar } from '@/components/cars/CompareToolbar';
 import { CompareModal } from '@/components/cars/CompareModal';
+import { SiteHeader } from '@/components/layout/SiteHeader';
+import { IntroOverlay } from '@/components/cars/IntroOverlay';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +42,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <IntroOverlay />
+        <SiteHeader />
         {children}
         <GarageDrawer />
         <CompareToolbar />

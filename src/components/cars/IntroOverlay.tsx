@@ -4,14 +4,12 @@ import { useState, useEffect } from 'react';
 import NextImage from 'next/image';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { ArrowDown, Phone, ChevronDown } from 'lucide-react';
-import { StockCar } from '@/types/stock';
+import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-interface IntroOverlayProps {
-    featuredCar?: StockCar; // Kept for prop compatibility but unused
-}
-
-export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
+export function IntroOverlay() {
+    const pathname = usePathname();
+    const isHome = pathname === '/';
     const [isMinimized, setIsMinimized] = useState(false);
     const [showNumber, setShowNumber] = useState(false); // For desktop contact pill toggle
     const [settings, setSettings] = useState({
@@ -32,11 +30,10 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
 
         // Check session
         const seen = sessionStorage.getItem('lukilot_intro_seen');
-        if (seen) {
+        if (!isHome || seen) {
             setIsMinimized(true);
         } else {
             document.body.style.overflow = 'hidden';
-            // window.scrollTo(0, 0); // Removed to preserve scroll position if needed (though usually 0 on load)
         }
 
         return () => {
@@ -96,7 +93,7 @@ export function IntroOverlay({ featuredCar }: IntroOverlayProps) {
             right: "auto",
             bottom: "auto",
             position: "fixed",
-            zIndex: 9990, // Keep it high but compatible with SiteHeader (z-[100])
+            zIndex: 1001, // Keep it high but compatible with SiteHeader (z-[1000])
             backgroundColor: "rgba(255, 255, 255, 0.4)",
             backdropFilter: "blur(40px)",
             borderLeft: "1px solid rgba(255, 255, 255, 0.2)",

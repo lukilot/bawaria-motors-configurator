@@ -5,8 +5,6 @@ import { getAvailableProductGroups } from '@/lib/stock-fetch';
 import { getAllDictionaries } from '@/lib/dictionary-fetch';
 import { getActiveBulletins, getCarDiscountedPrice } from '@/lib/bulletin-fetch';
 import { SRPLayout } from '@/components/cars/SRPLayout';
-import { IntroOverlay } from '@/components/cars/IntroOverlay';
-import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SRPFallback } from '@/components/cars/CarCardSkeleton';
 import { Metadata } from 'next';
 import { StockCar } from '@/types/stock';
@@ -73,12 +71,6 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 pb-20 font-sans">
-      {/* Intro Overlay */}
-      <IntroOverlay featuredCar={cars.sort((a, b) => (b.special_price || b.list_price) - (a.special_price || a.list_price))[0]} />
-
-      {/* Site Header */}
-      <SiteHeader />
-
       <div className="pt-24">
         <Suspense fallback={<SRPFallback />}>
           <SRPLayout cars={cars} dictionaries={dictionaries} bulletinPrices={bulletinPrices} />

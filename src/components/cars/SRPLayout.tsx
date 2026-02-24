@@ -263,10 +263,12 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                 return dateB - dateA;
             }
             if (sortOrder === 'price_asc') {
-                return (a.special_price || a.list_price) - (b.special_price || b.list_price);
+                const getPrice = (c: typeof a) => (c.special_price && c.special_price < c.list_price) ? c.special_price : c.list_price;
+                return getPrice(a) - getPrice(b);
             }
             if (sortOrder === 'price_desc') {
-                return (b.special_price || b.list_price) - (a.special_price || a.list_price);
+                const getPrice = (c: typeof a) => (c.special_price && c.special_price < c.list_price) ? c.special_price : c.list_price;
+                return getPrice(b) - getPrice(a);
             }
             return 0;
         });

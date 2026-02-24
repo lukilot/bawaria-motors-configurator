@@ -1,8 +1,9 @@
 'use client';
 
 import { useCompareStore } from '@/store/compareStore';
+import { useGarageStore } from '@/store/garageStore';
 import { cn } from '@/lib/utils';
-import { X, Check, Minus, ChevronDown, ChevronUp, Loader2, Scale, Trash2 } from 'lucide-react';
+import { X, Check, Minus, ChevronDown, ChevronUp, Loader2, Scale, Trash2, Warehouse } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -54,11 +55,16 @@ function getPlural(n: number, one: string, few: string, many: string) {
 // ── Component ─────────────────────────────────────────────────────────────────
 export function CompareModal() {
     const { compareCars, isModalOpen, closeModal, removeCar } = useCompareStore();
+    const { addCar: addGarageCar, removeCar: removeGarageCar, isSaved: isGarageSaved } = useGarageStore();
     const [mounted, setMounted] = useState(false);
+    const [clientMounted, setClientMounted] = useState(false);
     const [dicts, setDicts] = useState<Dicts | null>(null);
     const [showAll, setShowAll] = useState(false);
 
-    useEffect(() => { setMounted(true); }, []);
+    useEffect(() => {
+        setMounted(true);
+        setClientMounted(true);
+    }, []);
 
     useEffect(() => {
         if (!isModalOpen || dicts) return;
@@ -243,11 +249,35 @@ export function CompareModal() {
 
                                                 {/* Description */}
                                                 <div className="mt-8 px-2">
-                                                    <h3 className="text-xl font-light text-gray-900 leading-tight uppercase tracking-wide truncate group-hover/card:text-blue-600 transition-colors">
-                                                        {isLoading ? `BMW ${car.model_code}` : getModelName(d, car.model_code)}
-                                                    </h3>
-                                                    <div className="flex items-center gap-2 mt-2">
-                                                        <span className="text-[9px] text-gray-400 font-mono tracking-tighter uppercase">{car.vin}</span>
+                                                    <div className="flex justify-between items-start gap-4">
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="text-xl font-light text-gray-900 leading-tight uppercase tracking-wide truncate group-hover/card:text-blue-600 transition-colors">
+                                                                {isLoading ? `BMW ${car.model_code}` : getModelName(d, car.model_code)}
+                                                            </h3>
+                                                            <div className="flex items-center gap-2 mt-2">
+                                                                <span className="text-[9px] text-gray-400 font-mono tracking-tighter uppercase">{car.vin}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Garage Toggle */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                const saved = clientMounted && isGarageSaved(car.vin);
+                                                                if (saved) removeGarageCar(car.vin);
+                                                                else addGarageCar(car);
+                                                            }}
+                                                            className={cn(
+                                                                "flex-shrink-0 p-2.5 rounded-xl border transition-all duration-300",
+                                                                (clientMounted && isGarageSaved(car.vin))
+                                                                    ? "bg-black text-white border-black shadow-md"
+                                                                    : "bg-white text-gray-400 border-gray-100 hover:border-gray-200 hover:text-gray-900"
+                                                            )}
+                                                            title={isGarageSaved(car.vin) ? "Usuń z garażu" : "Dodaj do garażu"}
+                                                        >
+                                                            <Warehouse className="w-4 h-4" />
+                                                        </button>
                                                     </div>
 
                                                     <div className="mt-6 flex flex-col gap-0.5">

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, ArrowRight, Warehouse, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Warehouse, ChevronDown, X } from 'lucide-react';
 import { useGarageStore } from '@/store/garageStore';
 import { useVdpStore } from '@/store/vdpStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,7 +13,7 @@ export function SiteHeader() {
     const [isScrolled, setIsScrolled] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
-    const { savedCars, toggleGarage } = useGarageStore();
+    const { savedCars, toggleGarage, isOpen: isGarageOpen } = useGarageStore();
     const { currentCar, siblings } = useVdpStore();
     const count = savedCars.length;
 
@@ -146,24 +146,52 @@ export function SiteHeader() {
                         onClick={toggleGarage}
                         className={cn(
                             "relative flex items-center gap-2.5 px-4 py-2.5 rounded-full transition-all duration-500 text-[10px] font-bold uppercase tracking-[0.15em] border group/btn",
-                            count > 0
-                                ? "border-black bg-black text-white hover:bg-gray-800"
-                                : isScrolled
-                                    ? "border-black/5 bg-black/5 text-gray-900 hover:bg-black hover:text-white"
-                                    : "border-black/10 bg-white/10 text-gray-900 hover:bg-black hover:text-white"
+                            isGarageOpen
+                                ? "bg-white text-black border-white shadow-lg" // Prominent Close state
+                                : count > 0
+                                    ? "border-black bg-black text-white hover:bg-gray-800"
+                                    : isScrolled
+                                        ? "border-black/5 bg-black/5 text-gray-900 hover:bg-black hover:text-white"
+                                        : isMSeries
+                                            ? "border-white/20 bg-white/10 text-white hover:bg-white hover:text-black"
+                                            : "border-black/10 bg-white/10 text-gray-900 hover:bg-black hover:text-white"
                         )}
                     >
-                        <Warehouse className="w-3.5 h-3.5 shrink-0 transition-transform duration-500 group-hover/btn:scale-110" />
-                        <span className="hidden sm:inline">Garaż</span>
-                        {count > 0 && (
+                        <AnimatePresence mode="wait">
+                            {isGarageOpen ? (
+                                <motion.div
+                                    key="close"
+                                    initial={{ scale: 0, rotate: -90 }}
+                                    animate={{ scale: 1, rotate: 0 }}
+                                    exit={{ scale: 0, rotate: 90 }}
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="garage"
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    exit={{ scale: 0 }}
+                                    className="flex items-center gap-2.5"
+                                >
+                                    <Warehouse className="w-3.5 h-3.5 transition-transform duration-500 group-hover/btn:scale-110" />
+                                    <span className="hidden sm:inline">Garaż</span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {!isGarageOpen && count > 0 && (
                             <motion.span
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                className="bg-white text-black text-[9px] min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full font-bold leading-none shadow-sm"
+                                className="bg-white text-black text-[9px] min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full font-bold leading-none shadow-sm ml-1"
                             >
                                 {count}
                             </motion.span>
                         )}
+
+                        {isGarageOpen && <span className="hidden sm:inline">Zamknij</span>}
                     </button>
 
                     {!isVdp && (

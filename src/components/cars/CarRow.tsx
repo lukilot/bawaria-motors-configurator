@@ -162,7 +162,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                     </div>
 
                     {/* Main Image */}
-                    <div className="relative aspect-[4/3] md:aspect-[16/10] overflow-hidden">
+                    <div className="relative aspect-[4/3] md:aspect-auto md:flex-1 overflow-hidden">
                         {hasImages ? (
                             <img
                                 src={displayImages[0].url}

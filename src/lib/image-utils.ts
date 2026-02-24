@@ -10,7 +10,7 @@
 export async function compressImage(
     file: File,
     options: { maxWidth?: number; maxHeight?: number; quality?: number } = {}
-): Promise<Blob> {
+): Promise<File> {
     const { maxWidth = 1920, maxHeight = 1080, quality = 0.8 } = options;
 
     // Reject if not an image
@@ -18,7 +18,7 @@ export async function compressImage(
         return file;
     }
 
-    return new Promise<Blob>((resolve, reject) => {
+    return new Promise<File>((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (event) => {
@@ -57,10 +57,20 @@ export async function compressImage(
                         reject(new Error('Canvas to Blob failed'));
                         return;
                     }
-                    resolve(blob);
+
+                    // Convert Blob back to File to maintain name and type consistency
+                    const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                        type: 'image/webp',
+                        lastModified: Date.now(),
+                    });
+
+                    resolve(compressedFile);
                 }, 'image/webp', quality);
             };
             img.onerror = (e) => reject(e);
+        };
+        reader.onloadend = () => {
+            // Handle cases where onload might not trigger correctly if needed
         };
         reader.onerror = (e) => reject(e);
     });

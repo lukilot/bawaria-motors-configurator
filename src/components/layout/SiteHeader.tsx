@@ -18,6 +18,7 @@ export function SiteHeader() {
     const count = savedCars.length;
 
     const isVdp = pathname.startsWith('/cars/');
+    const isMSeries = currentCar?.series?.includes('Seria M') || currentCar?.model_code?.startsWith('M');
     const totalAvailable = siblings.length;
 
     useEffect(() => {
@@ -51,7 +52,14 @@ export function SiteHeader() {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -10 }}
                                 onClick={() => router.push('/')}
-                                className="flex items-center gap-2 px-3 py-2 rounded-full bg-black/5 hover:bg-black hover:text-white transition-all text-[10px] font-bold uppercase tracking-widest text-gray-900 group"
+                                className={cn(
+                                    "flex items-center gap-2 px-3 py-2 rounded-full transition-all text-[10px] font-bold uppercase tracking-widest group",
+                                    isScrolled
+                                        ? "bg-black/5 text-gray-900 hover:bg-black hover:text-white"
+                                        : isMSeries
+                                            ? "bg-white/10 text-white hover:bg-white hover:text-black border border-white/10"
+                                            : "bg-black/5 text-gray-900 hover:bg-black hover:text-white"
+                                )}
                             >
                                 <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
                                 <span className="hidden sm:inline">Wróć</span>
@@ -67,9 +75,9 @@ export function SiteHeader() {
                                     <div className="flex items-baseline">
                                         <h1 className={cn(
                                             "text-xl md:text-2xl font-bold tracking-tighter transition-all duration-500",
-                                            isScrolled ? "text-gray-900" : "text-gray-900"
+                                            isScrolled ? "text-gray-900" : isMSeries ? "text-white" : "text-gray-900"
                                         )}>
-                                            lukilot<span className="text-gray-400 group-hover:text-blue-600 transition-colors">.work</span>
+                                            lukilot<span className={cn("transition-colors", isScrolled ? "text-gray-400 group-hover:text-blue-600" : isMSeries ? "text-white/50 group-hover:text-white" : "text-gray-400 group-hover:text-blue-600")}>.work</span>
                                         </h1>
                                     </div>
                                     <motion.span
@@ -85,27 +93,43 @@ export function SiteHeader() {
 
                     {/* VDP VIN Selector Integrated */}
                     {isVdp && currentCar && (
-                        <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-black/5 rounded-full border border-black/5">
+                        <div className={cn(
+                            "hidden lg:flex items-center gap-3 px-4 py-2 rounded-full border transition-colors duration-500",
+                            isScrolled
+                                ? "bg-black/5 border-black/5"
+                                : isMSeries
+                                    ? "bg-white/5 border-white/10"
+                                    : "bg-black/5 border-black/5"
+                        )}>
                             {totalAvailable > 1 ? (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-900">{totalAvailable} szt.</span>
-                                    <div className="w-px h-3 bg-black/10 mx-1" />
+                                    <span className={cn(
+                                        "text-[10px] font-bold uppercase tracking-wider",
+                                        isScrolled ? "text-gray-900" : isMSeries ? "text-white" : "text-gray-900"
+                                    )}>{totalAvailable} szt.</span>
+                                    <div className={cn("w-px h-3 mx-1", isScrolled ? "bg-black/10" : isMSeries ? "bg-white/20" : "bg-black/10")} />
                                     <select
                                         value={currentCar.vin}
                                         onChange={(e) => router.push(`/cars/${e.target.value}`)}
-                                        className="text-[10px] font-mono bg-transparent border-none outline-none cursor-pointer hover:text-blue-600 transition-colors"
+                                        className={cn(
+                                            "text-[10px] font-mono bg-transparent border-none outline-none cursor-pointer transition-colors",
+                                            isScrolled ? "hover:text-blue-600" : isMSeries ? "text-white/80 hover:text-white" : "hover:text-blue-600"
+                                        )}
                                     >
                                         <option value={currentCar.vin}>{currentCar.vin} (Obecny)</option>
                                         {siblings.filter(s => s.vin !== currentCar.vin).map(s => (
-                                            <option key={s.vin} value={s.vin}>
+                                            <option key={s.vin} value={s.vin} className="text-black">
                                                 {s.vin} {s.status_code > 190 ? '✅' : '⏳'}
                                             </option>
                                         ))}
                                     </select>
-                                    <ChevronDown className="w-3 h-3 text-gray-400" />
+                                    <ChevronDown className={cn("w-3 h-3", isScrolled ? "text-gray-400" : isMSeries ? "text-white/40" : "text-gray-400")} />
                                 </div>
                             ) : (
-                                <span className="text-[10px] text-gray-500 font-mono tracking-wide">{currentCar.vin}</span>
+                                <span className={cn(
+                                    "text-[10px] font-mono tracking-wide",
+                                    isScrolled ? "text-gray-500" : isMSeries ? "text-white/60" : "text-gray-500"
+                                )}>{currentCar.vin}</span>
                             )}
                         </div>
                     )}

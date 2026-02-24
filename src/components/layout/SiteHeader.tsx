@@ -113,7 +113,11 @@ export function SiteHeader() {
                                         onChange={(e) => router.push(`/cars/${e.target.value}`)}
                                         className={cn(
                                             "text-[10px] font-mono bg-transparent border-none outline-none cursor-pointer transition-colors",
-                                            isScrolled ? "hover:text-blue-600" : isMSeries ? "text-white/80 hover:text-white" : "hover:text-blue-600"
+                                            isScrolled
+                                                ? "text-gray-900 hover:text-blue-600"
+                                                : isMSeries
+                                                    ? "text-white/80 hover:text-white"
+                                                    : "text-gray-900 hover:text-blue-600"
                                         )}
                                     >
                                         <option value={currentCar.vin}>{currentCar.vin} (Obecny)</option>
@@ -128,7 +132,7 @@ export function SiteHeader() {
                             ) : (
                                 <span className={cn(
                                     "text-[10px] font-mono tracking-wide",
-                                    isScrolled ? "text-gray-500" : isMSeries ? "text-white/60" : "text-gray-500"
+                                    isScrolled ? "text-gray-500" : isMSeries ? "text-white/60" : "text-gray-900"
                                 )}>{currentCar.vin}</span>
                             )}
                         </div>

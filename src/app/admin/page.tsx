@@ -9,83 +9,18 @@ import { PackagesManager } from '@/components/admin/PackagesManager';
 import { BulletinManager } from '@/components/admin/BulletinManager';
 import { SettingsEditor } from '@/components/admin/SettingsEditor';
 import { AdminAuth } from '@/components/admin/AdminAuth';
-import Link from 'next/link';
-import { ArrowLeft, LayoutDashboard, Library, Coins, Tag } from 'lucide-react';
+import { useAdminStore } from '@/store/adminStore';
 import { cn } from '@/lib/utils';
 
 export default function AdminPage() {
-    const [view, setView] = useState<'stock' | 'dictionaries' | 'pricing' | 'bulletins' | 'settings'>('stock');
+    const { currentView } = useAdminStore();
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     return (
         <AdminAuth>
-            <main className="min-h-screen bg-white flex flex-col font-sans mb-20">
-                <header className="bg-white border-b border-gray-100 py-6 px-8 sticky top-0 z-50">
-                    <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
-                        <div className="flex items-center gap-4">
-                            <Link href="/" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                                <ArrowLeft className="w-5 h-5 text-gray-500" />
-                            </Link>
-                            <h1 className="text-xl font-light text-gray-900 tracking-tight">Administration</h1>
-                        </div>
-
-                        <nav className="flex bg-gray-50 p-1 rounded-sm border border-gray-100">
-                            <button
-                                onClick={() => setView('stock')}
-                                className={cn(
-                                    "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
-                                    view === 'stock' ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900"
-                                )}
-                            >
-                                <LayoutDashboard className="w-4 h-4" />
-                                Stock
-                            </button>
-                            <button
-                                onClick={() => setView('dictionaries')}
-                                className={cn(
-                                    "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
-                                    view === 'dictionaries' ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900"
-                                )}
-                            >
-                                <Library className="w-4 h-4" />
-                                Knowledge Base
-                            </button>
-                            <button
-                                onClick={() => setView('pricing')}
-                                className={cn(
-                                    "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
-                                    view === 'pricing' ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900"
-                                )}
-                            >
-                                <Coins className="w-4 h-4" />
-                                Service Packages
-                            </button>
-                            <button
-                                onClick={() => setView('settings')}
-                                className={cn(
-                                    "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
-                                    view === 'settings' ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900"
-                                )}
-                            >
-                                <LayoutDashboard className="w-4 h-4 rotate-90" />
-                                Config
-                            </button>
-                            <button
-                                onClick={() => setView('bulletins')}
-                                className={cn(
-                                    "flex items-center gap-2 px-4 py-1.5 text-sm transition-all rounded-sm",
-                                    view === 'bulletins' ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900"
-                                )}
-                            >
-                                <Tag className="w-4 h-4" />
-                                Warunki
-                            </button>
-                        </nav>
-                    </div>
-                </header>
-
-                <div className="flex-1 w-full max-w-7xl mx-auto p-8">
-                    {view === 'stock' ? (
+            <main className="min-h-screen bg-white flex flex-col font-sans pt-20 pb-20">
+                <div className="flex-1 w-full max-w-[1800px] mx-auto px-8 md:px-12">
+                    {currentView === 'stock' ? (
                         <div className="animate-in fade-in duration-500">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                                 <StockUploader onSyncSuccess={() => setRefreshTrigger(prev => prev + 1)} />
@@ -94,15 +29,15 @@ export default function AdminPage() {
                             <div className="my-12 h-px bg-gray-100" />
                             <AdminCarList refreshTrigger={refreshTrigger} />
                         </div>
-                    ) : view === 'dictionaries' ? (
+                    ) : currentView === 'dictionaries' ? (
                         <div className="animate-in fade-in duration-500">
                             <DictionaryManager />
                         </div>
-                    ) : view === 'pricing' ? (
+                    ) : currentView === 'pricing' ? (
                         <div className="animate-in fade-in duration-500">
                             <PackagesManager />
                         </div>
-                    ) : view === 'bulletins' ? (
+                    ) : currentView === 'bulletins' ? (
                         <div className="animate-in fade-in duration-500">
                             <BulletinManager />
                         </div>

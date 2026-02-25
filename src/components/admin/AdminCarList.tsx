@@ -376,7 +376,7 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
     return (
         <div className="space-y-8">
             {/* Search Bar */}
-            <div className="bg-white border border-gray-200 p-4 rounded-sm flex flex-col md:flex-row justify-between items-center gap-4 sticky top-24 z-30 shadow-sm">
+            <div className="bg-white border border-gray-200 p-4 rounded-sm flex flex-col md:flex-row justify-between items-center gap-4 sticky top-[68px] z-30 shadow-sm">
                 <div className="relative w-full md:w-96">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input

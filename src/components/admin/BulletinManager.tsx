@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Bulletin, BulletinRule } from '@/lib/bulletin-fetch';
 import { CHASSIS_MAPPING } from '@/lib/chassis-mapping';
 import { Loader2, Plus, Edit, Trash2, X, ToggleLeft, ToggleRight, Search } from 'lucide-react';
+import { useAdminStore } from '@/store/adminStore';
 import { cn } from '@/lib/utils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -403,6 +404,7 @@ interface BulletinModalProps {
 }
 
 function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBodyGroups }: BulletinModalProps) {
+    const { setDirty } = useAdminStore();
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [rules, setRules] = useState<BulletinRule[]>([emptyRule()]);
@@ -451,15 +453,18 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
 
     const updateRule = useCallback((index: number, partial: Partial<BulletinRule>) => {
         setRules(prev => prev.map((r, i) => i === index ? { ...r, ...partial } : r));
-    }, []);
+        setDirty(true);
+    }, [setDirty]);
 
     const removeRule = useCallback((index: number) => {
         setRules(prev => prev.filter((_, i) => i !== index));
-    }, []);
+        setDirty(true);
+    }, [setDirty]);
 
     const addRule = useCallback(() => {
         setRules(prev => [...prev, emptyRule()]);
-    }, []);
+        setDirty(true);
+    }, [setDirty]);
 
     const handleSubmit = () => {
         if (!name.trim()) {
@@ -499,7 +504,7 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
                             className="w-full border border-gray-300 rounded p-2.5 text-sm"
                             placeholder="np. Biuletyn Wyprzedaż Seria M"
                             value={name}
-                            onChange={e => setName(e.target.value)}
+                            onChange={e => { setName(e.target.value); setDirty(true); }}
                         />
                     </div>
 
@@ -511,7 +516,7 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
                             rows={2}
                             placeholder="Notatki admin..."
                             value={description}
-                            onChange={e => setDescription(e.target.value)}
+                            onChange={e => { setDescription(e.target.value); setDirty(true); }}
                         />
                     </div>
 
@@ -523,7 +528,7 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
                                 type="date"
                                 className="w-full border border-gray-300 rounded p-2.5 text-sm"
                                 value={validFrom}
-                                onChange={e => setValidFrom(e.target.value)}
+                                onChange={e => { setValidFrom(e.target.value); setDirty(true); }}
                             />
                         </div>
                         <div>
@@ -532,7 +537,7 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
                                 type="date"
                                 className="w-full border border-gray-300 rounded p-2.5 text-sm"
                                 value={validUntil}
-                                onChange={e => setValidUntil(e.target.value)}
+                                onChange={e => { setValidUntil(e.target.value); setDirty(true); }}
                             />
                         </div>
                     </div>
@@ -568,11 +573,14 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
                 </div>
 
                 <div className="flex justify-end gap-2 mt-8 pt-4 border-t border-gray-100">
-                    <button onClick={onClose} className="px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-100 rounded">
+                    <button onClick={() => { onClose(); setDirty(false); }} className="px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-100 rounded">
                         Anuluj
                     </button>
                     <button
-                        onClick={handleSubmit}
+                        onClick={async () => {
+                            await handleSubmit();
+                            setDirty(false);
+                        }}
                         disabled={saving}
                         className="px-6 py-2.5 text-sm bg-black text-white hover:bg-gray-800 rounded disabled:opacity-50"
                     >

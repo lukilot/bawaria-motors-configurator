@@ -8,6 +8,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { BMWIndividualBadge } from './BMWIndividualBadge';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Dicts {
@@ -93,11 +94,19 @@ export function CompareModal() {
 
     // Spec definitions for difference counting
     const specRows = useMemo(() => [
-        { label: 'Rodzaj paliwa', fn: (c: any) => c.fuel_type || '—' },
-        { label: 'Moc silnika', fn: (c: any) => c.power ? `${c.power} KM` : '—' },
-        { label: 'Układ napędowy', fn: (c: any) => (d.drivetrain as any)?.[c.drivetrain]?.name || c.drivetrain || '—' },
-        { label: 'Lakier', fn: (c: any) => !dicts ? c.color_code || '—' : getColorName(d, c) },
-        { label: 'Tapicerka', fn: (c: any) => (d.upholstery as any)?.[c.upholstery_code]?.name || c.upholstery_code || '—' },
+        { label: 'Rodzaj paliwa', fn: (c: any) => (c.fuel_type || '—') as React.ReactNode },
+        { label: 'Moc silnika', fn: (c: any) => (c.power ? `${c.power} KM` : '—') as React.ReactNode },
+        { label: 'Układ napędowy', fn: (c: any) => ((d.drivetrain as any)?.[c.drivetrain]?.name || c.drivetrain || '—') as React.ReactNode },
+        {
+            label: 'Lakier',
+            fn: (c: any) => {
+                if (c.color_code === '490') {
+                    return <BMWIndividualBadge compact colorName={(d.color as any)?.[c.individual_color || '']?.name || c.individual_color} />;
+                }
+                return (!dicts ? c.color_code || '—' : getColorName(d, c)) as React.ReactNode;
+            }
+        },
+        { label: 'Tapicerka', fn: (c: any) => ((d.upholstery as any)?.[c.upholstery_code]?.name || c.upholstery_code || '—') as React.ReactNode },
     ], [d, dicts]);
 
     const specsDiffCount = useMemo(() => {

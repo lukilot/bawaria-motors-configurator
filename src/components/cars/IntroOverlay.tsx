@@ -9,7 +9,10 @@ import { supabase } from '@/lib/supabase';
 
 export function IntroOverlay() {
     const pathname = usePathname();
+    const isAdmin = pathname.startsWith('/admin');
     const isHome = pathname === '/';
+
+    if (isAdmin) return null;
     const [isMinimized, setIsMinimized] = useState(false);
     const [showNumber, setShowNumber] = useState(false); // For desktop contact pill toggle
     const [settings, setSettings] = useState({

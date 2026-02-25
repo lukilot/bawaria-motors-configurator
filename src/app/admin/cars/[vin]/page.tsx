@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { StockCar } from '@/types/stock';
 import { compressImage } from '@/lib/image-utils';
@@ -9,6 +9,7 @@ import { ArrowLeft, Loader2, Save, Upload, Trash2, CheckCircle } from 'lucide-re
 import { cn } from '@/lib/utils';
 import { useDropzone } from 'react-dropzone';
 import { useParams, useRouter } from 'next/navigation';
+import { useAdminStore } from '@/store/adminStore';
 import {
     DndContext,
     closestCenter,
@@ -80,6 +81,8 @@ export default function AdminCarEditor() {
     const params = useParams();
     const router = useRouter();
     const vin = params?.vin as string;
+    const { setDirty, setOnSave } = useAdminStore();
+    const handleSaveRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
     // State
     const [car, setCar] = useState<StockCar | null>(null);
@@ -98,6 +101,12 @@ export default function AdminCarEditor() {
     const [colors, setColors] = useState<{ code: string, name: string }[]>([]);
     const [colorSearch, setColorSearch] = useState('');
     const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
+
+    // Helpers to set dirty
+    const setDirtyAndState = (fn: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        fn(e.target.value);
+        setDirty(true);
+    };
 
     // DND Sensors
     const sensors = useSensors(
@@ -187,6 +196,7 @@ export default function AdminCarEditor() {
             if (error) throw error;
 
             setMsg({ type: 'success', text: 'Changes saved successfully.' });
+            setDirty(false);
             router.refresh();
         } catch (e: any) {
             setMsg({ type: 'error', text: e.message });
@@ -194,6 +204,14 @@ export default function AdminCarEditor() {
             setSaving(false);
         }
     };
+
+    // Keep ref current, register store handler only once
+    useEffect(() => { handleSaveRef.current = handleSave; });
+    useEffect(() => {
+        setOnSave(() => handleSaveRef.current?.());
+        return () => setOnSave(null);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // --- Image Manager Handlers ---
     const [uploading, setUploading] = useState(false);
@@ -310,32 +328,12 @@ export default function AdminCarEditor() {
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
-    if (loading) return <div className="p-12 text-center text-gray-500 font-light">Loading vehicle data...</div>;
-    if (!car) return <div className="p-12 text-center text-red-500">Vehicle not found.</div>;
+    if (loading) return <div className="p-12 text-center text-gray-500 font-light pt-24">Loading vehicle data...</div>;
+    if (!car) return <div className="p-12 text-center text-red-500 pt-24">Vehicle not found.</div>;
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 font-sans">
-            <header className="bg-white border-b border-gray-100 py-6 px-8 flex items-center justify-between sticky top-0 z-50">
-                <div className="flex items-center gap-4">
-                    <Link href="/admin" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                        <ArrowLeft className="w-5 h-5 text-gray-500" />
-                    </Link>
-                    <div>
-                        <h1 className="text-xl font-light text-gray-900 tracking-tight">Edit Vehicle</h1>
-                        <p className="text-xs text-gray-600 font-mono">{car.vin}</p>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex items-center gap-2 px-6 py-2 bg-black text-white hover:bg-gray-800 transition-all rounded-sm font-medium text-sm tracking-wide disabled:opacity-50"
-                    >
-                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        Save Settings
-                    </button>
-                </div>
-            </header>
+        <div className="min-h-screen bg-gray-50 pb-20 font-sans pt-24">
+            {/* Header removed - integrated into SiteHeader */}
 
             <div className="max-w-7xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Info */}
@@ -450,7 +448,7 @@ export default function AdminCarEditor() {
                             <label className="block text-xs font-semibold uppercase text-gray-700 mb-2">Visibility</label>
                             <select
                                 value={visibility}
-                                onChange={(e) => setVisibility(e.target.value as any)}
+                                onChange={(e) => { setVisibility(e.target.value as any); setDirty(true); }}
                                 className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 focus:border-black outline-none"
                             >
                                 <option value="INTERNAL">Internal Only (Hidden)</option>
@@ -465,7 +463,7 @@ export default function AdminCarEditor() {
                             <input
                                 type="number"
                                 value={listPrice}
-                                onChange={(e) => setListPrice(e.target.value)}
+                                onChange={(e) => { setListPrice(e.target.value); setDirty(true); }}
                                 className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900"
                             />
                         </div>
@@ -475,7 +473,10 @@ export default function AdminCarEditor() {
                             <input
                                 type="number"
                                 value={specialPrice}
-                                onChange={(e) => setSpecialPrice(e.target.value)}
+                                onChange={(e) => {
+                                    setSpecialPrice(e.target.value);
+                                    setDirty(true);
+                                }}
                                 placeholder="Optional"
                                 className="w-full p-2 border border-2 border-gray-300 rounded-sm text-sm text-gray-900 focus:border-blue-500 outline-none font-bold placeholder:text-gray-400"
                             />
@@ -520,6 +521,7 @@ export default function AdminCarEditor() {
                                                         setIndividualColor(c.code);
                                                         setColorSearch(`${c.code} - ${c.name}`);
                                                         setIsColorDropdownOpen(false);
+                                                        setDirty(true);
                                                     }}
                                                 >
                                                     <span className="font-bold">{c.code}</span>
@@ -549,7 +551,7 @@ export default function AdminCarEditor() {
                                     <input
                                         type="text"
                                         value={fuelType}
-                                        onChange={(e) => setFuelType(e.target.value)}
+                                        onChange={(e) => { setFuelType(e.target.value); setDirty(true); }}
                                         placeholder="e.g. Diesel"
                                         className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
                                     />
@@ -559,7 +561,7 @@ export default function AdminCarEditor() {
                                     <input
                                         type="text"
                                         value={power}
-                                        onChange={(e) => setPower(e.target.value)}
+                                        onChange={(e) => { setPower(e.target.value); setDirty(true); }}
                                         placeholder="e.g. 286 KM"
                                         className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
                                     />
@@ -570,13 +572,24 @@ export default function AdminCarEditor() {
                                 <input
                                     type="text"
                                     value={drivetrain}
-                                    onChange={(e) => setDrivetrain(e.target.value)}
+                                    onChange={(e) => { setDrivetrain(e.target.value); setDirty(true); }}
                                     placeholder="e.g. xDrive"
                                     className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
                                 />
                             </div>
                         </div>
                     </div>
+
+                    {/* Save Button */}
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-all rounded-sm text-xs font-bold uppercase tracking-widest shadow-lg shadow-blue-100"
+                    >
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        {saving ? 'Zapisywanie...' : 'Zapisz zmiany'}
+                    </button>
+
                     {/* Danger Zone */}
                     <div className="bg-red-50 p-6 rounded-sm shadow-sm border border-red-100">
                         <h3 className="text-sm font-bold uppercase tracking-wider text-red-900 mb-4">Danger Zone</h3>

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Save, Upload, X } from 'lucide-react';
 import { compressImage } from '@/lib/image-utils';
+import { useAdminStore } from '@/store/adminStore';
 
 interface Settings {
     intro_media_url: string;
@@ -22,6 +23,10 @@ export function SettingsEditor() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const { setDirty, setOnSave } = useAdminStore();
+    // Use a ref so we can always call the latest version of handleSave
+    // without re-registering with setOnSave on every state change.
+    const handleSaveRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
     useEffect(() => {
         loadSettings();
@@ -45,7 +50,7 @@ export function SettingsEditor() {
         }
     };
 
-    const handleSave = async () => {
+    const handleSave = useCallback(async () => {
         setSaving(true);
         try {
             const updates = Object.entries(settings).map(([key, value]) => ({
@@ -56,6 +61,7 @@ export function SettingsEditor() {
             const { error } = await supabase.from('site_settings').upsert(updates, { onConflict: 'key' });
             if (error) throw error;
 
+            setDirty(false);
             alert('Settings saved!');
         } catch (err) {
             console.error('Error saving settings:', err);
@@ -63,7 +69,19 @@ export function SettingsEditor() {
         } finally {
             setSaving(false);
         }
-    };
+    }, [settings, setDirty]);
+
+    // Keep the ref current on every render
+    useEffect(() => {
+        handleSaveRef.current = handleSave;
+    });
+
+    // Register with the store ONCE on mount, pointing to the ref
+    useEffect(() => {
+        setOnSave(() => handleSaveRef.current?.());
+        return () => setOnSave(null);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'desktop' | 'mobile') => {
         const file = e.target.files?.[0];
@@ -128,7 +146,10 @@ export function SettingsEditor() {
                         <input
                             type="text"
                             value={settings.intro_media_url}
-                            onChange={(e) => setSettings({ ...settings, intro_media_url: e.target.value })}
+                            onChange={(e) => {
+                                setSettings({ ...settings, intro_media_url: e.target.value });
+                                setDirty(true);
+                            }}
                             className="flex-1 p-2 border border-gray-200 rounded-sm text-sm"
                             placeholder="https://..."
                         />
@@ -163,7 +184,10 @@ export function SettingsEditor() {
                         <input
                             type="text"
                             value={settings.intro_media_url_mobile}
-                            onChange={(e) => setSettings({ ...settings, intro_media_url_mobile: e.target.value })}
+                            onChange={(e) => {
+                                setSettings({ ...settings, intro_media_url_mobile: e.target.value });
+                                setDirty(true);
+                            }}
                             className="flex-1 p-2 border border-gray-200 rounded-sm text-sm"
                             placeholder="https://..."
                         />
@@ -199,26 +223,15 @@ export function SettingsEditor() {
                     <input
                         type="text"
                         value={settings.intro_contact_phone}
-                        onChange={(e) => setSettings({ ...settings, intro_contact_phone: e.target.value })}
+                        onChange={(e) => {
+                            setSettings({ ...settings, intro_contact_phone: e.target.value });
+                            setDirty(true);
+                        }}
                         className="w-full p-2 border border-gray-200 rounded-sm text-sm"
                         placeholder="+48 000 000 000"
                     />
                 </div>
 
-                <div className="pt-6 border-t border-gray-100">
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="bg-black text-white px-6 py-3 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors flex items-center gap-2"
-                    >
-                        {saving ? 'Saving...' : (
-                            <>
-                                <Save className="w-4 h-4" />
-                                Save Settings
-                            </>
-                        )}
-                    </button>
-                </div>
             </div>
         </div>
     );

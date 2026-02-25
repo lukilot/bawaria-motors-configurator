@@ -1,20 +1,18 @@
-import { Suspense } from 'react';
-import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 import { getAvailableProductGroups } from '@/lib/stock-fetch';
 import { getAllDictionaries } from '@/lib/dictionary-fetch';
 import { getActiveBulletins, getCarDiscountedPrice } from '@/lib/bulletin-fetch';
-import { SRPLayout } from '@/components/cars/SRPLayout';
-import { SRPFallback } from '@/components/cars/CarCardSkeleton';
-import { Metadata } from 'next';
 import { StockCar } from '@/types/stock';
+import { Hero } from '@/components/home/Hero';
+import { FeaturedOffers } from '@/components/home/FeaturedOffers';
+import { AboutMe } from '@/components/home/AboutMe';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'BMW Stock od ręki | Bawaria Motors',
-  description: 'Przeglądaj najnowsze modele BMW dostępne od ręki w salonach Bawaria Motors. Największy wybór, finansowanie i profesjonalne doradztwo.',
+  title: 'BMW Bawaria Motors | Twoje Doradztwo Premium',
+  description: 'Odkryj świat BMW w wyjątkowym wydaniu. Indywidualne doradztwo, unikatowe konfiguracje i luksusowa obsługa w Bawaria Motors.',
 };
 
-// Cache for 1 minute to improve navigation and scroll restoration stability
+// Cache for 1 minute
 export const revalidate = 60;
 
 export default async function Home() {
@@ -24,11 +22,9 @@ export default async function Home() {
     getActiveBulletins()
   ]);
 
-  // Transform Product Groups into Representative Cars (for compatibility with SRP Layout)
+  // Transform Product Groups into Representative Cars
   const cars: StockCar[] = productGroups.map(group => {
-    // Sort units to find best representative
     const sortedUnits = (group.available_units || []).sort((a, b) => {
-      // Priority: Ready > Photos > Price
       const score = (c: StockCar) => {
         let s = 0;
         if (c.status_code > 190 && !c.order_status.includes('Sprzedany')) s += 100;
@@ -39,43 +35,39 @@ export default async function Home() {
     });
 
     const representative = sortedUnits[0] || {};
-
-    // Merge Group Data
     return {
       ...representative,
-      // Use Group Images if car has none (or prioritize group images logic?)
-      // Usually individual car photos are better, but if missing, use group shared photos.
       images: (representative.images && representative.images.length > 0)
         ? representative.images
         : group.images,
-
-      // Use Group overrides
       list_price: group.manual_price || representative.list_price,
       special_price: representative.special_price,
-
-      // Grouping Metadata
       available_count: group.available_count,
       product_group_id: group.id,
       created_at: group.created_at
     } as StockCar;
   });
 
-  // Precompute bulletin-based discounted prices per car
-  const bulletinPrices: Record<string, number> = {};
-  for (const car of cars) {
-    const discountedPrice = getCarDiscountedPrice(car, bulletins);
-    if (discountedPrice !== null) {
-      bulletinPrices[car.vin] = discountedPrice;
-    }
-  }
+  // Pick top 3 "Featured" cars (prefer Individual paint code 490 or M Series)
+  const featuredCars = cars
+    .filter(c => !(c.order_status || '').includes('Sprzedany'))
+    .sort((a, b) => {
+      const score = (c: StockCar) => {
+        let s = 0;
+        if (c.color_code === '490') s += 100;
+        if ((c.series || '').includes('Seria M')) s += 50;
+        if (c.special_price) s += 20;
+        return s;
+      };
+      return score(b) - score(a);
+    })
+    .slice(0, 3);
 
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-900 pb-20 font-sans">
-      <div className="pt-24">
-        <Suspense fallback={<SRPFallback />}>
-          <SRPLayout cars={cars} dictionaries={dictionaries} bulletinPrices={bulletinPrices} />
-        </Suspense>
-      </div>
+    <main className="min-h-screen bg-white">
+      <Hero />
+      <FeaturedOffers cars={featuredCars} dictionaries={dictionaries} />
+      <AboutMe />
     </main>
   );
 }

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Trash2, Plus, Loader2, Save, Edit, Search, X } from 'lucide-react';
 import { DictionaryImageUploader } from './DictionaryImageUploader';
+import { useAdminStore } from '@/store/adminStore';
 import { cn } from '@/lib/utils';
 
 type DictionaryType = 'model' | 'color' | 'upholstery' | 'option';
@@ -29,6 +30,11 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
     const [sortBy, setSortBy] = useState<'date' | 'code'>('date');
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
+    const { setDirty, setOnSave } = useAdminStore();
+    // A ref that always points to the latest handleAdd function.
+    // This lets us register setOnSave only once without re-triggering it
+    // every time form state changes (which would cause an infinite loop).
+    const handleAddRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
     // Debounce search
     useEffect(() => {
@@ -56,6 +62,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
 
     const updateVariation = (id: string, field: 'body_groups' | 'image', value: any) => {
         setVariations(variations.map(v => v.id === id ? { ...v, [field]: value } : v));
+        setDirty(true);
     };
 
     // Filter items
@@ -113,8 +120,8 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
         }
     }, [type, sortBy]);
 
-    const handleAdd = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleAdd = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         if (!newCode) return;
 
         setIsSaving(true);
@@ -154,10 +161,23 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
             setHasVariations(false);
             setVariations([]);
             setEditingId(null);
+            setDirty(false);
             fetchItems();
         }
         setIsSaving(false);
     };
+
+    // Keep the ref always pointing to the latest handleAdd
+    useEffect(() => {
+        handleAddRef.current = () => handleAdd();
+    });
+
+    // Register with the store only ONCE on mount
+    useEffect(() => {
+        setOnSave(() => handleAddRef.current?.());
+        return () => setOnSave(null);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleDelete = async (id: string, code: string) => {
         if (!confirm(`Are you sure you want to delete ${code}? This will also delete any associated image.`)) return;
@@ -200,6 +220,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
         setFormData({});
         setHasVariations(false);
         setVariations([]);
+        setDirty(false);
     };
 
     const handleEditDataChange = (itemId: string, key: string, value: any) => {
@@ -208,10 +229,12 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                 ? { ...item, data: { ...item.data, [key]: value } }
                 : item
         ));
+        setDirty(true);
     };
 
     const handleDataChange = (key: string, value: any) => {
         setFormData((prev: any) => ({ ...prev, [key]: value }));
+        setDirty(true);
     };
 
     return (
@@ -309,7 +332,10 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                         <input
                             type="text"
                             value={newCode}
-                            onChange={(e) => setNewCode(e.target.value)}
+                            onChange={(e) => {
+                                setNewCode(e.target.value);
+                                setDirty(true);
+                            }}
                             placeholder="e.g. 475"
                             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-sm focus:outline-none focus:border-black transition-colors text-sm"
                             required

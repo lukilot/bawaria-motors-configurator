@@ -202,7 +202,7 @@ export default async function CarPage({ params }: PageProps) {
     return (
         <>
             <VdpStoreInit car={enrichedCar} siblings={siblings} />
-            <main className={cn("min-h-screen font-sans pb-32 pt-28 lg:pt-32 transition-colors duration-500", theme.bg, theme.text)}>
+            <main className={cn("min-h-screen font-sans pb-32 pt-16 lg:pt-20 transition-colors duration-500", theme.bg, theme.text)}>
                 <div className="max-w-[1700px] mx-auto">
                     <div className="flex flex-col lg:flex-row min-h-screen gap-12 lg:gap-20 px-6">
 

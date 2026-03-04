@@ -214,7 +214,7 @@ export function SiteHeader() {
                         </AnimatePresence>
 
                         <AnimatePresence mode="wait">
-                            {isVdp ? null : (
+                            {isVdp || isAdmin ? null : (
                                 <motion.div
                                     key="logo"
                                     initial={{ opacity: 0 }}

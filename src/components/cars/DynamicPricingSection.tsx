@@ -35,19 +35,19 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
     };
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-6">
             {/* Price Card - Premium Glassmorphism */}
             <div className={cn(
-                "p-8 rounded-3xl border shadow-xl transition-all duration-700 backdrop-blur-md",
+                "p-6 rounded-3xl border shadow-xl transition-all duration-700 backdrop-blur-md",
                 isDark
                     ? "bg-black/40 border-white/10 shadow-black/50"
                     : "bg-white/60 border-black/[0.03] shadow-black/[0.02]"
             )}>
                 {car.list_price > 0 && (
-                    <div className="flex flex-col gap-2 mb-8">
-                        <div className="flex items-center gap-2 mb-1">
+                    <div className="flex flex-col gap-1.5 mb-6">
+                        <div className="flex items-center gap-2 mb-0.5">
                             <span className={cn(
-                                "text-[10px] uppercase tracking-[0.3em] font-black opacity-40",
+                                "text-[9px] uppercase tracking-[0.3em] font-black opacity-30",
                                 isDark ? "text-white" : "text-black"
                             )}>
                                 Podsumowanie oferty
@@ -57,18 +57,18 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
 
                         {hasDiscount ? (
                             <div className="flex flex-col">
-                                <span className={cn("text-[13px] line-through decoration-red-500/40 mb-1 font-medium", isDark ? "text-gray-500" : "text-gray-400")}>
+                                <span className={cn("text-[11px] line-through decoration-red-500/40 opacity-40 mb-0.5 font-medium", isDark ? "text-gray-500" : "text-gray-400")}>
                                     {formatPrice(car.list_price + additionalCost)}
                                 </span>
                                 <div className="flex items-baseline gap-3">
                                     <span className={cn(
-                                        "text-4xl font-black tracking-tight",
+                                        "text-3xl font-black tracking-tight",
                                         isDark ? "text-white" : "text-black"
                                     )}>
                                         {formatPrice(finalPrice)}
                                     </span>
                                     {hasManualDiscount && (
-                                        <span className="bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-sm uppercase tracking-widest">
+                                        <span className="bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-widest">
                                             Okazja
                                         </span>
                                     )}
@@ -76,7 +76,7 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
                             </div>
                         ) : (
                             <span className={cn(
-                                "text-4xl font-black tracking-tight",
+                                "text-3xl font-black tracking-tight",
                                 isDark ? "text-white" : "text-black"
                             )}>
                                 {formatPrice(finalPrice)}
@@ -84,10 +84,10 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
                         )}
 
                         {additionalCost > 0 && (
-                            <div className="flex items-center gap-1.5 mt-2">
+                            <div className="flex items-center gap-1.5 mt-1.5">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                <span className={cn("text-[10px] font-black uppercase tracking-[0.15em]", isDark ? "text-blue-400" : "text-blue-600")}>
-                                    Uwzględnia pakiety o wartości: +{formatPrice(additionalCost)}
+                                <span className={cn("text-[9px] font-black uppercase tracking-[0.15em]", isDark ? "text-blue-400" : "text-blue-600")}>
+                                    + {formatPrice(additionalCost)} w pakietach
                                 </span>
                             </div>
                         )}
@@ -98,7 +98,7 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
                     disabled={isSold}
                     onClick={handleContactClick}
                     className={cn(
-                        "w-full py-5 text-[11px] font-black uppercase tracking-[0.25em] transition-all rounded-xl",
+                        "w-full py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all rounded-xl",
                         isSold
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                             : isDark
@@ -110,10 +110,10 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
                 </button>
 
                 <p className={cn(
-                    "text-center text-[9px] font-bold uppercase tracking-widest mt-6 opacity-30 leading-loose mx-4",
+                    "text-center text-[8px] font-bold uppercase tracking-widest mt-4 opacity-30 leading-loose mx-2",
                     isDark ? "text-white" : "text-black"
                 )}>
-                    *Cena brutto zawiera podatek VAT. Samochód dostępny od ręki.
+                    *Cena brutto zawiera VAT.
                 </p>
             </div>
 

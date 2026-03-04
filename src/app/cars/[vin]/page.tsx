@@ -339,40 +339,37 @@ export default async function CarPage({ params }: PageProps) {
                         </div>
 
                         {/* RIGHT: Sticky Summary Section (Desktop Only) */}
-                        <div className="hidden lg:flex lg:w-[38%] lg:sticky lg:top-0 lg:h-screen lg:flex-col lg:justify-start pt-12 pb-14">
+                        <div className="hidden lg:flex lg:w-[38%] lg:sticky lg:top-24 lg:h-[calc(100vh-160px)] lg:flex-col lg:justify-between pb-6 overflow-y-auto no-scrollbar">
                             {/* TOP: Identity & Status */}
-                            <div className="space-y-8">
+                            <div className="space-y-4">
                                 {/* Badges */}
-                                <div className="flex flex-wrap gap-4">
+                                <div className="flex flex-wrap gap-2">
                                     {showReady && (
-                                        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-green-600">Dostępny</span>
+                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+                                            <div className="w-1 h-1 rounded-full bg-green-500" />
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-green-600">Dostępny</span>
                                         </div>
                                     )}
                                     {totalAvailable > 1 && (
-                                        <div className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">{totalAvailable} sztuki</span>
+                                        <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-blue-600">{totalAvailable} sztuki</span>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Title & Vin Selector */}
-                                <div className="space-y-4">
-                                    <h1 className={cn("text-5xl lg:text-7xl font-bold tracking-tight leading-none", theme.text)}>
+                                <div className="space-y-2">
+                                    <h1 className={cn("text-4xl lg:text-5xl font-bold tracking-tight leading-none", theme.text)}>
                                         {modelName}
                                     </h1>
                                     <VinSelector currentVin={car.vin} siblings={siblings} isDark={isMSeries} />
                                 </div>
                             </div>
 
-                            {/* Dynamic Spacer to push pricing to bottom without breaking layout height */}
-                            <div className="flex-1" />
-
                             {/* BOTTOM: Pricing & Action */}
-                            <div className="space-y-8 mt-12">
+                            <div className="space-y-4">
                                 <DynamicPricingSection car={car} seriesCode={enrichedCar.body_group || ''} isDark={isMSeries} fuelType={enrichedCar.fuel_type} bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)} />
-                                <CarActionButtons car={enrichedCar} className="mt-4" />
+                                <CarActionButtons car={enrichedCar} />
                             </div>
                         </div>
                     </div>

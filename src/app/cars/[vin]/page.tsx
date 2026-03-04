@@ -147,6 +147,7 @@ export default async function CarPage({ params }: PageProps) {
 
     const enrichedCar = {
         ...car,
+        model_name: modelName,
         series: staticAttrs.series || modelDict.series,
         body_type: staticAttrs.body_type || modelDict.body_type,
         power: modelDict.power || car.power,

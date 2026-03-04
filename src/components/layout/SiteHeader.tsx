@@ -143,46 +143,21 @@ export function SiteHeader() {
                     <>
                         {/* Left Area: Logo or Back Button */}
                         <div className="flex items-center gap-4">
-                            {/* VDP Model Info (Mobile Only: Capsule Design) */}
-                            {isVdp && currentCar && (
-                                <div className={cn(
-                                    "flex lg:hidden items-center gap-3 pl-1.5 pr-4 py-1.5 rounded-full border transition-all max-w-[220px] sm:max-w-xs",
-                                    isMSeries ? "bg-white/5 border-white/10" : "bg-black/5 border-black/5"
-                                )}>
-                                    <motion.button
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={() => {
-                                            const lastSrp = sessionStorage.getItem('bawaria_last_srp');
-                                            router.push(lastSrp || '/cars');
-                                        }}
-                                        className={cn(
-                                            "flex items-center justify-center w-8 h-8 rounded-full border transition-all shadow-sm",
-                                            isMSeries ? "bg-white text-black border-white" : "bg-black text-white border-black"
-                                        )}
-                                    >
-                                        <ArrowLeft className="w-4 h-4" />
-                                    </motion.button>
-
-                                    <div className="flex flex-col min-w-0">
-                                        <h2 className={cn(
-                                            "text-[13px] font-black tracking-tight truncate leading-none mb-0.5",
-                                            isMSeries ? "text-white" : "text-black"
-                                        )}>
-                                            {currentCar.model_name || `BMW ${currentCar.model_code}`}
-                                        </h2>
-                                        <div className="flex items-center gap-1.5 min-w-0">
-                                            {(currentCar.status_code > 190) && (
-                                                <span className="shrink-0 w-1 h-1 rounded-full bg-green-500 animate-pulse" />
-                                            )}
-                                            <span className={cn(
-                                                "text-[8px] font-bold uppercase tracking-widest truncate opacity-50",
-                                                isMSeries ? "text-white/70" : "text-black/60"
-                                            )}>
-                                                {currentCar.status_code > 190 ? 'Dostępny od ręki' : 'W ofercie'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                            {/* VDP Back Button (Mobile Only) */}
+                            {isVdp && (
+                                <motion.button
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => {
+                                        const lastSrp = sessionStorage.getItem('bawaria_last_srp');
+                                        router.push(lastSrp || '/cars');
+                                    }}
+                                    className={cn(
+                                        "flex lg:hidden items-center justify-center w-10 h-10 rounded-full border transition-all shadow-sm",
+                                        isMSeries ? "bg-white text-black border-white" : "bg-black text-white border-black"
+                                    )}
+                                >
+                                    <ArrowLeft className="w-5 h-5" />
+                                </motion.button>
                             )}
 
                             <AnimatePresence mode="wait">

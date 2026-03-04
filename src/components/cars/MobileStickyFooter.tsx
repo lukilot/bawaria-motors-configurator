@@ -29,10 +29,10 @@ export function MobileStickyFooter({ car, isDark = false, bulletinDiscountedPric
     return (
         <>
             <div className={cn(
-                "fixed bottom-0 left-0 right-0 z-[1002] lg:hidden border-t px-6 py-4 backdrop-blur-2xl shadow-[0_-20px_40px_rgba(0,0,0,0.1)] transition-all duration-500 pb-[max(1.5rem,env(safe-area-inset-bottom))]",
+                "fixed inset-x-0 bottom-0 z-[99999] lg:hidden border-t px-6 py-4 backdrop-blur-2xl shadow-[0_-20px_40px_rgba(0,0,0,0.1)] transition-all duration-500 pb-[max(1.5rem,env(safe-area-inset-bottom))] transform-gpu",
                 isDark
-                    ? "bg-[#0a0a0a]/95 border-white/10 text-white shadow-black/50"
-                    : "bg-white/95 border-black/5 text-black shadow-black/[0.02]"
+                    ? "bg-[#0a0a0a]/95 border-white/10 text-white shadow-black/80"
+                    : "bg-white/95 border-black/5 text-black shadow-black/[0.05]"
             )}>
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-col min-w-0 flex-1">

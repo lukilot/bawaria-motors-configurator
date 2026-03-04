@@ -3,14 +3,20 @@
 import { useState, useEffect } from 'react';
 import NextImage from 'next/image';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { ArrowDown, Phone, ChevronDown } from 'lucide-react';
+import { ArrowDown, Phone, ChevronDown, Car } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useVdpStore } from '@/store/vdpStore';
+import { cn } from '@/lib/utils';
 
 export function IntroOverlay() {
     const pathname = usePathname();
     const isAdmin = pathname.startsWith('/admin');
     const isHome = pathname === '/';
+    const isVdp = pathname.startsWith('/cars/');
+    const { currentCar } = useVdpStore();
+
+    const isMSeries = currentCar?.series?.includes('Seria M') || currentCar?.model_code?.startsWith('M');
 
     if (isAdmin) return null;
     const [isMinimized, setIsMinimized] = useState(false);
@@ -97,12 +103,12 @@ export function IntroOverlay() {
             bottom: "auto",
             position: "fixed",
             zIndex: 1001, // Keep it high but compatible with SiteHeader (z-[1000])
-            backgroundColor: "#000000",
+            backgroundColor: isVdp && isMSeries ? "#000000" : "#000000",
             backdropFilter: "blur(20px)",
-            borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
-            borderRight: "1px solid rgba(255, 255, 255, 0.1)",
-            borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-            boxShadow: "0 10px 30px -10px rgba(0,0,0,0.3)",
+            borderLeft: isVdp && isMSeries ? "1px solid rgba(255, 255, 255, 0.2)" : "1px solid rgba(255, 255, 255, 0.1)",
+            borderRight: isVdp && isMSeries ? "1px solid rgba(255, 255, 255, 0.2)" : "1px solid rgba(255, 255, 255, 0.1)",
+            borderBottom: isVdp && isMSeries ? "1px solid rgba(255, 255, 255, 0.2)" : "1px solid rgba(255, 255, 255, 0.1)",
+            boxShadow: isVdp && isMSeries ? "0 10px 40px -10px rgba(0,0,0,0.8)" : "0 10px 30px -10px rgba(0,0,0,0.3)",
             transition: {
                 type: "spring",
                 stiffness: 70,
@@ -254,21 +260,46 @@ export function IntroOverlay() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3, delay: 0.1 }}
-                            className="flex items-center gap-4 px-6 py-3 min-w-[200px] justify-between text-nowrap"
+                            className={cn(
+                                "flex items-center gap-4 px-6 py-3 min-w-[180px] sm:min-w-[200px] justify-between text-nowrap",
+                                isVdp && "px-4 sm:px-6"
+                            )}
                         >
-                            {/* Left Side: Phone + Kontakt */}
-                            <div className="flex items-center gap-3 text-white">
-                                <Phone className="w-3 h-3" />
-                                <span className="text-[10px] uppercase font-bold tracking-[0.15em] leading-none">
-                                    Kontakt
-                                </span>
-                            </div>
+                            {isVdp && currentCar ? (
+                                <div className="flex items-center gap-4 text-white">
+                                    <div className="flex flex-col items-start pr-4 border-r border-white/20">
+                                        <span className="text-[11px] font-black tracking-tight leading-none mb-1">
+                                            {currentCar.model_name || `BMW ${currentCar.model_code}`}
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                            {currentCar.status_code > 190 && <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />}
+                                            <span className="text-[7px] font-black uppercase tracking-widest opacity-60">
+                                                {currentCar.status_code > 190 ? 'Dostępny' : 'Oferta'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Phone className="w-3.5 h-3.5 text-white/80" />
+                                        <span className="text-[9px] uppercase font-black tracking-widest">Kontakt</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Left Side: Phone + Kontakt */}
+                                    <div className="flex items-center gap-3 text-white">
+                                        <Phone className="w-3 h-3" />
+                                        <span className="text-[10px] uppercase font-bold tracking-[0.15em] leading-none">
+                                            Kontakt
+                                        </span>
+                                    </div>
 
-                            {/* Right Side: Divider + Chevron */}
-                            <div className="flex items-center gap-3">
-                                <div className="w-px h-3 bg-white/20" />
-                                <ChevronDown className="w-3 h-3 text-white/50 group-hover:text-white transition-colors" />
-                            </div>
+                                    {/* Right Side: Divider + Chevron */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-px h-3 bg-white/20" />
+                                        <ChevronDown className="w-3 h-3 text-white/50 group-hover:text-white transition-colors" />
+                                    </div>
+                                </>
+                            )}
                         </motion.div>
                     )}
                 </div>

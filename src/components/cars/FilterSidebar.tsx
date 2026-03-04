@@ -10,6 +10,7 @@ import { Slider } from '@/components/ui/slider';
 interface FilterSidebarProps {
     isOpen: boolean;
     onClose: () => void;
+    resultsCount?: number;
     options: {
         series: string[];
         bodyTypes: string[];
@@ -91,7 +92,7 @@ const FilterCheckbox = ({ label, checked, onChange }: { label: string, checked: 
     </label>
 );
 
-export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) {
+export function FilterSidebar({ isOpen, onClose, options, resultsCount }: FilterSidebarProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
@@ -107,6 +108,8 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
         power: false,
         price: false
     });
+
+    const [activeMobileCategory, setActiveMobileCategory] = useState<string | null>(null);
 
     const toggleSection = (id: string) => {
         setExpandedSections(prev => ({ ...prev, [id]: !prev[id] }));
@@ -249,399 +252,576 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                 "fixed lg:sticky top-0 lg:top-24 left-0 h-full lg:h-[calc(100vh-8rem)] w-full lg:w-[280px] bg-white lg:bg-transparent z-[500] lg:z-0 hidden lg:block overflow-y-auto lg:px-0 lg:py-0 px-0 py-0 lg:shadow-none transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] scrollbar-hide",
                 isOpen ? "translate-x-0 !flex flex-col" : "-translate-x-full lg:translate-x-0 lg:!block"
             )}>
-                {/* Mobile Header (Sticky) */}
-                <div className="lg:hidden flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0 bg-white z-10">
+                {/* Mobile Header (Sticky & Extra Padding to avoid site header conflict) */}
+                <div className="lg:hidden flex items-center justify-between px-6 pb-5 pt-12 border-b border-gray-100 shrink-0 bg-white z-[600]">
                     <div>
-                        <h2 className="text-[12px] font-bold uppercase tracking-[0.25em] text-gray-900 mb-1">Filtrowanie</h2>
-                        {hasActiveFilters && (
+                        <h2 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-900 mb-1">Filtrowanie</h2>
+                        {hasActiveFilters && !activeMobileCategory && (
                             <button onClick={clearFilters} className="text-[9px] font-bold uppercase tracking-widest text-red-600 flex items-center gap-1.5 active:scale-95 transition-transform">
-                                <RotateCcw className="w-3 h-3" /> Resetuj filtry
+                                <RotateCcw className="w-3 h-3" /> Resetuj wszystkie
+                            </button>
+                        )}
+                        {activeMobileCategory && (
+                            <button onClick={() => setActiveMobileCategory(null)} className="text-[10px] font-bold uppercase tracking-widest text-blue-600 flex items-center gap-1 active:scale-95 transition-transform">
+                                ← Powrót do menu
                             </button>
                         )}
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 border border-gray-100 shadow-sm active:scale-90 transition-all"
+                        className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-50 border border-gray-100 shadow-sm active:scale-90 transition-all ml-4"
                     >
-                        <X className="w-5 h-5 text-gray-900" />
+                        <X className="w-6 h-6 text-gray-900" />
                     </button>
                 </div>
 
                 {/* Scrollable content area */}
-                <div className="flex-1 overflow-y-auto px-6 py-6 lg:px-0 lg:py-8">
-                    {/* Search prominent for mobile */}
-                    <div className="lg:hidden relative mb-10">
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400">
-                            <Search className="w-4 h-4" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Szukaj modelu, opcji, wyposażenia..."
-                            className="w-full pl-7 py-4 bg-transparent border-b border-gray-100 focus:outline-none focus:border-black transition-colors text-[13px] font-semibold text-gray-900 tracking-wide placeholder:text-gray-300 placeholder:font-normal"
-                            value={search}
-                            onChange={(e) => {
-                                isTypingRef.current = true;
-                                setSearch(e.target.value);
-                            }}
-                        />
-                    </div>
-
-                    {/* Active Filters & Reset */}
-                    {hasActiveFilters && (
-                        <div className="mb-10 space-y-5">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Aktywne filtry</span>
-                                <button
-                                    onClick={clearFilters}
-                                    className="text-[9px] font-bold uppercase tracking-widest text-[#E40424] hover:text-[#b3031c] flex items-center gap-1.5 transition-colors"
-                                >
-                                    <RotateCcw className="w-3 h-3" />
-                                    Reset
-                                </button>
+                <div className="flex-1 overflow-y-auto px-6 py-6 lg:px-0 lg:py-8 relative">
+                    {/* Mobile Only: Category Grid Main View */}
+                    {!activeMobileCategory && (
+                        <div className="lg:hidden space-y-10">
+                            {/* Search prominent for mobile */}
+                            <div className="relative">
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <Search className="w-4 h-4" />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Wyszukaj model lub opcję..."
+                                    className="w-full pl-7 py-4 bg-transparent border-b border-gray-100 focus:outline-none focus:border-black transition-colors text-[14px] font-semibold text-gray-900 tracking-wide placeholder:text-gray-300 placeholder:font-normal"
+                                    value={search}
+                                    onChange={(e) => {
+                                        isTypingRef.current = true;
+                                        setSearch(e.target.value);
+                                    }}
+                                />
                             </div>
 
-                            <div className="flex flex-wrap gap-2">
-                                {/* Text Search Terms */}
-                                {activeSearchTerms.map((term, i) => (
-                                    <button
-                                        key={`q-${term}-${i}`}
-                                        onClick={() => removeSearchTerm(term)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 border border-gray-900 hover:bg-black text-white rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group shadow-sm"
-                                    >
-                                        <span className="opacity-70 font-normal pr-1 border-r border-white/20">Tag</span>
-                                        {term}
-                                        <X className="w-3 h-3 text-white/50 group-hover:text-white" />
-                                    </button>
-                                ))}
-
-                                {/* Series */}
-                                {activeSeries.map(s => (
-                                    <button
-                                        key={`s-${s}`}
-                                        onClick={() => toggleFilter('series', s)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                    >
-                                        {s}
-                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                    </button>
-                                ))}
-
-                                {/* Body */}
-                                {activeBody.map(b => (
-                                    <button
-                                        key={`b-${b}`}
-                                        onClick={() => toggleFilter('body', b)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                    >
-                                        {b}
-                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                    </button>
-                                ))}
-
-                                {/* Color */}
-                                {activeColorGroup.map(c => (
-                                    <button
-                                        key={`c-${c}`}
-                                        onClick={() => toggleFilter('colorGroup', c)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                        title="Kolor nadwozia"
-                                    >
-                                        <div className="flex items-center gap-1 opacity-50 border-r border-gray-200 pr-1.5 mr-0.5">
-                                            <SprayCan className="w-3 h-3" />
-                                        </div>
-                                        <div className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: getColor(c) }} />
-                                        {c}
-                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                    </button>
-                                ))}
-
-                                {/* Upholstery */}
-                                {activeUpholsteryGroup.map(u => (
-                                    <button
-                                        key={`u-${u}`}
-                                        onClick={() => toggleFilter('upholsteryGroup', u)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                        title="Tapicerka"
-                                    >
-                                        <div className="flex items-center gap-1 opacity-50 border-r border-gray-200 pr-1.5 mr-0.5">
-                                            <svg
-                                                width="12"
-                                                height="12"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                className="w-3 h-3"
-                                            >
-                                                {/* Car Seat Front View */}
-                                                <path d="M8 2h8a2 2 0 0 1 2 2v3h-12v-3a2 2 0 0 1 2-2z" />
-                                                <path d="M5 9h14a2 2 0 0 1 2 2v7a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3v-7a2 2 0 0 1 2-2z" />
-                                            </svg>
-                                        </div>
-                                        <div className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: getColor(u) }} />
-                                        {u}
-                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                    </button>
-                                ))}
-
-                                {/* Fuel */}
-                                {activeFuel.map(f => (
-                                    <button
-                                        key={`f-${f}`}
-                                        onClick={() => toggleFilter('fuel', f)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                    >
-                                        {f}
-                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                    </button>
-                                ))}
-
-                                {/* Drivetrain */}
-                                {activeDrivetrain.map(d => (
-                                    <button
-                                        key={`d-${d}`}
-                                        onClick={() => toggleFilter('drivetrain', d)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                    >
-                                        {d}
-                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                    </button>
-                                ))}
-
-                                {/* Price Range (Min/Max) */}
-                                {(activeMin > safeMinPrice || activeMax < safeMaxPrice) && (
-                                    <button
-                                        onClick={() => {
-                                            const params = new URLSearchParams(searchParams.toString());
-                                            params.delete('min');
-                                            params.delete('max');
-                                            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                    >
-                                        Cena
-                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                    </button>
-                                )}
-
-                                {/* Power Range (Min/Max) */}
-                                {(pmin > 120 || pmax < safeMaxPower) && (
-                                    <button
-                                        onClick={() => {
-                                            const params = new URLSearchParams(searchParams.toString());
-                                            params.delete('pmin');
-                                            params.delete('pmax');
-                                            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                    >
-                                        Moc
-                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                    </button>
-                                )}
+                            {/* Two Column Grid */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div onClick={() => setActiveMobileCategory('series')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeSeries.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Model</div>
+                                    <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
+                                        {activeSeries.length > 0 ? activeSeries.join(', ') : 'Wszystkie serie'}
+                                    </div>
+                                </div>
+                                <div onClick={() => setActiveMobileCategory('body')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeBody.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Nadwozie</div>
+                                    <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
+                                        {activeBody.length > 0 ? activeBody.join(', ') : 'Wszystkie'}
+                                    </div>
+                                </div>
+                                <div onClick={() => setActiveMobileCategory('fuel')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeFuel.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Paliwo</div>
+                                    <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
+                                        {activeFuel.length > 0 ? activeFuel.join(', ') : 'Dowolne'}
+                                    </div>
+                                </div>
+                                <div onClick={() => setActiveMobileCategory('drivetrain')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeDrivetrain.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Napęd</div>
+                                    <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
+                                        {activeDrivetrain.length > 0 ? activeDrivetrain.join(', ') : 'Dowolny'}
+                                    </div>
+                                </div>
+                                <div onClick={() => setActiveMobileCategory('price')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", searchParams.has('max') ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Cena max</div>
+                                    <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
+                                        {searchParams.has('max') ? formatPrice(sliderMax) : 'Bez limitu'}
+                                    </div>
+                                </div>
+                                <div onClick={() => setActiveMobileCategory('power')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", (searchParams.has('pmin') || searchParams.has('pmax')) ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">KM</div>
+                                    <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
+                                        {(searchParams.has('pmin') || searchParams.has('pmax')) ? `${pmin}-${pmax} KM` : 'Dowolna moc'}
+                                    </div>
+                                </div>
+                                <div onClick={() => setActiveMobileCategory('colorGroup')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeColorGroup.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Kolor</div>
+                                    <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
+                                        {activeColorGroup.length > 0 ? activeColorGroup.join(', ') : 'Dowolny'}
+                                    </div>
+                                </div>
+                                <div onClick={() => setActiveMobileCategory('upholsteryGroup')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeUpholsteryGroup.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Tapicerka</div>
+                                    <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
+                                        {activeUpholsteryGroup.length > 0 ? activeUpholsteryGroup.join(', ') : 'Dowolna'}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Filter Controls Header - Configuration Text */}
-                    <div className="flex items-center justify-between mb-6">
-                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Pojazd & Opcje</span>
-                    </div>
-
-                    <div className="space-y-4">
-                        {/* Text Search (Desktop only) */}
-                        <div className="hidden lg:block relative mb-6">
-                            <input
-                                type="text"
-                                placeholder="Szukaj modelu, kodów, opcji..."
-                                className="w-full px-0 py-3 bg-transparent border-b border-gray-200 focus:outline-none focus:border-black transition-colors text-[11px] font-semibold text-gray-900 tracking-wider placeholder:text-gray-300 placeholder:font-normal"
-                                value={search}
-                                onChange={(e) => {
-                                    isTypingRef.current = true;
-                                    setSearch(e.target.value);
-                                }}
-                            />
+                    {/* Mobile Only: Sub-panel categories */}
+                    {activeMobileCategory && (
+                        <div className="lg:hidden animate-in slide-in-from-right duration-300">
+                            {activeMobileCategory === 'series' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Wybierz serię</h3>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {options.series.map((s: string) => (
+                                            <FilterPill key={s} label={s} active={activeSeries.includes(s)} onClick={() => toggleFilter('series', s)} isMSeries={s.includes('Seria M')} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {activeMobileCategory === 'body' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Rodzaj nadwozia</h3>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {options.bodyTypes.map((b: string) => (
+                                            <FilterPill key={b} label={b} active={activeBody.includes(b)} onClick={() => toggleFilter('body', b)} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {activeMobileCategory === 'fuel' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Typ paliwa</h3>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {options.fuelTypes.map((f: string) => (
+                                            <FilterPill key={f} label={f} active={activeFuel.includes(f)} onClick={() => toggleFilter('fuel', f)} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {activeMobileCategory === 'drivetrain' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Układ napędowy</h3>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {options.drivetrains.map((d: string) => (
+                                            <FilterPill key={d} label={d} active={activeDrivetrain.includes(d)} onClick={() => toggleFilter('drivetrain', d)} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {activeMobileCategory === 'price' && (
+                                <div className="space-y-8 pt-4">
+                                    <div className="flex justify-between items-end mb-4">
+                                        <div className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Budżet do</div>
+                                        <div className="text-[18px] font-black tracking-tight">{formatPrice(sliderMax)}</div>
+                                    </div>
+                                    <Slider defaultValue={[sliderMax]} value={[sliderMax]} min={100000} max={options.maxPrice} step={5000} onValueChange={([v]) => { isTypingRef.current = true; setSliderMax(v); }} />
+                                </div>
+                            )}
+                            {activeMobileCategory === 'power' && (
+                                <div className="space-y-8 pt-4">
+                                    <div className="flex justify-between items-end mb-4">
+                                        <div className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Zakres mocy</div>
+                                        <div className="text-[18px] font-black tracking-tight">{pmin} - {pmax} KM</div>
+                                    </div>
+                                    <div className="space-y-12">
+                                        <div>
+                                            <div className="text-[9px] font-bold uppercase mb-2 text-gray-400">Min: {pmin} KM</div>
+                                            <Slider defaultValue={[pmin]} value={[pmin]} min={120} max={pmax} step={10} onValueChange={([v]) => { isTypingRef.current = true; setPmin(v); }} />
+                                        </div>
+                                        <div>
+                                            <div className="text-[9px] font-bold uppercase mb-2 text-gray-400">Max: {pmax} KM</div>
+                                            <Slider defaultValue={[pmax]} value={[pmax]} min={pmin} max={options.maxPower} step={10} onValueChange={([v]) => { isTypingRef.current = true; setPmax(v); }} />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {activeMobileCategory === 'colorGroup' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Gama kolorystyczna</h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {options.colorGroups?.map((c: string) => {
+                                            const colorValue = getColor(c);
+                                            const isMColor = c.toLowerCase().includes('m ');
+                                            return (
+                                                <button key={c} onClick={() => toggleFilter('colorGroup', c)} className={cn("flex flex-col items-center gap-3 p-4 rounded-xl border transition-all active:scale-95", activeColorGroup.includes(c) ? "bg-black text-white border-black" : "bg-gray-50 text-gray-900 border-gray-100")}>
+                                                    <div className="w-10 h-10 rounded-full border border-black/10 shadow-sm overflow-hidden relative">
+                                                        {isMColor ? <div className="absolute inset-0 flex"><div className="flex-1 bg-[#53A0DE]" /><div className="flex-1 bg-[#02256E]" /><div className="flex-1 bg-[#E40424]" /></div> : <div className="absolute inset-0" style={{ backgroundColor: colorValue }} />}
+                                                    </div>
+                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-center">{c}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                            {activeMobileCategory === 'upholsteryGroup' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Typ tapicerki</h3>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {options.upholsteryGroups?.map((u: string) => (
+                                            <FilterPill key={u} label={u} active={activeUpholsteryGroup.includes(u)} onClick={() => toggleFilter('upholsteryGroup', u)} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
+                    )}
 
-                        <div className="space-y-1">
-                            {/* Series Filter */}
-                            <Section id="series" title="Seria" expanded={expandedSections.series} onToggle={toggleSection}>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {options.series.map(s => (
-                                        <FilterPill
-                                            key={s}
-                                            label={s}
-                                            active={activeSeries.includes(s)}
+                    {/* Desktop Content (untouched, legacy scroll) */}
+                    <div className="hidden lg:block space-y-2">
+
+                        {/* Active Filters & Reset */}
+                        {hasActiveFilters && (
+                            <div className="mb-10 space-y-5">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Aktywne filtry</span>
+                                    <button
+                                        onClick={clearFilters}
+                                        className="text-[9px] font-bold uppercase tracking-widest text-[#E40424] hover:text-[#b3031c] flex items-center gap-1.5 transition-colors"
+                                    >
+                                        <RotateCcw className="w-3 h-3" />
+                                        Reset
+                                    </button>
+                                </div>
+
+                                <div className="flex flex-wrap gap-2">
+                                    {/* Text Search Terms */}
+                                    {activeSearchTerms.map((term, i) => (
+                                        <button
+                                            key={`q-${term}-${i}`}
+                                            onClick={() => removeSearchTerm(term)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 border border-gray-900 hover:bg-black text-white rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group shadow-sm"
+                                        >
+                                            <span className="opacity-70 font-normal pr-1 border-r border-white/20">Tag</span>
+                                            {term}
+                                            <X className="w-3 h-3 text-white/50 group-hover:text-white" />
+                                        </button>
+                                    ))}
+
+                                    {/* Series */}
+                                    {activeSeries.map(s => (
+                                        <button
+                                            key={`s-${s}`}
                                             onClick={() => toggleFilter('series', s)}
-                                            isMSeries={s.includes('Seria M')}
-                                        />
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                        >
+                                            {s}
+                                            <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                        </button>
                                     ))}
-                                </div>
-                            </Section>
 
-                            {/* Body Type Filter - PILLS */}
-                            <Section id="body" title="Nadwozie" expanded={expandedSections.body} onToggle={toggleSection}>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {options.bodyTypes.map(b => (
-                                        <FilterPill
-                                            key={b}
-                                            label={b}
-                                            active={activeBody.includes(b)}
+                                    {/* Body */}
+                                    {activeBody.map(b => (
+                                        <button
+                                            key={`b-${b}`}
                                             onClick={() => toggleFilter('body', b)}
-                                        />
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                        >
+                                            {b}
+                                            <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                        </button>
                                     ))}
-                                </div>
-                            </Section>
 
-                            {/* Color Group Filter - VISUAL */}
-                            {options.colorGroups && options.colorGroups.length > 0 && (
-                                <Section id="colorGroup" title="Kolor" expanded={expandedSections.colorGroup} onToggle={toggleSection}>
-                                    <div className="grid grid-cols-4 gap-3 px-1 py-1">
-                                        {options.colorGroups.map(c => (
-                                            <div key={c} className="flex flex-col items-center gap-1.5">
-                                                <button
-                                                    onClick={() => toggleFilter('colorGroup', c)}
-                                                    className={cn(
-                                                        "w-8 h-8 rounded-full shadow-sm border transaction-all duration-200 relative",
-                                                        activeColorGroup.includes(c) ? "ring-2 ring-blue-600 ring-offset-2 border-transparent" : "border-gray-200 hover:border-gray-400"
-                                                    )}
-                                                    style={{ backgroundColor: getColor(c) }}
-                                                    title={c}
-                                                >
-                                                    {/* Checkmark for active state */}
-                                                    {activeColorGroup.includes(c) && (
-                                                        <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-md">
-                                                            <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                                                        </span>
-                                                    )}
-                                                </button>
-                                                <span className="text-[9px] uppercase tracking-wider text-gray-500 text-center leading-tight truncate w-full">{c}</span>
+                                    {/* Color */}
+                                    {activeColorGroup.map(c => (
+                                        <button
+                                            key={`c-${c}`}
+                                            onClick={() => toggleFilter('colorGroup', c)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                            title="Kolor nadwozia"
+                                        >
+                                            <div className="flex items-center gap-1 opacity-50 border-r border-gray-200 pr-1.5 mr-0.5">
+                                                <SprayCan className="w-3 h-3" />
                                             </div>
-                                        ))}
-                                    </div>
-                                </Section>
-                            )}
+                                            <div className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: getColor(c) }} />
+                                            {c}
+                                            <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                        </button>
+                                    ))}
 
-                            {/* Upholstery Group Filter - VISUAL/PILLS */}
-                            {options.upholsteryGroups && options.upholsteryGroups.length > 0 && (
-                                <Section id="upholsteryGroup" title="Tapicerka" expanded={expandedSections.upholsteryGroup} onToggle={toggleSection}>
-                                    <div className="grid grid-cols-4 gap-3 px-1 py-1">
-                                        {options.upholsteryGroups.map(c => (
-                                            <div key={c} className="flex flex-col items-center gap-1.5">
-                                                <button
-                                                    onClick={() => toggleFilter('upholsteryGroup', c)}
-                                                    className={cn(
-                                                        "w-8 h-8 rounded-full shadow-sm border transaction-all duration-200 relative",
-                                                        activeUpholsteryGroup.includes(c) ? "ring-2 ring-blue-600 ring-offset-2 border-transparent" : "border-gray-200 hover:border-gray-400"
-                                                    )}
-                                                    style={{ backgroundColor: getColor(c) }}
-                                                    title={c}
+                                    {/* Upholstery */}
+                                    {activeUpholsteryGroup.map(u => (
+                                        <button
+                                            key={`u-${u}`}
+                                            onClick={() => toggleFilter('upholsteryGroup', u)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                            title="Tapicerka"
+                                        >
+                                            <div className="flex items-center gap-1 opacity-50 border-r border-gray-200 pr-1.5 mr-0.5">
+                                                <svg
+                                                    width="12"
+                                                    height="12"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    className="w-3 h-3"
                                                 >
-                                                    {/* Checkmark for active state */}
-                                                    {activeUpholsteryGroup.includes(c) && (
-                                                        <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-md">
-                                                            <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                                                        </span>
-                                                    )}
-                                                </button>
-                                                <span className="text-[9px] uppercase tracking-wider text-gray-500 text-center leading-tight truncate w-full">{c}</span>
+                                                    {/* Car Seat Front View */}
+                                                    <path d="M8 2h8a2 2 0 0 1 2 2v3h-12v-3a2 2 0 0 1 2-2z" />
+                                                    <path d="M5 9h14a2 2 0 0 1 2 2v7a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3v-7a2 2 0 0 1 2-2z" />
+                                                </svg>
                                             </div>
-                                        ))}
-                                    </div>
-                                </Section>
-                            )}
+                                            <div className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: getColor(u) }} />
+                                            {u}
+                                            <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                        </button>
+                                    ))}
 
-                            {/* Fuel Type Filter - PILLS */}
-                            <Section id="fuel" title="Paliwo" expanded={expandedSections.fuel} onToggle={toggleSection}>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {options.fuelTypes.map(f => (
-                                        <FilterPill
-                                            key={f}
-                                            label={f}
-                                            active={activeFuel.includes(f)}
+                                    {/* Fuel */}
+                                    {activeFuel.map(f => (
+                                        <button
+                                            key={`f-${f}`}
                                             onClick={() => toggleFilter('fuel', f)}
-                                        />
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                        >
+                                            {f}
+                                            <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                        </button>
                                     ))}
-                                </div>
-                            </Section>
 
-                            {/* Drivetrain Filter - PILLS */}
-                            <Section id="drivetrain" title="Napęd" expanded={expandedSections.drivetrain} onToggle={toggleSection}>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {options.drivetrains.map(d => (
-                                        <FilterPill
-                                            key={d}
-                                            label={d}
-                                            active={activeDrivetrain.includes(d)}
+                                    {/* Drivetrain */}
+                                    {activeDrivetrain.map(d => (
+                                        <button
+                                            key={`d-${d}`}
                                             onClick={() => toggleFilter('drivetrain', d)}
-                                        />
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                        >
+                                            {d}
+                                            <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                        </button>
                                     ))}
-                                </div>
-                            </Section>
 
-                            {/* Power Filter */}
-                            <Section id="power" title="Moc" expanded={expandedSections.power} onToggle={toggleSection}>
-                                <div className="space-y-6 px-1 pt-2">
-                                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-900 font-mono">
-                                        <span>{pmin} KM</span>
-                                        <span>{pmax} KM</span>
-                                    </div>
-
-                                    <div className="px-1">
-                                        <Slider
-                                            defaultValue={[120, safeMaxPower]}
-                                            value={[pmin, pmax]}
-                                            min={120}
-                                            max={safeMaxPower}
-                                            step={10}
-                                            minStepsBetweenThumbs={1}
-                                            onValueChange={([min, max]) => {
-                                                isTypingRef.current = true;
-                                                setPmin(min);
-                                                setPmax(max);
+                                    {/* Price Range (Min/Max) */}
+                                    {(activeMin > safeMinPrice || activeMax < safeMaxPrice) && (
+                                        <button
+                                            onClick={() => {
+                                                const params = new URLSearchParams(searchParams.toString());
+                                                params.delete('min');
+                                                params.delete('max');
+                                                router.replace(`${pathname}?${params.toString()}`, { scroll: false });
                                             }}
-                                        />
-                                    </div>
-                                </div>
-                            </Section>
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                        >
+                                            Cena
+                                            <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                        </button>
+                                    )}
 
-                            {/* Price Range Slider */}
-                            <Section id="price" title="Cena Max" expanded={expandedSections.price} onToggle={toggleSection}>
-                                <div className="space-y-6 px-1 pt-2">
-                                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-900 font-mono">
-                                        <span>{formatPrice(activeMin)}</span>
-                                        <span>{formatPrice(activeMax)}</span>
-                                    </div>
-
-                                    <div className="px-1">
-                                        <Slider
-                                            defaultValue={[sliderMax]}
-                                            value={[sliderMax]}
-                                            min={sliderMin}
-                                            max={safeMaxPrice}
-                                            step={5000}
-                                            onValueChange={([val]) => {
-                                                isTypingRef.current = true;
-                                                setSliderMax(val);
+                                    {/* Power Range (Min/Max) */}
+                                    {(pmin > 120 || pmax < safeMaxPower) && (
+                                        <button
+                                            onClick={() => {
+                                                const params = new URLSearchParams(searchParams.toString());
+                                                params.delete('pmin');
+                                                params.delete('pmax');
+                                                router.replace(`${pathname}?${params.toString()}`, { scroll: false });
                                             }}
-                                        />
-                                    </div>
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                        >
+                                            Moc
+                                            <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                        </button>
+                                    )}
                                 </div>
-                            </Section>
+                            </div>
+                        )}
+
+                        {/* Filter Controls Header - Configuration Text */}
+                        <div className="flex items-center justify-between mb-6">
+                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Pojazd & Opcje</span>
+                        </div>
+
+                        <div className="space-y-4">
+                            {/* Text Search (Desktop only) */}
+                            <div className="hidden lg:block relative mb-6">
+                                <input
+                                    type="text"
+                                    placeholder="Szukaj modelu, kodów, opcji..."
+                                    className="w-full px-0 py-3 bg-transparent border-b border-gray-200 focus:outline-none focus:border-black transition-colors text-[11px] font-semibold text-gray-900 tracking-wider placeholder:text-gray-300 placeholder:font-normal"
+                                    value={search}
+                                    onChange={(e) => {
+                                        isTypingRef.current = true;
+                                        setSearch(e.target.value);
+                                    }}
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                {/* Series Filter */}
+                                <Section id="series" title="Seria" expanded={expandedSections.series} onToggle={toggleSection}>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {options.series.map(s => (
+                                            <FilterPill
+                                                key={s}
+                                                label={s}
+                                                active={activeSeries.includes(s)}
+                                                onClick={() => toggleFilter('series', s)}
+                                                isMSeries={s.includes('Seria M')}
+                                            />
+                                        ))}
+                                    </div>
+                                </Section>
+
+                                {/* Body Type Filter - PILLS */}
+                                <Section id="body" title="Nadwozie" expanded={expandedSections.body} onToggle={toggleSection}>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {options.bodyTypes.map(b => (
+                                            <FilterPill
+                                                key={b}
+                                                label={b}
+                                                active={activeBody.includes(b)}
+                                                onClick={() => toggleFilter('body', b)}
+                                            />
+                                        ))}
+                                    </div>
+                                </Section>
+
+                                {/* Color Group Filter - VISUAL */}
+                                {options.colorGroups && options.colorGroups.length > 0 && (
+                                    <Section id="colorGroup" title="Kolor" expanded={expandedSections.colorGroup} onToggle={toggleSection}>
+                                        <div className="grid grid-cols-4 gap-3 px-1 py-1">
+                                            {options.colorGroups.map(c => (
+                                                <div key={c} className="flex flex-col items-center gap-1.5">
+                                                    <button
+                                                        onClick={() => toggleFilter('colorGroup', c)}
+                                                        className={cn(
+                                                            "w-8 h-8 rounded-full shadow-sm border transaction-all duration-200 relative",
+                                                            activeColorGroup.includes(c) ? "ring-2 ring-blue-600 ring-offset-2 border-transparent" : "border-gray-200 hover:border-gray-400"
+                                                        )}
+                                                        style={{ backgroundColor: getColor(c) }}
+                                                        title={c}
+                                                    >
+                                                        {/* Checkmark for active state */}
+                                                        {activeColorGroup.includes(c) && (
+                                                            <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-md">
+                                                                <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                    <span className="text-[9px] uppercase tracking-wider text-gray-500 text-center leading-tight truncate w-full">{c}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </Section>
+                                )}
+
+                                {/* Upholstery Group Filter - VISUAL/PILLS */}
+                                {options.upholsteryGroups && options.upholsteryGroups.length > 0 && (
+                                    <Section id="upholsteryGroup" title="Tapicerka" expanded={expandedSections.upholsteryGroup} onToggle={toggleSection}>
+                                        <div className="grid grid-cols-4 gap-3 px-1 py-1">
+                                            {options.upholsteryGroups.map(c => (
+                                                <div key={c} className="flex flex-col items-center gap-1.5">
+                                                    <button
+                                                        onClick={() => toggleFilter('upholsteryGroup', c)}
+                                                        className={cn(
+                                                            "w-8 h-8 rounded-full shadow-sm border transaction-all duration-200 relative",
+                                                            activeUpholsteryGroup.includes(c) ? "ring-2 ring-blue-600 ring-offset-2 border-transparent" : "border-gray-200 hover:border-gray-400"
+                                                        )}
+                                                        style={{ backgroundColor: getColor(c) }}
+                                                        title={c}
+                                                    >
+                                                        {/* Checkmark for active state */}
+                                                        {activeUpholsteryGroup.includes(c) && (
+                                                            <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-md">
+                                                                <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                    <span className="text-[9px] uppercase tracking-wider text-gray-500 text-center leading-tight truncate w-full">{c}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </Section>
+                                )}
+
+                                {/* Fuel Type Filter - PILLS */}
+                                <Section id="fuel" title="Paliwo" expanded={expandedSections.fuel} onToggle={toggleSection}>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {options.fuelTypes.map(f => (
+                                            <FilterPill
+                                                key={f}
+                                                label={f}
+                                                active={activeFuel.includes(f)}
+                                                onClick={() => toggleFilter('fuel', f)}
+                                            />
+                                        ))}
+                                    </div>
+                                </Section>
+
+                                {/* Drivetrain Filter - PILLS */}
+                                <Section id="drivetrain" title="Napęd" expanded={expandedSections.drivetrain} onToggle={toggleSection}>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {options.drivetrains.map(d => (
+                                            <FilterPill
+                                                key={d}
+                                                label={d}
+                                                active={activeDrivetrain.includes(d)}
+                                                onClick={() => toggleFilter('drivetrain', d)}
+                                            />
+                                        ))}
+                                    </div>
+                                </Section>
+
+                                {/* Power Filter */}
+                                <Section id="power" title="Moc" expanded={expandedSections.power} onToggle={toggleSection}>
+                                    <div className="space-y-6 px-1 pt-2">
+                                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-900 font-mono">
+                                            <span>{pmin} KM</span>
+                                            <span>{pmax} KM</span>
+                                        </div>
+
+                                        <div className="px-1">
+                                            <Slider
+                                                defaultValue={[120, safeMaxPower]}
+                                                value={[pmin, pmax]}
+                                                min={120}
+                                                max={safeMaxPower}
+                                                step={10}
+                                                minStepsBetweenThumbs={1}
+                                                onValueChange={([min, max]) => {
+                                                    isTypingRef.current = true;
+                                                    setPmin(min);
+                                                    setPmax(max);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </Section>
+
+                                {/* Price Range Slider */}
+                                <Section id="price" title="Cena Max" expanded={expandedSections.price} onToggle={toggleSection}>
+                                    <div className="space-y-6 px-1 pt-2">
+                                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-900 font-mono">
+                                            <span>{formatPrice(activeMin)}</span>
+                                            <span>{formatPrice(activeMax)}</span>
+                                        </div>
+
+                                        <div className="px-1">
+                                            <Slider
+                                                defaultValue={[sliderMax]}
+                                                value={[sliderMax]}
+                                                min={sliderMin}
+                                                max={safeMaxPrice}
+                                                step={5000}
+                                                onValueChange={([val]) => {
+                                                    isTypingRef.current = true;
+                                                    setSliderMax(val);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </Section>
+                            </div>
                         </div>
                     </div>
-                </div>{/* end scrollable content */}
+                </div>{/* end scrollable content area */}
 
                 {/* Apply Button (Mobile) — sticky at bottom */}
-                <div className="lg:hidden shrink-0 px-6 py-4 border-t border-gray-100 bg-white">
-                    <button
-                        onClick={onClose}
-                        className="w-full bg-black text-white py-4 rounded-xl uppercase text-[11px] font-bold tracking-[0.2em] shadow-md hover:bg-gray-900 active:scale-[0.98] transition-all"
-                    >
-                        Pokaż wyniki
-                    </button>
+                <div className="lg:hidden shrink-0 px-6 py-4 border-t border-gray-100 bg-white z-[600]">
+                    {activeMobileCategory ? (
+                        <button
+                            onClick={() => setActiveMobileCategory(null)}
+                            className="w-full bg-blue-600 text-white py-4 rounded-xl uppercase text-[11px] font-black tracking-[0.2em] shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                        >
+                            Zastosuj i wróć
+                        </button>
+                    ) : (
+                        <button
+                            onClick={onClose}
+                            className="w-full bg-black text-white py-4 rounded-xl uppercase text-[11px] font-black tracking-[0.2em] shadow-lg active:scale-[0.98] transition-all"
+                        >
+                            Pokaż wyniki {resultsCount !== undefined && `(${resultsCount})`}
+                        </button>
+                    )}
                 </div>
             </aside>
         </>

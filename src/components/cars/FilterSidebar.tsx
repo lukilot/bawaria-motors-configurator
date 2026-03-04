@@ -255,31 +255,18 @@ export function FilterSidebar({ isOpen, onClose, options, resultsCount }: Filter
                 "fixed lg:sticky top-0 lg:top-24 left-0 h-full lg:h-[calc(100vh-8rem)] w-full lg:w-[280px] bg-white lg:bg-transparent z-[500] lg:z-0 hidden lg:block overflow-y-auto lg:px-0 lg:py-0 px-0 py-0 lg:shadow-none transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] scrollbar-hide",
                 isOpen ? "translate-x-0 !flex flex-col" : "-translate-x-full lg:translate-x-0 lg:!block"
             )}>
-                {/* Mobile Header - Improved layout to avoid status bar / site header conflict */}
-                <div className="lg:hidden flex items-start justify-between px-6 pb-6 pt-20 border-b border-gray-100 shrink-0 bg-white z-[600]">
-                    <div className="pt-2">
-                        <h2 className="text-[13px] font-black uppercase tracking-[0.4em] text-gray-900 mb-2">Filtrowanie</h2>
-                        {hasActiveFilters && !activeMobileCategory && (
-                            <button onClick={clearFilters} className="text-[10px] font-bold uppercase tracking-widest text-red-600 flex items-center gap-2 active:scale-95 transition-transform">
-                                <RotateCcw className="w-3.5 h-3.5" /> Resetuj wszystkie
-                            </button>
-                        )}
-                        {activeMobileCategory && (
-                            <button onClick={() => setActiveMobileCategory(null)} className="text-[11px] font-bold uppercase tracking-widest text-blue-600 flex items-center gap-2 active:scale-95 transition-transform">
-                                ← Powrót
-                            </button>
-                        )}
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="w-14 h-14 flex items-center justify-center rounded-full bg-gray-50 border border-gray-100 shadow-sm active:scale-90 transition-all"
-                    >
-                        <X className="w-7 h-7 text-gray-900" />
-                    </button>
-                </div>
 
                 {/* Scrollable content area */}
-                <div className="flex-1 overflow-y-auto px-6 py-6 lg:px-0 lg:py-8 relative">
+                <div className="flex-1 overflow-y-auto px-6 pt-20 pb-10 lg:px-0 lg:py-8 relative">
+                    {/* Floating Back Button (Mobile Sub-category) */}
+                    {activeMobileCategory && (
+                        <button
+                            onClick={() => setActiveMobileCategory(null)}
+                            className="lg:hidden mb-8 text-[11px] font-black uppercase tracking-[0.2em] text-blue-600 flex items-center gap-2 active:scale-95 transition-all bg-blue-50/50 py-3 px-5 rounded-full w-fit"
+                        >
+                            ← Powrót
+                        </button>
+                    )}
                     {/* Mobile Only: Category Grid Main View */}
                     {!activeMobileCategory && (
                         <div className="lg:hidden space-y-10">
@@ -298,8 +285,15 @@ export function FilterSidebar({ isOpen, onClose, options, resultsCount }: Filter
                                         setSearch(e.target.value);
                                     }}
                                 />
+                                {hasActiveFilters && (
+                                    <button
+                                        onClick={clearFilters}
+                                        className="absolute right-0 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase tracking-widest text-red-600 bg-red-50 py-2 px-3 rounded-lg"
+                                    >
+                                        Wyczyść (Reset)
+                                    </button>
+                                )}
                             </div>
-
                             {/* Two Column Grid with minimalist icons */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div onClick={() => setActiveMobileCategory('series')} className={cn("p-6 rounded-2xl border flex flex-col justify-between h-36 transition-all active:scale-95", activeSeries.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>

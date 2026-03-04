@@ -202,7 +202,7 @@ export default async function CarPage({ params }: PageProps) {
     return (
         <>
             <VdpStoreInit car={enrichedCar} siblings={siblings} />
-            <main className={cn("min-h-screen font-sans pb-32 pt-0 transition-colors duration-500", theme.bg, theme.text)}>
+            <main className={cn("min-h-screen font-sans pb-32 pt-28 lg:pt-32 transition-colors duration-500", theme.bg, theme.text)}>
                 <div className="max-w-[1700px] mx-auto">
                     <div className="flex flex-col lg:flex-row min-h-screen gap-12 lg:gap-20 px-6">
 
@@ -210,13 +210,18 @@ export default async function CarPage({ params }: PageProps) {
                         <div className="w-full lg:w-[62%] py-0 lg:py-12 space-y-16">
 
                             {/* Gallery Section - Full width on top of left content */}
-                            <div className="-mx-6 lg:mx-0 pt-12 lg:pt-0">
+                            <div className="-mx-6 lg:mx-0">
                                 <CarGallery
                                     modelName={modelName}
                                     images={uniqueImages}
                                     isDark={isMSeries}
                                     isElectric={isElectric && !isMSeries}
                                 />
+                            </div>
+
+                            {/* MOBILE ONLY: Action Buttons (under gallery) */}
+                            <div className="lg:hidden px-0">
+                                <CarActionButtons car={enrichedCar} />
                             </div>
 
                             {/* Technical Specs */}
@@ -332,8 +337,8 @@ export default async function CarPage({ params }: PageProps) {
                             <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} isElectric={isElectric && !isMSeries} />
                         </div>
 
-                        {/* RIGHT: Sticky Summary Section */}
-                        <div className="w-full lg:w-[38%] lg:sticky lg:top-0 lg:h-screen lg:flex lg:flex-col lg:justify-center py-12 lg:py-0">
+                        {/* RIGHT: Sticky Summary Section (Desktop Only) */}
+                        <div className="hidden lg:flex lg:w-[38%] lg:sticky lg:top-0 lg:h-screen lg:flex-col lg:justify-center py-12 lg:py-0">
                             <div className="space-y-10">
                                 {/* Badges */}
                                 <div className="flex flex-wrap gap-4">

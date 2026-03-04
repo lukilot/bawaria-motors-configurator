@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Camera, ChevronLeft, ChevronRight, Images } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FullScreenGallery } from './FullScreenGallery';
 
 interface CarGalleryProps {
@@ -31,22 +32,41 @@ export function CarGallery({ modelName, images = [], isDark = false, isElectric 
                 <div className="absolute inset-0 bg-blue-400/5 blur-3xl -z-10 pointer-events-none" />
             )}
 
-            {/* ═══ MOBILE: Full-width slider (< lg) ═══ */}
-            <div className="lg:hidden flex flex-col gap-2 px-4">
+            {/* ═══ MOBILE: Swipeable slider (< lg) ═══ */}
+            <div className="lg:hidden flex flex-col gap-2">
                 <div
                     className={cn(
-                        "relative aspect-[16/9] overflow-hidden cursor-zoom-in rounded-[2rem] border shadow-lg transition-all duration-700",
-                        isDark ? "bg-[#0f0f0f] border-white/5 shadow-black/40" : "bg-gray-50 border-black/5 shadow-black/5"
+                        "relative aspect-[16/9] overflow-hidden cursor-zoom-in border transition-all duration-700",
+                        isDark ? "bg-[#0f0f0f] border-white/5" : "bg-gray-50 border-black/5"
                     )}
-                    onClick={() => openLightbox(mobileIndex)}
                 >
                     {hasImages ? (
-                        <img
-                            key={mobileIndex}
-                            src={images[mobileIndex].url}
-                            alt={`${modelName} – ${mobileIndex + 1}`}
-                            className="w-full h-full object-cover"
-                        />
+                        <div
+                            className="flex w-full h-full touch-pan-y"
+                            onClick={() => openLightbox(mobileIndex)}
+                        >
+                            <AnimatePresence mode="wait" initial={false}>
+                                <motion.img
+                                    key={mobileIndex}
+                                    src={images[mobileIndex].url}
+                                    alt={`${modelName} – ${mobileIndex + 1}`}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="w-full h-full object-cover"
+                                    drag="x"
+                                    dragConstraints={{ left: 0, right: 0 }}
+                                    onDragEnd={(_, info) => {
+                                        if (info.offset.x < -50) {
+                                            setMobileIndex(p => (p + 1) % images.length);
+                                        } else if (info.offset.x > 50) {
+                                            setMobileIndex(p => (p - 1 + images.length) % images.length);
+                                        }
+                                    }}
+                                />
+                            </AnimatePresence>
+                        </div>
                     ) : (
                         <div className="relative w-full h-full overflow-hidden">
                             <img
@@ -63,29 +83,15 @@ export function CarGallery({ modelName, images = [], isDark = false, isElectric 
                     )}
 
                     {hasImages && images.length > 1 && (
-                        <>
-                            <button
-                                onClick={(e) => { e.stopPropagation(); setMobileIndex(p => (p - 1 + images.length) % images.length); }}
-                                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white text-black hover:text-black backdrop-blur-md border border-white/20 transition-all z-10"
-                            >
-                                <ChevronLeft className="w-5 h-5" />
-                            </button>
-                            <button
-                                onClick={(e) => { e.stopPropagation(); setMobileIndex(p => (p + 1) % images.length); }}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white text-black hover:text-black backdrop-blur-md border border-white/20 transition-all z-10"
-                            >
-                                <ChevronRight className="w-5 h-5" />
-                            </button>
-                            <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white text-[10px] px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
-                                <Camera className="w-3.5 h-3.5" />
-                                <span className="font-bold tracking-widest">{mobileIndex + 1} / {images.length}</span>
-                            </div>
-                        </>
+                        <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white text-[10px] px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
+                            <Camera className="w-3.5 h-3.5" />
+                            <span className="font-bold tracking-widest">{mobileIndex + 1} / {images.length}</span>
+                        </div>
                     )}
                 </div>
 
                 {hasImages && images.length > 1 && (
-                    <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    <div className="flex gap-2 overflow-x-auto px-4 pb-2 no-scrollbar">
                         {images.map((img, i) => (
                             <button
                                 key={i}

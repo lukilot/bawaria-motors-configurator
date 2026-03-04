@@ -57,10 +57,7 @@ export function SiteHeader() {
                 isAdmin
                     ? "py-3 bg-white/80 backdrop-blur-xl border-b border-black/5 shadow-sm"
                     : isVdp
-                        ? cn(
-                            "py-3 backdrop-blur-2xl border-b md:bg-transparent md:border-transparent transition-all duration-700",
-                            isMSeries ? "bg-[#0a0a0a]/95 border-white/10" : "bg-white/90 border-black/5"
-                        )
+                        ? "py-3 bg-transparent border-transparent backdrop-blur-none border-b-0"
                         : isScrolled
                             ? "py-3 bg-white/70 backdrop-blur-2xl border-b border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
                             : "py-6 md:py-8 bg-transparent border-b border-transparent"
@@ -177,14 +174,14 @@ export function SiteHeader() {
                                     {isVdp && (
                                         <motion.button
                                             whileTap={{ scale: 0.9 }}
-                                            onClick={() => router.push('/garage')}
+                                            onClick={toggleGarage}
                                             className={cn(
                                                 "flex lg:hidden items-center justify-center w-12 h-12 rounded-full border transition-all shadow-xl absolute top-4 right-6",
                                                 isMSeries ? "bg-white text-black border-white" : "bg-black text-white border-black"
                                             )}
                                         >
                                             <div className="relative">
-                                                <Car className="w-5 h-5" />
+                                                <Warehouse className="w-5 h-5" />
                                                 {count > 0 && (
                                                     <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-blue-600 text-[9px] font-black text-white flex items-center justify-center border-2 border-white">
                                                         {count}
@@ -192,6 +189,73 @@ export function SiteHeader() {
                                                 )}
                                             </div>
                                         </motion.button>
+                                    )}
+
+                                    {/* Desktop: Back Button + VIN Selector on Left */}
+                                    {isVdp && (
+                                        <div className="hidden lg:flex items-center gap-6">
+                                            <button
+                                                onClick={() => {
+                                                    const lastSrp = sessionStorage.getItem('bawaria_last_srp');
+                                                    router.push(lastSrp || '/cars');
+                                                }}
+                                                className={cn(
+                                                    "flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors",
+                                                    isScrolled ? "text-gray-900" : isMSeries ? "text-white" : "text-gray-900"
+                                                )}
+                                            >
+                                                <ArrowLeft className="w-4 h-4" />
+                                                Wróć do listy
+                                            </button>
+
+                                            <div className="w-px h-6 bg-current opacity-10" />
+
+                                            {currentCar && (
+                                                <div className={cn(
+                                                    "flex items-center gap-3 px-4 py-2 rounded-full border transition-colors duration-500",
+                                                    isScrolled
+                                                        ? "bg-black/5 border-black/5"
+                                                        : isMSeries
+                                                            ? "bg-white/5 border-white/10"
+                                                            : "bg-black/5 border-black/5"
+                                                )}>
+                                                    {totalAvailable > 1 ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={cn(
+                                                                "text-[10px] font-bold uppercase tracking-wider",
+                                                                isScrolled ? "text-gray-900" : isMSeries ? "text-white" : "text-gray-900"
+                                                            )}>{totalAvailable} szt.</span>
+                                                            <div className={cn("w-px h-3 mx-1", isScrolled ? "bg-black/10" : isMSeries ? "bg-white/20" : "bg-black/10")} />
+                                                            <select
+                                                                value={currentCar.vin}
+                                                                onChange={(e) => router.push(`/cars/${e.target.value}`)}
+                                                                className={cn(
+                                                                    "text-[10px] font-mono bg-transparent border-none outline-none cursor-pointer transition-colors",
+                                                                    isScrolled
+                                                                        ? "text-gray-900 hover:text-blue-600"
+                                                                        : isMSeries
+                                                                            ? "text-white/80 hover:text-white"
+                                                                            : "text-gray-900 hover:text-blue-600"
+                                                                )}
+                                                            >
+                                                                <option value={currentCar.vin}>{currentCar.vin} (Obecny)</option>
+                                                                {siblings.filter(s => s.vin !== currentCar.vin).map(s => (
+                                                                    <option key={s.vin} value={s.vin} className="text-black">
+                                                                        {s.vin} {s.status_code > 190 ? '✅' : '⏳'}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                            <ChevronDown className={cn("w-3 h-3", isScrolled ? "text-gray-400" : isMSeries ? "text-white/40" : "text-gray-400")} />
+                                                        </div>
+                                                    ) : (
+                                                        <span className={cn(
+                                                            "text-[10px] font-mono tracking-wide",
+                                                            isScrolled ? "text-gray-500" : isMSeries ? "text-white/60" : "text-gray-900"
+                                                        )}>{currentCar.vin}</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </motion.div>
                             )}
@@ -225,56 +289,9 @@ export function SiteHeader() {
                             )}
                         </AnimatePresence>
 
-                        {/* VDP VIN Selector Integrated (Desktop) */}
-                        {isVdp && currentCar && (
-                            <div className={cn(
-                                "hidden lg:flex items-center gap-3 px-4 py-2 rounded-full border transition-colors duration-500",
-                                isScrolled
-                                    ? "bg-black/5 border-black/5"
-                                    : isMSeries
-                                        ? "bg-white/5 border-white/10"
-                                        : "bg-black/5 border-black/5"
-                            )}>
-                                {totalAvailable > 1 ? (
-                                    <div className="flex items-center gap-2">
-                                        <span className={cn(
-                                            "text-[10px] font-bold uppercase tracking-wider",
-                                            isScrolled ? "text-gray-900" : isMSeries ? "text-white" : "text-gray-900"
-                                        )}>{totalAvailable} szt.</span>
-                                        <div className={cn("w-px h-3 mx-1", isScrolled ? "bg-black/10" : isMSeries ? "bg-white/20" : "bg-black/10")} />
-                                        <select
-                                            value={currentCar.vin}
-                                            onChange={(e) => router.push(`/cars/${e.target.value}`)}
-                                            className={cn(
-                                                "text-[10px] font-mono bg-transparent border-none outline-none cursor-pointer transition-colors",
-                                                isScrolled
-                                                    ? "text-gray-900 hover:text-blue-600"
-                                                    : isMSeries
-                                                        ? "text-white/80 hover:text-white"
-                                                        : "text-gray-900 hover:text-blue-600"
-                                            )}
-                                        >
-                                            <option value={currentCar.vin}>{currentCar.vin} (Obecny)</option>
-                                            {siblings.filter(s => s.vin !== currentCar.vin).map(s => (
-                                                <option key={s.vin} value={s.vin} className="text-black">
-                                                    {s.vin} {s.status_code > 190 ? '✅' : '⏳'}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown className={cn("w-3 h-3", isScrolled ? "text-gray-400" : isMSeries ? "text-white/40" : "text-gray-400")} />
-                                    </div>
-                                ) : (
-                                    <span className={cn(
-                                        "text-[10px] font-mono tracking-wide",
-                                        isScrolled ? "text-gray-500" : isMSeries ? "text-white/60" : "text-gray-900"
-                                    )}>{currentCar.vin}</span>
-                                )}
-                            </div>
-                        )}
 
-                        {/* Right Actions */}
-                        <div className="flex items-center gap-3 md:gap-4">
-                            {/* Garage Trigger */}
+                        <div className="hidden lg:flex items-center gap-3 md:gap-4">
+                            {/* Garage Trigger (Hidden on Mobile VDP to avoid collision) */}
                             <button
                                 onClick={toggleGarage}
                                 className={cn(

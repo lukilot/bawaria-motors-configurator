@@ -457,10 +457,25 @@ const Modal = ({ isOpen, onClose, title, children, isDark }: { isOpen: boolean; 
                 </div>
 
                 {/* Content Area - Scrollable */}
-                <div className="p-10 overflow-y-auto w-full custom-scrollbar flex-1 overscroll-contain">
+                <div className="p-10 pb-32 overflow-y-auto w-full custom-scrollbar flex-1 overscroll-contain relative">
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200 fill-mode-both">
                         {children}
                     </div>
+                </div>
+
+                {/* Floating Save Button */}
+                <div className="absolute bottom-8 left-1/2 min-w-48 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+                    <button
+                        onClick={onClose}
+                        className={cn(
+                            "w-full px-8 py-4 rounded-full text-[11px] font-black uppercase tracking-[0.25em] transition-all shadow-2xl active:scale-95 whitespace-nowrap",
+                            isDark
+                                ? "bg-white text-black hover:bg-white/90 shadow-white/10"
+                                : "bg-black text-white hover:bg-black/90 shadow-black/20"
+                        )}
+                    >
+                        Zapisz i zamknij
+                    </button>
                 </div>
             </div>
         </div>,

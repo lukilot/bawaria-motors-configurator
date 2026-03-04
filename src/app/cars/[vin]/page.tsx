@@ -339,33 +339,36 @@ export default async function CarPage({ params }: PageProps) {
                         </div>
 
                         {/* RIGHT: Sticky Summary Section (Desktop Only) */}
-                        <div className="hidden lg:flex lg:w-[38%] lg:sticky lg:top-0 lg:h-screen lg:flex-col lg:justify-center py-12 lg:py-0">
-                            <div className="space-y-10">
+                        <div className="hidden lg:flex lg:w-[38%] lg:sticky lg:top-0 lg:h-screen lg:flex-col lg:justify-between py-12">
+                            {/* TOP: Identity & Status */}
+                            <div className="space-y-8">
                                 {/* Badges */}
                                 <div className="flex flex-wrap gap-4">
                                     {showReady && (
-                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+                                        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
                                             <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
                                             <span className="text-[10px] font-black uppercase tracking-widest text-green-600">Dostępny</span>
                                         </div>
                                     )}
                                     {totalAvailable > 1 && (
-                                        <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                                        <div className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
                                             <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">{totalAvailable} sztuki</span>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Title & Price */}
+                                {/* Title & Vin Selector */}
                                 <div className="space-y-4">
                                     <h1 className={cn("text-5xl lg:text-7xl font-bold tracking-tight leading-none", theme.text)}>
                                         {modelName}
                                     </h1>
                                     <VinSelector currentVin={car.vin} siblings={siblings} isDark={isMSeries} />
                                 </div>
+                            </div>
 
+                            {/* BOTTOM: Pricing & Action */}
+                            <div className="space-y-10">
                                 <DynamicPricingSection car={car} seriesCode={enrichedCar.body_group || ''} isDark={isMSeries} fuelType={enrichedCar.fuel_type} bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)} />
-
                                 <CarActionButtons car={enrichedCar} className="mt-4" />
                             </div>
                         </div>

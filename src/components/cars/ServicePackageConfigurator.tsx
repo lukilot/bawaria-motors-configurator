@@ -427,7 +427,7 @@ const Modal = ({ isOpen, onClose, title, children, isDark }: { isOpen: boolean; 
     if (!isOpen || !mounted) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center lg:p-4">
             {/* Background Backdrop with improved blur for that Glass-on-Glass feel */}
             <div
                 className="fixed inset-0 bg-black/80 backdrop-blur-xl transition-all duration-500 animate-in fade-in"
@@ -436,42 +436,42 @@ const Modal = ({ isOpen, onClose, title, children, isDark }: { isOpen: boolean; 
 
             {/* Centered Modal Container - Escape all parent containers */}
             <div className={cn(
-                "relative my-auto shadow-[0_35px_100px_-15px_rgba(0,0,0,0.6)] w-full max-w-4xl max-h-[85dvh] flex flex-col overflow-hidden rounded-[2.5rem] border transition-all duration-700 animate-in fade-in zoom-in slide-in-from-bottom-5",
-                isDark ? "bg-[#111111]/95 border-white/10" : "bg-white/95 border-black/[0.03]"
+                "relative my-auto shadow-[0_35px_100px_-15px_rgba(0,0,0,0.6)] w-full max-w-4xl h-[100dvh] lg:h-auto lg:max-h-[85dvh] flex flex-col overflow-hidden rounded-none lg:rounded-[2.5rem] border-0 lg:border transition-all duration-700 animate-in fade-in zoom-in slide-in-from-bottom-5",
+                isDark ? "bg-[#111111]/95 lg:border-white/10" : "bg-white/95 lg:border-black/[0.03]"
             )}>
                 {/* Header - Fixed height */}
                 <div className={cn(
-                    "flex justify-between items-center px-10 py-8 border-b shrink-0",
+                    "flex justify-between items-center px-6 lg:px-10 py-6 lg:py-8 border-b shrink-0",
                     isDark ? "border-white/10 bg-white/5" : "border-black/[0.03] bg-black/[0.01]"
                 )}>
-                    <h3 className={cn("text-base font-black uppercase tracking-[0.4em]", isDark ? "text-white" : "text-black")}>{title}</h3>
+                    <h3 className={cn("text-xs lg:text-base font-black uppercase tracking-[0.4em]", isDark ? "text-white" : "text-black")}>{title}</h3>
                     <button
                         onClick={onClose}
                         className={cn(
-                            "w-12 h-12 flex items-center justify-center rounded-full transition-all active:scale-90",
+                            "w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-full transition-all active:scale-90 shrink-0 ml-4",
                             isDark ? "bg-white/10 hover:bg-white/20 text-white" : "bg-black/5 hover:bg-black/10 text-black"
                         )}
                     >
-                        <X className="w-6 h-6" />
+                        <X className="w-5 h-5 lg:w-6 lg:h-6" />
                     </button>
                 </div>
 
                 {/* Content Area - Scrollable */}
-                <div className="p-10 pb-32 overflow-y-auto w-full custom-scrollbar flex-1 overscroll-contain relative">
+                <div className="p-6 lg:p-10 pb-56 lg:pb-32 overflow-y-auto w-full custom-scrollbar flex-1 overscroll-contain relative">
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200 fill-mode-both">
                         {children}
                     </div>
                 </div>
 
                 {/* Floating Save Button */}
-                <div className="absolute bottom-8 left-1/2 min-w-48 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+                <div className="absolute bottom-32 lg:bottom-8 left-1/2 min-w-[200px] lg:min-w-48 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
                     <button
                         onClick={onClose}
                         className={cn(
-                            "w-full px-8 py-4 rounded-full text-[11px] font-black uppercase tracking-[0.25em] transition-all shadow-2xl active:scale-95 whitespace-nowrap",
+                            "w-full px-6 lg:px-8 py-4 rounded-full text-[10px] lg:text-[11px] font-black uppercase tracking-[0.25em] transition-all shadow-2xl active:scale-95 whitespace-nowrap",
                             isDark
-                                ? "bg-white text-black hover:bg-white/90 shadow-white/10"
-                                : "bg-black text-white hover:bg-black/90 shadow-black/20"
+                                ? "bg-white text-black hover:bg-white/90 shadow-white/10 border-2 border-transparent"
+                                : "bg-black text-white hover:bg-black/90 shadow-black/20 border-2 border-transparent"
                         )}
                     >
                         Zapisz i zamknij

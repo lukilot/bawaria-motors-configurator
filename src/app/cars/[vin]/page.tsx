@@ -171,6 +171,7 @@ export default async function CarPage({ params }: PageProps) {
     const isIdentical = (a: any, b: any) => {
         if (a.model_code !== b.model_code) return false;
         if (a.color_code !== b.color_code) return false;
+        if (a.color_code === '490' && a.individual_color !== b.individual_color) return false;
         if (a.upholstery_code !== b.upholstery_code) return false;
         const yA = (a.production_date || '').substring(0, 4);
         const yB = (b.production_date || '').substring(0, 4);
@@ -278,7 +279,9 @@ export default async function CarPage({ params }: PageProps) {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {variants.map(v => {
-                                            const vColor = dictionaries.color[v.color_code || '']?.name || v.color_code;
+                                            const vColor = v.color_code === '490'
+                                                ? (dictionaries.color[v.individual_color || '']?.name || v.individual_color || 'BMW Individual')
+                                                : (dictionaries.color[v.color_code || '']?.name || v.color_code);
                                             const vUpholstery = dictionaries.upholstery[v.upholstery_code || '']?.name || v.upholstery_code;
                                             const exteriorImg = v.images?.[0]?.url;
                                             const interiorImg = v.images && v.images.length > 0 ? v.images[v.images.length - 1]?.url : undefined;

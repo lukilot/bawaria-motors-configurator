@@ -156,7 +156,8 @@ export async function getCarVariants(currentCar: StockCar): Promise<StockCar[]> 
     const groupedVariants = new Map<string, StockCar[]>();
 
     sameSpecCars.forEach(car => {
-        const key = `${car.color_code}|${car.upholstery_code}`;
+        const realColor = car.color_code === '490' ? `490-${car.individual_color}` : car.color_code;
+        const key = `${realColor}|${car.upholstery_code}`;
         if (!groupedVariants.has(key)) {
             groupedVariants.set(key, []);
         }
@@ -164,7 +165,8 @@ export async function getCarVariants(currentCar: StockCar): Promise<StockCar[]> 
     });
 
     // Remove the current car's configuration group
-    const currentConfigKey = `${currentCar.color_code}|${currentCar.upholstery_code}`;
+    const currentRealColor = currentCar.color_code === '490' ? `490-${currentCar.individual_color}` : currentCar.color_code;
+    const currentConfigKey = `${currentRealColor}|${currentCar.upholstery_code}`;
     groupedVariants.delete(currentConfigKey);
 
     // Return representatives for other configs

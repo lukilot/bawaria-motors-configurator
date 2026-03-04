@@ -339,7 +339,7 @@ export default async function CarPage({ params }: PageProps) {
                         </div>
 
                         {/* RIGHT: Sticky Summary Section (Desktop Only) */}
-                        <div className="hidden lg:flex lg:w-[38%] lg:sticky lg:top-24 lg:h-auto lg:flex-col lg:justify-start gap-y-28 pt-0 pb-12 overflow-y-auto no-scrollbar">
+                        <div className="hidden lg:flex lg:w-[38%] lg:sticky lg:top-24 lg:h-[calc(100vh-160px)] lg:flex-col lg:justify-start pt-0 pb-12 overflow-y-auto no-scrollbar">
                             {/* TOP: Identity & Status */}
                             <div className="space-y-6">
                                 {/* Badges */}
@@ -366,7 +366,10 @@ export default async function CarPage({ params }: PageProps) {
                                 </div>
                             </div>
 
-                            {/* BOTTOM: Pricing & Action (Fixed 112px gap from Top for perfect balance) */}
+                            {/* Controlled Dynamic Spacer: Distinct gap, but strictly limited to avoid extreme separation */}
+                            <div className="h-[15vh] min-h-[100px] max-h-[250px]" />
+
+                            {/* BOTTOM: Pricing & Action */}
                             <div className="space-y-6">
                                 <DynamicPricingSection car={car} seriesCode={enrichedCar.body_group || ''} isDark={isMSeries} fuelType={enrichedCar.fuel_type} bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)} />
                                 <CarActionButtons car={enrichedCar} />

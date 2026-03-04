@@ -53,7 +53,10 @@ export function SiteHeader() {
                 isAdmin
                     ? "py-3 bg-white/80 backdrop-blur-xl border-b border-black/5 shadow-sm"
                     : isVdp
-                        ? "py-3 bg-white/80 backdrop-blur-xl border-b border-black/5 md:bg-transparent md:border-transparent"
+                        ? cn(
+                            "py-3 backdrop-blur-2xl border-b md:bg-transparent md:border-transparent transition-all duration-700",
+                            isMSeries ? "bg-[#0a0a0a]/95 border-white/10" : "bg-white/90 border-black/5"
+                        )
                         : isScrolled
                             ? "py-3 bg-white/70 backdrop-blur-2xl border-b border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
                             : "py-6 md:py-8 bg-transparent border-b border-transparent"
@@ -140,34 +143,50 @@ export function SiteHeader() {
                     <>
                         {/* Left Area: Logo or Back Button */}
                         <div className="flex items-center gap-4">
-                            <AnimatePresence mode="wait">
-                                {isVdp ? (
+                            {/* VDP Model Info (Mobile Only: Capsule Design) */}
+                            {isVdp && currentCar && (
+                                <div className={cn(
+                                    "flex lg:hidden items-center gap-3 pl-1.5 pr-4 py-1.5 rounded-full border transition-all max-w-[220px] sm:max-w-xs",
+                                    isMSeries ? "bg-white/5 border-white/10" : "bg-black/5 border-black/5"
+                                )}>
                                     <motion.button
-                                        key="back-btn"
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: -10 }}
+                                        whileTap={{ scale: 0.9 }}
                                         onClick={() => {
                                             const lastSrp = sessionStorage.getItem('bawaria_last_srp');
-                                            if (lastSrp) {
-                                                router.push(lastSrp);
-                                            } else {
-                                                router.push('/cars');
-                                            }
+                                            router.push(lastSrp || '/cars');
                                         }}
                                         className={cn(
-                                            "flex items-center gap-2 px-3 py-2 rounded-full transition-all text-[10px] font-bold uppercase tracking-widest group",
-                                            isScrolled || isVdp
-                                                ? "bg-black/5 text-gray-900 hover:bg-black hover:text-white"
-                                                : isMSeries
-                                                    ? "bg-white/10 text-white hover:bg-white hover:text-black border border-white/10"
-                                                    : "bg-black/5 text-gray-900 hover:bg-black hover:text-white"
+                                            "flex items-center justify-center w-8 h-8 rounded-full border transition-all shadow-sm",
+                                            isMSeries ? "bg-white text-black border-white" : "bg-black text-white border-black"
                                         )}
                                     >
-                                        <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
-                                        <span className="hidden sm:inline">Wróć</span>
+                                        <ArrowLeft className="w-4 h-4" />
                                     </motion.button>
-                                ) : (
+
+                                    <div className="flex flex-col min-w-0">
+                                        <h2 className={cn(
+                                            "text-[13px] font-black tracking-tight truncate leading-none mb-0.5",
+                                            isMSeries ? "text-white" : "text-black"
+                                        )}>
+                                            {currentCar.model_name || `BMW ${currentCar.model_code}`}
+                                        </h2>
+                                        <div className="flex items-center gap-1.5 min-w-0">
+                                            {(currentCar.status_code > 190) && (
+                                                <span className="shrink-0 w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+                                            )}
+                                            <span className={cn(
+                                                "text-[8px] font-bold uppercase tracking-widest truncate opacity-50",
+                                                isMSeries ? "text-white/70" : "text-black/60"
+                                            )}>
+                                                {currentCar.status_code > 190 ? 'Dostępny od ręki' : 'W ofercie'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <AnimatePresence mode="wait">
+                                {isVdp ? null : (
                                     <motion.div
                                         key="logo"
                                         initial={{ opacity: 0 }}
@@ -193,29 +212,6 @@ export function SiteHeader() {
                                     </motion.div>
                                 )}
                             </AnimatePresence>
-
-                            {/* VDP Model Info (Mobile Only) */}
-                            {isVdp && currentCar && (
-                                <div className="flex lg:hidden flex-col min-w-0 max-w-[140px] md:max-w-xs transition-all">
-                                    <h2 className={cn(
-                                        "text-sm font-black tracking-tight truncate leading-none mb-0.5",
-                                        isMSeries && !isScrolled ? "text-white" : "text-black"
-                                    )}>
-                                        {currentCar.model_name || `BMW ${currentCar.model_code}`}
-                                    </h2>
-                                    <div className="flex items-center gap-1.5 min-w-0">
-                                        {(currentCar.status_code > 190) && (
-                                            <span className="shrink-0 w-1 h-1 rounded-full bg-green-500 animate-pulse" />
-                                        )}
-                                        <span className={cn(
-                                            "text-[8px] font-bold uppercase tracking-widest truncate opacity-60",
-                                            isMSeries && !isScrolled ? "text-white/60" : "text-black/60"
-                                        )}>
-                                            {currentCar.status_code > 190 ? 'Dostępny od ręki' : 'W ofercie'}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
 
                             {/* VDP VIN Selector Integrated (Desktop) */}
                             {isVdp && currentCar && (

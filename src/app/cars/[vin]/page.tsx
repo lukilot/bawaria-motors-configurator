@@ -16,6 +16,8 @@ import { BMWIndividualBadge } from '@/components/cars/BMWIndividualBadge';
 import { getModelAttributes } from '@/lib/model-attributes';
 import { CarActionButtons } from '@/components/cars/CarActionButtons';
 import { VdpStoreInit } from '@/components/cars/VdpStoreInit';
+import { ServicePackageConfiguratorSection } from '@/components/cars/ServicePackageConfiguratorSection';
+import { MobileStickyFooter } from '@/components/cars/MobileStickyFooter';
 
 export const revalidate = 60;
 
@@ -289,22 +291,35 @@ export default async function CarPage({ params }: PageProps) {
     };
 
     return (
-        <main className={cn("min-h-screen font-sans pb-24 pt-12 transition-colors duration-500", theme.bg, theme.text)}>
-            {/* Back Button - Floating for Mobile Only (User requested) */}
-            <div className="fixed top-6 left-6 z-[100] lg:hidden">
-                <BackButton
-                    label=""
-                    className={cn(
-                        "flex items-center justify-center w-10 h-10 rounded-full border shadow-xl backdrop-blur-xl transition-all active:scale-95",
-                        isMSeries
-                            ? "bg-white/10 border-white/10 text-white"
-                            : "bg-white/80 border-black/[0.03] text-black"
-                    )}
-                />
+        <main className={cn("min-h-screen font-sans pb-32 pt-12 lg:pt-12 transition-colors duration-500", theme.bg, theme.text)}>
+            {/* MOBILE: Sticky Header */}
+            <div className={cn(
+                "fixed top-0 left-0 right-0 z-[100] lg:hidden border-b px-6 py-4 backdrop-blur-2xl transition-all duration-500",
+                isMSeries ? "bg-[#0f0f0f]/80 border-white/10" : "bg-white/80 border-black/5"
+            )}>
+                <div className="flex items-center gap-4">
+                    <BackButton
+                        label=""
+                        className={cn(
+                            "flex items-center justify-center w-10 h-10 rounded-full border transition-all active:scale-95",
+                            isMSeries ? "bg-white/5 border-white/10 text-white" : "bg-black/5 border-black/5 text-black"
+                        )}
+                    />
+                    <div className="flex flex-col min-w-0">
+                        <h2 className="text-xl font-black tracking-tight truncate leading-none mb-1">{modelName}</h2>
+                        <div className="flex items-center gap-2">
+                            {showReady && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
+                            <span className="text-[9px] font-black uppercase tracking-widest opacity-40">
+                                {showReady ? 'Dostępny od ręki' : showSold ? 'Sprzedany' : 'W ofercie'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
+
             <VdpStoreInit car={enrichedCar} siblings={siblings} />
 
-            <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 px-6 pt-8">
+            <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 px-6 pt-12 lg:pt-8">
 
                 {/* LEFT: Gallery + Specs + Options */}
                 <div className="lg:col-span-8">
@@ -316,9 +331,80 @@ export default async function CarPage({ params }: PageProps) {
                         isElectric={isElectric && !isMSeries}
                     />
 
-                    {/* Specs Section - Visible on all devices on the left now */}
-                    <div className={cn("mt-16 space-y-px border-t pt-10", theme.border)}>
-                        <SpecsAccordion title="Dane techniczne" className={theme.border} titleClassName={theme.accordionTitle}>
+                    {/* Car Variants (Config Twins) - Moved between Gallery and Specs for better exposure */}
+                    {variants.length > 0 && (
+                        <div className={cn("mt-12", theme.border)}>
+                            <div className="flex items-center gap-3 mb-10">
+                                <h3 className="text-[11px] text-gray-400 uppercase tracking-[0.4em] font-bold">Inna kolorystyka</h3>
+                                <div className="h-px flex-1 bg-current opacity-10" />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {variants.map(v => {
+                                    const vColor = dictionaries.color[v.color_code || '']?.name || v.color_code;
+                                    const vUpholstery = dictionaries.upholstery[v.upholstery_code || '']?.name || v.upholstery_code;
+
+                                    const exteriorImg = v.images?.[0]?.url;
+                                    const interiorImg = v.images && v.images.length > 0 ? v.images[v.images.length - 1]?.url : undefined;
+
+                                    return (
+                                        <Link
+                                            key={v.vin}
+                                            replace
+                                            href={`/cars/${v.vin}`}
+                                            className={cn(
+                                                "group flex flex-col gap-4 p-4 rounded-3xl border transition-all hover:shadow-2xl hover:scale-[1.01]",
+                                                isMSeries ? "bg-white/5 border-white/10 hover:bg-white/10" : "bg-white border-black/[0.03] hover:border-black/10"
+                                            )}
+                                        >
+                                            {/* Image Composite - Side-by-Side Duo Split */}
+                                            <div className="relative aspect-[21/9] w-full shrink-0 flex overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
+                                                {/* Exterior (Left 50%) */}
+                                                <div className="w-1/2 h-full bg-white relative overflow-hidden">
+                                                    {exteriorImg ? (
+                                                        <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-gray-100" />
+                                                    )}
+                                                    <div className="absolute right-0 inset-y-0 w-px bg-black/[0.1] z-10" />
+                                                </div>
+
+                                                {/* Interior (Right 50%) */}
+                                                <div className="w-1/2 h-full bg-gray-50 relative overflow-hidden">
+                                                    {interiorImg ? (
+                                                        <img src={interiorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-gray-200" />
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Text Info */}
+                                            <div className="flex flex-col min-w-0">
+                                                <span className={cn(
+                                                    "text-[10px] font-black uppercase tracking-[0.1em] truncate mb-0.5",
+                                                    isMSeries ? "text-gray-100" : "text-gray-900"
+                                                )}>
+                                                    {vColor}
+                                                </span>
+                                                <span className="text-[9px] text-gray-400 uppercase font-bold tracking-widest truncate">
+                                                    {vUpholstery}
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Specs Section - Unified Technical Base */}
+                    <div className={cn("mt-12 space-y-px", theme.border)}>
+                        <div className="flex items-center gap-3 mb-10">
+                            <h3 className="text-[11px] text-gray-400 uppercase tracking-[0.4em] font-bold">Dane techniczne i specyfikacja</h3>
+                            <div className="h-px flex-1 bg-current opacity-10" />
+                        </div>
+
+                        <SpecsAccordion title="Osiągi i Napęd" className={theme.border} titleClassName={theme.accordionTitle}>
                             <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
                                 <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
                                     <span>Moc</span>
@@ -383,84 +469,30 @@ export default async function CarPage({ params }: PageProps) {
                                     <span className="opacity-40 uppercase text-[9px] font-black tracking-widest">Tapicerka</span>
                                     <span className={cn("font-bold uppercase text-[11px] tracking-wider", isMSeries ? "text-white" : "text-black")}>{upholsteryName}</span>
                                 </div>
+                                <div className={cn("flex justify-between py-4 items-center border-b last:border-0", isMSeries ? "border-gray-800" : "border-gray-100")}>
+                                    <span className="opacity-40 uppercase text-[9px] font-black tracking-widest">Numer VIN</span>
+                                    <span className={cn("font-mono font-bold uppercase text-[10px] tracking-widest", isMSeries ? "text-white" : "text-black")}>{car.vin}</span>
+                                </div>
                             </div>
                         </SpecsAccordion>
                     </div>
 
-                    {/* Car Variants (Config Twins) - BMW OS X Style - Moved to Left for better hierarchy */}
-                    {variants.length > 0 && (
-                        <div className={cn("mt-16 pt-10 border-t", theme.border)}>
-                            <div className="flex items-center gap-3 mb-8">
-                                <h3 className="text-[11px] text-gray-400 uppercase tracking-[0.4em] font-bold">Inna kolorystyka</h3>
-                                <div className="h-px flex-1 bg-current opacity-10" />
-                            </div>
-                            <div className="flex flex-col gap-4">
-                                {variants.map(v => {
-                                    const vColor = dictionaries.color[v.color_code || '']?.name || v.color_code;
-                                    const vUpholstery = dictionaries.upholstery[v.upholstery_code || '']?.name || v.upholstery_code;
+                    {/* Service Package Configurator - Moved here from sidebar */}
+                    <ServicePackageConfiguratorSection
+                        car={car}
+                        seriesCode={enrichedCar.body_group || ''}
+                        isDark={isMSeries}
+                        fuelType={enrichedCar.fuel_type}
+                    />
 
-                                    const exteriorImg = v.images?.[0]?.url;
-                                    const interiorImg = v.images && v.images.length > 0 ? v.images[v.images.length - 1]?.url : undefined;
-
-                                    return (
-                                        <Link
-                                            key={v.vin}
-                                            replace
-                                            href={`/cars/${v.vin}`}
-                                            className={cn(
-                                                "group flex items-center gap-6 p-1 rounded-2xl transition-all hover:bg-black/[0.02]",
-                                                isMSeries ? "hover:bg-white/5" : ""
-                                            )}
-                                        >
-                                            {/* Image Composite - Side-by-Side Duo Split */}
-                                            <div className="relative w-80 h-28 shrink-0 flex overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
-                                                {/* Exterior (Left 50%) */}
-                                                <div className="w-1/2 h-full bg-white relative overflow-hidden">
-                                                    {exteriorImg ? (
-                                                        <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                    ) : (
-                                                        <div className="w-full h-full bg-gray-100" />
-                                                    )}
-                                                    <div className="absolute right-0 inset-y-0 w-px bg-black/[0.1] z-10" />
-                                                </div>
-
-                                                {/* Interior (Right 50%) */}
-                                                <div className="w-1/2 h-full bg-gray-50 relative overflow-hidden">
-                                                    {interiorImg ? (
-                                                        <img src={interiorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                    ) : (
-                                                        <div className="w-full h-full bg-gray-200" />
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Text Info */}
-                                            <div className="flex flex-col min-w-0 pr-4">
-                                                <span className={cn(
-                                                    "text-[10px] font-bold uppercase tracking-[0.1em] truncate mb-0.5",
-                                                    isMSeries ? "text-gray-100" : "text-gray-900"
-                                                )}>
-                                                    {vColor}
-                                                </span>
-                                                <span className="text-[9px] text-gray-400 uppercase tracking-widest truncate">
-                                                    {vUpholstery}
-                                                </span>
-                                            </div>
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Options List - Integrated into main content (No Scroll) - No redundant header here as OptionsList internal header is more detailed */}
-                    <div className="mt-20 pt-16 border-t border-black/[0.03]">
+                    {/* Options List - Performance & Equipment */}
+                    <div className="mt-12">
                         <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} isElectric={isElectric && !isMSeries} />
                     </div>
                 </div>
 
                 {/* RIGHT: Info Summary & Sticky Sidebar (Price & Call to Actions) */}
-                <div className="lg:col-span-4 lg:relative">
+                <div className="hidden lg:block lg:col-span-4 lg:relative">
                     <div className="lg:sticky lg:top-28 space-y-8 pb-12 pt-4 lg:pt-0">
 
                         {/* Status Badges */}
@@ -517,6 +549,13 @@ export default async function CarPage({ params }: PageProps) {
                     </div>
                 </div>
             </div>
+
+            {/* MOBILE: Sticky Footer */}
+            <MobileStickyFooter
+                car={car}
+                isDark={isMSeries}
+                bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)}
+            />
         </main>
     );
 }

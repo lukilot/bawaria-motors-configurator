@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
-import { ServicePackageConfigurator } from './ServicePackageConfigurator';
 import { ContactOverlay } from './ContactOverlay';
+import { useVdpStore } from '@/store/vdpStore';
 
 interface DynamicPricingSectionProps {
     car: StockCar;
@@ -15,9 +15,7 @@ interface DynamicPricingSectionProps {
 }
 
 export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelType, bulletinDiscountedPrice }: DynamicPricingSectionProps) {
-    // State for additional costs from service packages
-    const [additionalCost, setAdditionalCost] = useState(0);
-    const [selectedServiceCodes, setSelectedServiceCodes] = useState<string[]>([]);
+    const { additionalCost } = useVdpStore();
     const [isContactOpen, setIsContactOpen] = useState(false);
 
     const formatPrice = (price: number) =>
@@ -26,7 +24,6 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
     const isSold = (car.order_status || '').includes('Sprzedany');
 
     // Calculate final displayed price
-    // Priority: manual special_price > bulletin discount > list_price
     const hasManualDiscount = car.special_price && car.special_price < car.list_price;
     const hasBulletinDiscount = !hasManualDiscount && bulletinDiscountedPrice && bulletinDiscountedPrice < car.list_price;
     const basePrice = hasManualDiscount ? car.special_price! : hasBulletinDiscount ? bulletinDiscountedPrice! : car.list_price;
@@ -39,16 +36,6 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
 
     return (
         <div className="space-y-10">
-            {/* Service Configurator */}
-            <ServicePackageConfigurator
-                currentCodes={car.option_codes}
-                seriesCode={seriesCode}
-                fuelType={fuelType || car.fuel_type}
-                onPriceUpdate={setAdditionalCost}
-                onSelectionChange={setSelectedServiceCodes}
-                isDark={isDark}
-            />
-
             {/* Price Card - Premium Glassmorphism */}
             <div className={cn(
                 "p-8 rounded-3xl border shadow-xl transition-all duration-700 backdrop-blur-md",
@@ -97,9 +84,12 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
                         )}
 
                         {additionalCost > 0 && (
-                            <span className={cn("text-[10px] font-bold uppercase tracking-widest opacity-40 mt-1", isDark ? "text-white" : "text-black")}>
-                                + wybrane pakiety: {formatPrice(additionalCost)}
-                            </span>
+                            <div className="flex items-center gap-1.5 mt-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                <span className={cn("text-[10px] font-black uppercase tracking-[0.15em]", isDark ? "text-blue-400" : "text-blue-600")}>
+                                    Uwzględnia pakiety o wartości: +{formatPrice(additionalCost)}
+                                </span>
+                            </div>
                         )}
                     </div>
                 )}

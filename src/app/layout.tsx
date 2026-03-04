@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { GarageDrawer } from '@/components/layout/GarageDrawer';
 import { InitialPreloader } from '@/components/layout/InitialPreloader';
@@ -8,8 +8,8 @@ import { CompareModal } from '@/components/cars/CompareModal';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { IntroOverlay } from '@/components/cars/IntroOverlay';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <IntroOverlay />
         <SiteHeader />

@@ -504,7 +504,6 @@ export default async function CarPage({ params }: PageProps) {
                                                             }}
                                                         />
                                                     </div>
-                                                    streams of the interior view are now fully visible and the exterior car is perfectly framed. The diagonal split adds a dynamic, premium tech vibe.
 
                                                     {/* Text Info */}
                                                     <div className="flex flex-col min-w-0 pr-4">

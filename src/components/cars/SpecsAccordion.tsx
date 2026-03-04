@@ -22,8 +22,8 @@ export function SpecsAccordion({ title, defaultOpen = false, children, className
                 className="flex items-center justify-between w-full py-7 group text-left px-2 rounded-2xl hover:bg-black/[0.01] transition-all"
             >
                 <span className={cn(
-                    "text-[10px] font-black uppercase tracking-[0.3em] text-gray-900 transition-all",
-                    isOpen ? "opacity-100" : "opacity-40",
+                    "text-xs font-bold uppercase tracking-[0.2em] text-gray-900 transition-all",
+                    isOpen ? "opacity-100" : "opacity-60",
                     titleClassName
                 )}>
                     {title}

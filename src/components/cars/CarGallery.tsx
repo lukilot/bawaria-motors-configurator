@@ -38,7 +38,7 @@ export function CarGallery({ modelName, images = [], isDark = false, isElectric 
                         "relative aspect-[16/9] overflow-hidden cursor-zoom-in",
                         isDark ? "bg-[#0f0f0f]" : "bg-gray-50"
                     )}
-                    onClick={() => hasImages && openLightbox(mobileIndex)}
+                    onClick={() => openLightbox(mobileIndex)}
                 >
                     {hasImages ? (
                         <img
@@ -118,7 +118,7 @@ export function CarGallery({ modelName, images = [], isDark = false, isElectric 
                         isDark ? "bg-[#0f0f0f]" : "bg-gray-50"
                     )}
                     style={{ aspectRatio: '16/7' }}
-                    onClick={() => hasImages && openLightbox(0)}
+                    onClick={() => openLightbox(0)}
                 >
                     {hasImages ? (
                         <>
@@ -221,7 +221,7 @@ export function CarGallery({ modelName, images = [], isDark = false, isElectric 
             <FullScreenGallery
                 isOpen={isFullScreen}
                 initialIndex={lightboxIndex}
-                images={images}
+                images={hasImages ? images : [{ url: '/images/car-cover.png', sort_order: 0 }]}
                 onClose={() => setIsFullScreen(false)}
             />
         </>

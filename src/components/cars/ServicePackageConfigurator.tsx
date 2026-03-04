@@ -334,30 +334,69 @@ export function ServicePackageConfigurator({
             </Modal>
 
             <Modal isOpen={isBsiModalOpen} onClose={() => setIsBsiModalOpen(false)} title="Serwisowanie BMW (BSI)" isDark={isDark}>
-                <div className="space-y-10">
-                    <div>
-                        <div className="flex items-center gap-4 mb-6">
-                            <h4 className={cn("text-xs font-black uppercase tracking-[0.3em]", isDark ? "text-blue-400" : "text-blue-600")}>Service Inclusive</h4>
-                            <div className={cn("h-px flex-1", isDark ? "bg-white/10" : "bg-black/5")} />
+                <div className="space-y-12">
+                    {/* BSI vs BSI Plus Comparison Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className={cn(
+                            "p-6 rounded-[1.5rem] border",
+                            isDark ? "bg-blue-500/5 border-blue-500/10" : "bg-blue-50 border-blue-100"
+                        )}>
+                            <div className="flex items-center gap-2 mb-4">
+                                <Wrench className="w-5 h-5 text-blue-500" />
+                                <h5 className={cn("text-[11px] font-black uppercase tracking-[0.2em]", isDark ? "text-blue-400" : "text-blue-600")}>Service Inclusive</h5>
+                            </div>
+                            <ul className={cn("text-[10px] font-bold uppercase tracking-widest leading-loose", isDark ? "text-blue-100/60" : "text-blue-900/60")}>
+                                <li>• Serwis olejowy</li>
+                                <li>• Filtry: powietrza, mikrofiltry</li>
+                                <li>• Świece zapłonowe / Filtr paliwa</li>
+                                <li>• Płyn hamulcowy</li>
+                                <li>• Kontrola pojazdu + robocizna</li>
+                            </ul>
                         </div>
-                        <div className="flex flex-wrap gap-4 justify-start">
-                            {/* Allow deselection/standard for BSI if base is also 0/null */}
-                            {!baseBsi && renderCompactTile(null, selectedBsi, undefined, baseBsiPrice, (c) => { setSelectedBsi(c); })}
-                            {bsiPackages.map(pkg => renderCompactTile(pkg, selectedBsi, baseBsi?.code, baseBsiPrice, (c) => { setSelectedBsi(c); }))}
+                        <div className={cn(
+                            "p-6 rounded-[1.5rem] border",
+                            isDark ? "bg-purple-500/5 border-purple-500/10" : "bg-purple-50 border-purple-100"
+                        )}>
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-5 h-5 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                                </div>
+                                <h5 className={cn("text-[11px] font-black uppercase tracking-[0.2em]", isDark ? "text-purple-400" : "text-purple-600")}>Service Inclusive Plus</h5>
+                            </div>
+                            <p className={cn("text-[10px] font-black uppercase tracking-widest mb-3", isDark ? "text-purple-300" : "text-purple-900")}>Wszystko z pakietu BSI PLUS:</p>
+                            <ul className={cn("text-[10px] font-bold uppercase tracking-widest leading-loose", isDark ? "text-purple-100/60" : "text-purple-900/60")}>
+                                <li>• Klocki i tarcze hamulcowe (przód/tył)</li>
+                                <li>• Sprzęgło (w razie zużycia)</li>
+                                <li>• Pióra wycieraczek (raz w roku)</li>
+                            </ul>
                         </div>
                     </div>
 
-                    {bsiPlusPackages.length > 0 && (
+                    <div className="space-y-10">
                         <div>
                             <div className="flex items-center gap-4 mb-6">
-                                <h4 className={cn("text-xs font-black uppercase tracking-[0.3em]", isDark ? "text-purple-400" : "text-purple-600")}>Service Inclusive Plus</h4>
+                                <h4 className={cn("text-xs font-black uppercase tracking-[0.3em]", isDark ? "text-blue-400" : "text-blue-600")}>Service Inclusive</h4>
                                 <div className={cn("h-px flex-1", isDark ? "bg-white/10" : "bg-black/5")} />
                             </div>
                             <div className="flex flex-wrap gap-4 justify-start">
-                                {bsiPlusPackages.map(pkg => renderCompactTile(pkg, selectedBsi, baseBsi?.code, baseBsiPrice, (c) => { setSelectedBsi(c); }))}
+                                {/* Allow deselection/standard for BSI if base is also 0/null */}
+                                {!baseBsi && renderCompactTile(null, selectedBsi, undefined, baseBsiPrice, (c) => { setSelectedBsi(c); })}
+                                {bsiPackages.map(pkg => renderCompactTile(pkg, selectedBsi, baseBsi?.code, baseBsiPrice, (c) => { setSelectedBsi(c); }))}
                             </div>
                         </div>
-                    )}
+
+                        {bsiPlusPackages.length > 0 && (
+                            <div>
+                                <div className="flex items-center gap-4 mb-6">
+                                    <h4 className={cn("text-xs font-black uppercase tracking-[0.3em]", isDark ? "text-purple-400" : "text-purple-600")}>Service Inclusive Plus</h4>
+                                    <div className={cn("h-px flex-1", isDark ? "bg-white/10" : "bg-black/5")} />
+                                </div>
+                                <div className="flex flex-wrap gap-4 justify-start">
+                                    {bsiPlusPackages.map(pkg => renderCompactTile(pkg, selectedBsi, baseBsi?.code, baseBsiPrice, (c) => { setSelectedBsi(c); }))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </Modal>
         </div>

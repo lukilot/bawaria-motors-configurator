@@ -470,35 +470,53 @@ export default async function CarPage({ params }: PageProps) {
                                                     )}
                                                 >
                                                     {/* Image Composite - BMW OS X Inspired Trapezoids */}
-                                                    <div className="relative w-32 h-24 shrink-0">
+                                                    <div className="relative w-40 h-28 shrink-0">
                                                         {/* Interior (Back) */}
                                                         <div
-                                                            className="absolute bottom-0 right-0 w-[80%] h-[90%] overflow-hidden bg-gray-100 shadow-sm border border-white/10"
+                                                            className="absolute bottom-1 right-2 w-[75%] h-[85%] bg-white/20 p-[1px]"
                                                             style={{
                                                                 clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
                                                                 WebkitClipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
-                                                                transform: 'translateX(10px)'
+                                                                filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.5))'
                                                             }}
                                                         >
-                                                            {interiorImg ? (
-                                                                <img src={interiorImg} alt="" className="w-full h-full object-cover transition-all group-hover:scale-110" />
-                                                            ) : (
-                                                                <div className="w-full h-full bg-gray-200" />
-                                                            )}
+                                                            <div
+                                                                className="w-full h-full overflow-hidden bg-black/40"
+                                                                style={{
+                                                                    clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
+                                                                    WebkitClipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)'
+                                                                }}
+                                                            >
+                                                                {interiorImg ? (
+                                                                    <img src={interiorImg} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
+                                                                ) : (
+                                                                    <div className="w-full h-full bg-gray-200" />
+                                                                )}
+                                                            </div>
                                                         </div>
+
                                                         {/* Exterior (Front) */}
                                                         <div
-                                                            className="absolute top-0 left-0 w-[80%] h-[90%] overflow-hidden bg-white shadow-xl border border-white/20 z-10"
+                                                            className="absolute top-1 left-2 w-[75%] h-[85%] bg-white p-[1px] z-10"
                                                             style={{
                                                                 clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
-                                                                WebkitClipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)'
+                                                                WebkitClipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
+                                                                filter: 'drop-shadow(8px 8px 16px rgba(0,0,0,0.4))'
                                                             }}
                                                         >
-                                                            {exteriorImg ? (
-                                                                <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                            ) : (
-                                                                <div className="w-full h-full bg-gray-100" />
-                                                            )}
+                                                            <div
+                                                                className="w-full h-full overflow-hidden bg-white"
+                                                                style={{
+                                                                    clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
+                                                                    WebkitClipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)'
+                                                                }}
+                                                            >
+                                                                {exteriorImg ? (
+                                                                    <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                                ) : (
+                                                                    <div className="w-full h-full bg-gray-100" />
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
 

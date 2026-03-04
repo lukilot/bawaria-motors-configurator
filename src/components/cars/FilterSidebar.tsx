@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, ChevronUp, X, RotateCcw, SprayCan, Search } from 'lucide-react';
+import {
+    ChevronDown, ChevronUp, X, RotateCcw, SprayCan, Search,
+    Car, Layout, Fuel, Zap, CircleDollarSign, Gauge, Palette, Armchair
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Slider } from '@/components/ui/slider';
@@ -252,26 +255,26 @@ export function FilterSidebar({ isOpen, onClose, options, resultsCount }: Filter
                 "fixed lg:sticky top-0 lg:top-24 left-0 h-full lg:h-[calc(100vh-8rem)] w-full lg:w-[280px] bg-white lg:bg-transparent z-[500] lg:z-0 hidden lg:block overflow-y-auto lg:px-0 lg:py-0 px-0 py-0 lg:shadow-none transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] scrollbar-hide",
                 isOpen ? "translate-x-0 !flex flex-col" : "-translate-x-full lg:translate-x-0 lg:!block"
             )}>
-                {/* Mobile Header (Sticky & Extra Padding to avoid site header conflict) */}
-                <div className="lg:hidden flex items-center justify-between px-6 pb-5 pt-12 border-b border-gray-100 shrink-0 bg-white z-[600]">
-                    <div>
-                        <h2 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-900 mb-1">Filtrowanie</h2>
+                {/* Mobile Header - Improved layout to avoid status bar / site header conflict */}
+                <div className="lg:hidden flex items-start justify-between px-6 pb-6 pt-20 border-b border-gray-100 shrink-0 bg-white z-[600]">
+                    <div className="pt-2">
+                        <h2 className="text-[13px] font-black uppercase tracking-[0.4em] text-gray-900 mb-2">Filtrowanie</h2>
                         {hasActiveFilters && !activeMobileCategory && (
-                            <button onClick={clearFilters} className="text-[9px] font-bold uppercase tracking-widest text-red-600 flex items-center gap-1.5 active:scale-95 transition-transform">
-                                <RotateCcw className="w-3 h-3" /> Resetuj wszystkie
+                            <button onClick={clearFilters} className="text-[10px] font-bold uppercase tracking-widest text-red-600 flex items-center gap-2 active:scale-95 transition-transform">
+                                <RotateCcw className="w-3.5 h-3.5" /> Resetuj wszystkie
                             </button>
                         )}
                         {activeMobileCategory && (
-                            <button onClick={() => setActiveMobileCategory(null)} className="text-[10px] font-bold uppercase tracking-widest text-blue-600 flex items-center gap-1 active:scale-95 transition-transform">
-                                ← Powrót do menu
+                            <button onClick={() => setActiveMobileCategory(null)} className="text-[11px] font-bold uppercase tracking-widest text-blue-600 flex items-center gap-2 active:scale-95 transition-transform">
+                                ← Powrót
                             </button>
                         )}
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-50 border border-gray-100 shadow-sm active:scale-90 transition-all ml-4"
+                        className="w-14 h-14 flex items-center justify-center rounded-full bg-gray-50 border border-gray-100 shadow-sm active:scale-90 transition-all"
                     >
-                        <X className="w-6 h-6 text-gray-900" />
+                        <X className="w-7 h-7 text-gray-900" />
                     </button>
                 </div>
 
@@ -297,52 +300,76 @@ export function FilterSidebar({ isOpen, onClose, options, resultsCount }: Filter
                                 />
                             </div>
 
-                            {/* Two Column Grid */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div onClick={() => setActiveMobileCategory('series')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeSeries.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
-                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Model</div>
+                            {/* Two Column Grid with minimalist icons */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div onClick={() => setActiveMobileCategory('series')} className={cn("p-6 rounded-2xl border flex flex-col justify-between h-36 transition-all active:scale-95", activeSeries.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="flex justify-between items-start">
+                                        <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Model</div>
+                                        <Car className={cn("w-4 h-4", activeSeries.length > 0 ? "text-white/40" : "text-gray-300")} />
+                                    </div>
                                     <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
                                         {activeSeries.length > 0 ? activeSeries.join(', ') : 'Wszystkie serie'}
                                     </div>
                                 </div>
-                                <div onClick={() => setActiveMobileCategory('body')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeBody.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
-                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Nadwozie</div>
+                                <div onClick={() => setActiveMobileCategory('body')} className={cn("p-6 rounded-2xl border flex flex-col justify-between h-36 transition-all active:scale-95", activeBody.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="flex justify-between items-start">
+                                        <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Nadwozie</div>
+                                        <Layout className={cn("w-4 h-4", activeBody.length > 0 ? "text-white/40" : "text-gray-300")} />
+                                    </div>
                                     <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
                                         {activeBody.length > 0 ? activeBody.join(', ') : 'Wszystkie'}
                                     </div>
                                 </div>
-                                <div onClick={() => setActiveMobileCategory('fuel')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeFuel.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
-                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Paliwo</div>
+                                <div onClick={() => setActiveMobileCategory('fuel')} className={cn("p-6 rounded-2xl border flex flex-col justify-between h-36 transition-all active:scale-95", activeFuel.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="flex justify-between items-start">
+                                        <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Paliwo</div>
+                                        <Fuel className={cn("w-4 h-4", activeFuel.length > 0 ? "text-white/40" : "text-gray-300")} />
+                                    </div>
                                     <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
                                         {activeFuel.length > 0 ? activeFuel.join(', ') : 'Dowolne'}
                                     </div>
                                 </div>
-                                <div onClick={() => setActiveMobileCategory('drivetrain')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeDrivetrain.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
-                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Napęd</div>
+                                <div onClick={() => setActiveMobileCategory('drivetrain')} className={cn("p-6 rounded-2xl border flex flex-col justify-between h-36 transition-all active:scale-95", activeDrivetrain.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="flex justify-between items-start">
+                                        <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Napęd</div>
+                                        <Zap className={cn("w-4 h-4", activeDrivetrain.length > 0 ? "text-white/40" : "text-gray-300")} />
+                                    </div>
                                     <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
                                         {activeDrivetrain.length > 0 ? activeDrivetrain.join(', ') : 'Dowolny'}
                                     </div>
                                 </div>
-                                <div onClick={() => setActiveMobileCategory('price')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", searchParams.has('max') ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
-                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Cena max</div>
+                                <div onClick={() => setActiveMobileCategory('price')} className={cn("p-6 rounded-2xl border flex flex-col justify-between h-36 transition-all active:scale-95", searchParams.has('max') ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="flex justify-between items-start">
+                                        <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Cena max</div>
+                                        <CircleDollarSign className={cn("w-4 h-4", searchParams.has('max') ? "text-white/40" : "text-gray-300")} />
+                                    </div>
                                     <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
                                         {searchParams.has('max') ? formatPrice(sliderMax) : 'Bez limitu'}
                                     </div>
                                 </div>
-                                <div onClick={() => setActiveMobileCategory('power')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", (searchParams.has('pmin') || searchParams.has('pmax')) ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
-                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">KM</div>
+                                <div onClick={() => setActiveMobileCategory('power')} className={cn("p-6 rounded-2xl border flex flex-col justify-between h-36 transition-all active:scale-95", (searchParams.has('pmin') || searchParams.has('pmax')) ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="flex justify-between items-start">
+                                        <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">KM</div>
+                                        <Gauge className={cn("w-4 h-4", (searchParams.has('pmin') || searchParams.has('pmax')) ? "text-white/40" : "text-gray-300")} />
+                                    </div>
                                     <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
                                         {(searchParams.has('pmin') || searchParams.has('pmax')) ? `${pmin}-${pmax} KM` : 'Dowolna moc'}
                                     </div>
                                 </div>
-                                <div onClick={() => setActiveMobileCategory('colorGroup')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeColorGroup.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
-                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Kolor</div>
+                                <div onClick={() => setActiveMobileCategory('colorGroup')} className={cn("p-6 rounded-2xl border flex flex-col justify-between h-36 transition-all active:scale-95", activeColorGroup.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="flex justify-between items-start">
+                                        <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Kolor</div>
+                                        <Palette className={cn("w-4 h-4", activeColorGroup.length > 0 ? "text-white/40" : "text-gray-300")} />
+                                    </div>
                                     <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
                                         {activeColorGroup.length > 0 ? activeColorGroup.join(', ') : 'Dowolny'}
                                     </div>
                                 </div>
-                                <div onClick={() => setActiveMobileCategory('upholsteryGroup')} className={cn("p-5 rounded-2xl border flex flex-col justify-between h-32 transition-all active:scale-95", activeUpholsteryGroup.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
-                                    <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Tapicerka</div>
+                                <div onClick={() => setActiveMobileCategory('upholsteryGroup')} className={cn("p-6 rounded-2xl border flex flex-col justify-between h-36 transition-all active:scale-95", activeUpholsteryGroup.length > 0 ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                    <div className="flex justify-between items-start">
+                                        <div className="text-[9px] font-bold uppercase tracking-widest opacity-60">Tapicerka</div>
+                                        <Armchair className={cn("w-4 h-4", activeUpholsteryGroup.length > 0 ? "text-white/40" : "text-gray-300")} />
+                                    </div>
                                     <div className="text-[11px] font-black uppercase tracking-widest leading-tight">
                                         {activeUpholsteryGroup.length > 0 ? activeUpholsteryGroup.join(', ') : 'Dowolna'}
                                     </div>
@@ -355,41 +382,50 @@ export function FilterSidebar({ isOpen, onClose, options, resultsCount }: Filter
                     {activeMobileCategory && (
                         <div className="lg:hidden animate-in slide-in-from-right duration-300">
                             {activeMobileCategory === 'series' && (
-                                <div className="space-y-4">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Wybierz serię</h3>
-                                    <div className="grid grid-cols-1 gap-2">
+                                <div className="space-y-6">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 opacity-40">Wybierz serię</h3>
+                                    <div className="grid grid-cols-2 gap-3">
                                         {options.series.map((s: string) => (
-                                            <FilterPill key={s} label={s} active={activeSeries.includes(s)} onClick={() => toggleFilter('series', s)} isMSeries={s.includes('Seria M')} />
+                                            <button key={s} onClick={() => toggleFilter('series', s)} className={cn("relative py-4 px-4 text-[11px] font-bold uppercase tracking-widest text-center rounded-xl border transition-all active:scale-95", activeSeries.includes(s) ? "bg-black border-black text-white" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                                {s.includes('Seria M') && <div className="absolute top-0 inset-x-0 h-1 flex"><div className="flex-1 bg-[#53A0DE]" /><div className="flex-1 bg-[#02256E]" /><div className="flex-1 bg-[#E40424]" /></div>}
+                                                {s}
+                                            </button>
                                         ))}
                                     </div>
                                 </div>
                             )}
                             {activeMobileCategory === 'body' && (
-                                <div className="space-y-4">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Rodzaj nadwozia</h3>
-                                    <div className="grid grid-cols-1 gap-2">
+                                <div className="space-y-6">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 opacity-40">Rodzaj nadwozia</h3>
+                                    <div className="grid grid-cols-2 gap-3">
                                         {options.bodyTypes.map((b: string) => (
-                                            <FilterPill key={b} label={b} active={activeBody.includes(b)} onClick={() => toggleFilter('body', b)} />
+                                            <button key={b} onClick={() => toggleFilter('body', b)} className={cn("py-4 px-4 text-[11px] font-bold uppercase tracking-widest text-center rounded-xl border transition-all active:scale-95", activeBody.includes(b) ? "bg-black border-black text-white" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                                {b}
+                                            </button>
                                         ))}
                                     </div>
                                 </div>
                             )}
                             {activeMobileCategory === 'fuel' && (
-                                <div className="space-y-4">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Typ paliwa</h3>
-                                    <div className="grid grid-cols-1 gap-2">
+                                <div className="space-y-6">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 opacity-40">Typ paliwa</h3>
+                                    <div className="grid grid-cols-2 gap-3">
                                         {options.fuelTypes.map((f: string) => (
-                                            <FilterPill key={f} label={f} active={activeFuel.includes(f)} onClick={() => toggleFilter('fuel', f)} />
+                                            <button key={f} onClick={() => toggleFilter('fuel', f)} className={cn("py-4 px-4 text-[11px] font-bold uppercase tracking-widest text-center rounded-xl border transition-all active:scale-95", activeFuel.includes(f) ? "bg-black border-black text-white" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                                {f}
+                                            </button>
                                         ))}
                                     </div>
                                 </div>
                             )}
                             {activeMobileCategory === 'drivetrain' && (
-                                <div className="space-y-4">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Układ napędowy</h3>
-                                    <div className="grid grid-cols-1 gap-2">
+                                <div className="space-y-6">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 opacity-40">Układ napędowy</h3>
+                                    <div className="grid grid-cols-2 gap-3">
                                         {options.drivetrains.map((d: string) => (
-                                            <FilterPill key={d} label={d} active={activeDrivetrain.includes(d)} onClick={() => toggleFilter('drivetrain', d)} />
+                                            <button key={d} onClick={() => toggleFilter('drivetrain', d)} className={cn("py-4 px-4 text-[11px] font-bold uppercase tracking-widest text-center rounded-xl border transition-all active:scale-95", activeDrivetrain.includes(d) ? "bg-black border-black text-white" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                                {d}
+                                            </button>
                                         ))}
                                     </div>
                                 </div>
@@ -422,18 +458,19 @@ export function FilterSidebar({ isOpen, onClose, options, resultsCount }: Filter
                                 </div>
                             )}
                             {activeMobileCategory === 'colorGroup' && (
-                                <div className="space-y-4">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Gama kolorystyczna</h3>
-                                    <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-6">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 opacity-40">Kolor nadwozia</h3>
+                                    <div className="grid grid-cols-2 gap-4">
                                         {options.colorGroups?.map((c: string) => {
                                             const colorValue = getColor(c);
                                             const isMColor = c.toLowerCase().includes('m ');
+                                            const isActive = activeColorGroup.includes(c);
                                             return (
-                                                <button key={c} onClick={() => toggleFilter('colorGroup', c)} className={cn("flex flex-col items-center gap-3 p-4 rounded-xl border transition-all active:scale-95", activeColorGroup.includes(c) ? "bg-black text-white border-black" : "bg-gray-50 text-gray-900 border-gray-100")}>
-                                                    <div className="w-10 h-10 rounded-full border border-black/10 shadow-sm overflow-hidden relative">
+                                                <button key={c} onClick={() => toggleFilter('colorGroup', c)} className={cn("flex flex-col items-center gap-4 p-5 rounded-2xl border transition-all active:scale-95", isActive ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                                    <div className="w-12 h-12 rounded-full border border-black/10 shadow-sm overflow-hidden relative">
                                                         {isMColor ? <div className="absolute inset-0 flex"><div className="flex-1 bg-[#53A0DE]" /><div className="flex-1 bg-[#02256E]" /><div className="flex-1 bg-[#E40424]" /></div> : <div className="absolute inset-0" style={{ backgroundColor: colorValue }} />}
                                                     </div>
-                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-center">{c}</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-center leading-tight">{c}</span>
                                                 </button>
                                             );
                                         })}
@@ -441,12 +478,21 @@ export function FilterSidebar({ isOpen, onClose, options, resultsCount }: Filter
                                 </div>
                             )}
                             {activeMobileCategory === 'upholsteryGroup' && (
-                                <div className="space-y-4">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4">Typ tapicerki</h3>
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {options.upholsteryGroups?.map((u: string) => (
-                                            <FilterPill key={u} label={u} active={activeUpholsteryGroup.includes(u)} onClick={() => toggleFilter('upholsteryGroup', u)} />
-                                        ))}
+                                <div className="space-y-6">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 opacity-40">Typ tapicerki</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {options.upholsteryGroups?.map((u: string) => {
+                                            const colorValue = getColor(u);
+                                            const isActive = activeUpholsteryGroup.includes(u);
+                                            return (
+                                                <button key={u} onClick={() => toggleFilter('upholsteryGroup', u)} className={cn("flex flex-col items-center gap-4 p-5 rounded-2xl border transition-all active:scale-95", isActive ? "bg-black border-black text-white shadow-lg" : "bg-gray-50 border-gray-100 text-gray-900")}>
+                                                    <div className="w-12 h-12 rounded-full border border-black/10 shadow-sm overflow-hidden relative">
+                                                        <div className="absolute inset-0" style={{ backgroundColor: colorValue }} />
+                                                    </div>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-center leading-tight">{u}</span>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}

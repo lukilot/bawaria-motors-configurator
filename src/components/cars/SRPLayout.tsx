@@ -353,7 +353,7 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                     isOpen={isFiltersOpen}
                     onClose={() => setIsFiltersOpen(false)}
                     options={filterOptions}
-                    resultsCount={enrichedCars.length}
+                    resultsCount={filteredCars.length}
                 />
 
                 <div className="flex-1" ref={gridRef}>

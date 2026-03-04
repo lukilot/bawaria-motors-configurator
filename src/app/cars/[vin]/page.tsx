@@ -339,7 +339,7 @@ export default async function CarPage({ params }: PageProps) {
                         </div>
 
                         {/* RIGHT: Sticky Summary Section (Desktop Only) */}
-                        <div className="hidden lg:flex lg:w-[38%] lg:sticky lg:top-0 lg:h-screen lg:flex-col lg:justify-between py-12">
+                        <div className="hidden lg:flex lg:w-[38%] lg:sticky lg:top-0 lg:h-screen lg:flex-col lg:justify-start pt-12 pb-14">
                             {/* TOP: Identity & Status */}
                             <div className="space-y-8">
                                 {/* Badges */}
@@ -366,8 +366,11 @@ export default async function CarPage({ params }: PageProps) {
                                 </div>
                             </div>
 
+                            {/* Dynamic Spacer to push pricing to bottom without breaking layout height */}
+                            <div className="flex-1" />
+
                             {/* BOTTOM: Pricing & Action */}
-                            <div className="space-y-10">
+                            <div className="space-y-8 mt-12">
                                 <DynamicPricingSection car={car} seriesCode={enrichedCar.body_group || ''} isDark={isMSeries} fuelType={enrichedCar.fuel_type} bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)} />
                                 <CarActionButtons car={enrichedCar} className="mt-4" />
                             </div>

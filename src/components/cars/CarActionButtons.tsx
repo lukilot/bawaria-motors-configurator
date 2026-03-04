@@ -45,32 +45,32 @@ export function CarActionButtons({ car, className }: CarActionButtonsProps) {
     };
 
     return (
-        <div className={cn('flex items-center gap-3', className)}>
+        <div className={cn('flex items-center gap-4', className)}>
             <button
                 onClick={toggleGarage}
                 className={cn(
-                    'flex flex-1 items-center justify-center gap-2 px-4 py-3 border transition-colors duration-200 text-[10px] font-bold uppercase tracking-widest cursor-pointer',
+                    'flex flex-1 items-center justify-center gap-3 px-4 py-4 rounded-xl border transition-all duration-300 text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer active:scale-95 shadow-sm',
                     saved
-                        ? 'bg-gray-900 text-white border-gray-900'
-                        : 'bg-white text-gray-900 border-gray-200 hover:border-gray-900'
+                        ? 'bg-black text-white border-black shadow-lg shadow-black/10'
+                        : 'bg-white text-gray-900 border-gray-100 hover:border-black/20 hover:shadow-md'
                 )}
                 title={saved ? 'Usuń z garażu' : 'Dodaj do garażu'}
             >
-                <Warehouse className="w-4 h-4" />
+                <Warehouse className={cn("w-4 h-4", saved ? "text-white" : "text-gray-400")} />
                 {saved ? 'W Garażu' : 'Do Garażu'}
             </button>
             <button
                 onClick={toggleCompare}
                 className={cn(
-                    'flex flex-1 items-center justify-center gap-2 px-4 py-3 border transition-colors duration-200 text-[10px] font-bold uppercase tracking-widest cursor-pointer',
+                    'flex flex-1 items-center justify-center gap-3 px-4 py-4 rounded-xl border transition-all duration-300 text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer active:scale-95 shadow-sm',
                     compared
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-gray-900 border-gray-200 hover:border-gray-900'
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20'
+                        : 'bg-white text-gray-900 border-gray-100 hover:border-black/20 hover:shadow-md'
                 )}
                 title={compared ? 'Usuń z porównania' : 'Porównaj'}
             >
-                <Scale className="w-4 h-4" />
-                {compared ? 'Porównujesz' : 'Porównaj'}
+                <Scale className={cn("w-4 h-4", compared ? "text-white" : "text-gray-400")} />
+                {compared ? 'Wybrane' : 'Porównaj'}
             </button>
         </div>
     );

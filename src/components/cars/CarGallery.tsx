@@ -55,8 +55,8 @@ export function CarGallery({ modelName, images = [], isDark = false, isElectric 
                                 alt="Zdjęcia wkrótce"
                                 className="w-full h-full object-cover opacity-60"
                             />
-                            <div className="absolute inset-0 flex items-end justify-start p-4">
-                                <span className="text-[10px] font-bold uppercase tracking-widest bg-black/60 text-white px-2.5 py-1 rounded-full">
+                            <div className="absolute inset-x-0 bottom-0 flex items-end justify-center p-6 pb-12">
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-black/80 text-white px-5 py-2.5 rounded-full backdrop-blur-md border border-white/10 shadow-2xl">
                                     Zdjęcia wkrótce
                                 </span>
                             </div>

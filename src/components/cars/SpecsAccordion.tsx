@@ -16,20 +16,24 @@ export function SpecsAccordion({ title, defaultOpen = false, children, className
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className={cn("border-b border-gray-100 last:border-0", className)}>
+        <div className={cn("border-b border-gray-100 last:border-0 transition-opacity", className)}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between w-full py-6 group text-left"
+                className="flex items-center justify-between w-full py-7 group text-left px-2 rounded-2xl hover:bg-black/[0.01] transition-all"
             >
-                <span className={cn("text-lg font-light text-gray-900 group-hover:text-black transition-colors", titleClassName)}>
+                <span className={cn(
+                    "text-[10px] font-black uppercase tracking-[0.3em] text-gray-900 transition-all",
+                    isOpen ? "opacity-100" : "opacity-40",
+                    titleClassName
+                )}>
                     {title}
                 </span>
-                <ChevronDown
-                    className={cn(
-                        "w-5 h-5 text-gray-400 transition-transform duration-300",
-                        isOpen && "rotate-180 text-black"
-                    )}
-                />
+                <div className={cn(
+                    "w-8 h-8 flex items-center justify-center rounded-full border border-black/[0.03] bg-black/[0.01] transition-all duration-300",
+                    isOpen && "rotate-180 bg-black text-white border-black"
+                )}>
+                    <ChevronDown className="w-4 h-4" />
+                </div>
             </button>
 
             <div

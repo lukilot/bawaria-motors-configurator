@@ -38,57 +38,74 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             {/* Service Configurator */}
-            <ServicePackageConfigurator
-                currentCodes={car.option_codes}
-                seriesCode={seriesCode}
-                fuelType={fuelType || car.fuel_type}
-                onPriceUpdate={setAdditionalCost}
-                onSelectionChange={setSelectedServiceCodes}
-                isDark={isDark}
-            />
-
-            {/* Price Card */}
             <div className={cn(
-                "p-6 rounded-sm border transition-all duration-300 ease-in-out",
-                isDark ? "bg-[#1a1a1a] border-gray-800" : "bg-gray-50 border-gray-100"
+                "rounded-2xl border transition-all duration-500",
+                isDark ? "bg-white/5 border-white/10" : "bg-gray-50 border-gray-100"
+            )}>
+                <ServicePackageConfigurator
+                    currentCodes={car.option_codes}
+                    seriesCode={seriesCode}
+                    fuelType={fuelType || car.fuel_type}
+                    onPriceUpdate={setAdditionalCost}
+                    onSelectionChange={setSelectedServiceCodes}
+                    isDark={isDark}
+                />
+            </div>
+
+            {/* Price Card - Premium Glassmorphism */}
+            <div className={cn(
+                "p-8 rounded-3xl border shadow-xl transition-all duration-700 backdrop-blur-md",
+                isDark
+                    ? "bg-black/40 border-white/10 shadow-black/50"
+                    : "bg-white/60 border-black/[0.03] shadow-black/[0.02]"
             )}>
                 {car.list_price > 0 && (
-                    <div className="flex flex-col gap-1 mb-6">
-                        <span className={cn("text-xs uppercase tracking-widest font-semibold", isDark ? "text-gray-400" : "text-gray-500")}>Cena całkowita</span>
-
-                        {/* Show old price crossed out if there is a discount AND no added cost (or distinct display?)
-                            Actually, if we add costs, the "list price" concept gets fuzzy. 
-                            Let's keep it simple: 
-                            If discount exists: Show List Price (crossed) -> Final Special Price (Base Special + Services)
-                            If no discount: Show Final Price (Base List + Services)
-                        */}
+                    <div className="flex flex-col gap-2 mb-8">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className={cn(
+                                "text-[10px] uppercase tracking-[0.3em] font-black opacity-40",
+                                isDark ? "text-white" : "text-black"
+                            )}>
+                                Podsumowanie oferty
+                            </span>
+                            <div className={cn("h-px flex-1", isDark ? "bg-white/10" : "bg-black/5")} />
+                        </div>
 
                         {hasDiscount ? (
                             <div className="flex flex-col">
-                                <span className={cn("text-sm line-through decoration-gray-300", isDark ? "text-gray-500" : "text-gray-400")}>
+                                <span className={cn("text-[13px] line-through decoration-red-500/40 mb-1 font-medium", isDark ? "text-gray-500" : "text-gray-400")}>
                                     {formatPrice(car.list_price + additionalCost)}
-                                    {/* Note: usually list price also increases if we add services, 
-                                        so logically we add cost to both base and special */}
                                 </span>
-                                <span className={cn(
-                                    "text-3xl font-bold tracking-tight transition-colors",
-                                    isDark ? "text-white" : (additionalCost > 0 ? "text-black" : "text-gray-900")
-                                )}>
-                                    {formatPrice(finalPrice)}
-                                </span>
+                                <div className="flex items-baseline gap-3">
+                                    <span className={cn(
+                                        "text-4xl font-black tracking-tight",
+                                        isDark ? "text-white" : "text-black"
+                                    )}>
+                                        {formatPrice(finalPrice)}
+                                    </span>
+                                    {hasManualDiscount && (
+                                        <span className="bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-sm uppercase tracking-widest">
+                                            Okazja
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         ) : (
                             <span className={cn(
-                                "text-3xl font-bold tracking-tight transition-colors",
-                                isDark ? "text-white" : (additionalCost > 0 ? "text-black" : "text-gray-900")
+                                "text-4xl font-black tracking-tight",
+                                isDark ? "text-white" : "text-black"
                             )}>
                                 {formatPrice(finalPrice)}
                             </span>
                         )}
 
-
+                        {additionalCost > 0 && (
+                            <span className={cn("text-[10px] font-bold uppercase tracking-widest opacity-40 mt-1", isDark ? "text-white" : "text-black")}>
+                                + wybrane pakiety: {formatPrice(additionalCost)}
+                            </span>
+                        )}
                     </div>
                 )}
 
@@ -96,16 +113,22 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
                     disabled={isSold}
                     onClick={handleContactClick}
                     className={cn(
-                        "w-full py-4 text-sm font-bold uppercase tracking-widest transition-all shadow-lg",
+                        "w-full py-5 text-[11px] font-black uppercase tracking-[0.25em] transition-all rounded-xl",
                         isSold
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
-                            : "bg-black text-white hover:bg-gray-800 hover:shadow-xl translate-y-0 hover:-translate-y-0.5"
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : isDark
+                                ? "bg-white text-black hover:bg-white/90 hover:scale-[1.02] active:scale-95 shadow-lg shadow-white/5"
+                                : "bg-black text-white hover:bg-gray-900 hover:scale-[1.02] active:scale-95 shadow-xl shadow-black/10"
                     )}
                 >
                     {isSold ? 'Pojazd Sprzedany' : 'Jestem zainteresowany'}
                 </button>
-                <p className="text-center text-xs text-gray-400 mt-4 leading-relaxed">
-                    *Cena zawiera VAT. Zdjęcia mają charakter poglądowy.
+
+                <p className={cn(
+                    "text-center text-[9px] font-bold uppercase tracking-widest mt-6 opacity-30 leading-loose mx-4",
+                    isDark ? "text-white" : "text-black"
+                )}>
+                    *Cena brutto zawiera podatek VAT. Samochód dostępny od ręki.
                 </p>
             </div>
 

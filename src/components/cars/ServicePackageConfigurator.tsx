@@ -256,11 +256,12 @@ export function ServicePackageConfigurator({
                     <Shield className="w-5 h-5 text-orange-500" />
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-[9px] uppercase font-bold text-gray-400 mb-0.5 truncate w-full">Pakiet Naprawczy</span>
-                    <span className={cn("text-xs font-bold truncate w-full", isDark ? "text-gray-200 group-hover:text-white" : "text-gray-900 group-hover:text-black")}>
+                    <span className="text-[9px] uppercase font-black tracking-[0.2em] text-gray-400 mb-1 truncate w-full">Pakiet Naprawczy</span>
+                    <span className={cn("text-[11px] font-black uppercase truncate w-full tracking-tight", isDark ? "text-gray-200 group-hover:text-white" : "text-gray-900 group-hover:text-black")}>
                         {currentBriPkg ? `${(currentBriPkg.duration_months / 12)} ${(currentBriPkg.duration_months / 12) >= 2 && (currentBriPkg.duration_months / 12) <= 4 ? 'lata' : 'lat'} / ${currentBriPkg.mileage_limit.toLocaleString('de-DE')} km` : 'Standard 2 lata'}
                     </span>
-                    <span className={cn("text-[10px] mt-0.5 truncate w-full", getSummaryTextColor(selectedBri, baseBri?.code))}>
+                    <span className={cn("text-[10px] items-center gap-1.5 mt-1.5 truncate w-full flex", getSummaryTextColor(selectedBri, baseBri?.code))}>
+                        <div className={cn("w-1 h-1 rounded-full", (selectedBri === baseBri?.code || !selectedBri) ? "bg-gray-300" : "bg-green-500")} />
                         {getSummaryText(selectedBri, baseBri?.code, baseBriPrice)}
                     </span>
                 </div>
@@ -281,13 +282,14 @@ export function ServicePackageConfigurator({
                     <Wrench className="w-5 h-5 text-blue-500" />
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-[9px] uppercase font-bold text-gray-400 mb-0.5 truncate w-full">Pakiet Serwisowy</span>
-                    <span className={cn("text-xs font-bold truncate w-full", isDark ? "text-gray-200 group-hover:text-white" : "text-gray-900 group-hover:text-black")}>
+                    <span className="text-[9px] uppercase font-black tracking-[0.2em] text-gray-400 mb-1 truncate w-full">Pakiet Serwisowy</span>
+                    <span className={cn("text-[11px] font-black uppercase truncate w-full tracking-tight", isDark ? "text-gray-200 group-hover:text-white" : "text-gray-900 group-hover:text-black")}>
                         {currentBsiPkg
                             ? `${currentBsiPkg.plus ? 'Plus ' : ''}${(currentBsiPkg.duration_months / 12)} ${(currentBsiPkg.duration_months / 12) >= 2 && (currentBsiPkg.duration_months / 12) <= 4 ? 'lata' : 'lat'} / ${currentBsiPkg.mileage_limit.toLocaleString('de-DE')} km`
                             : 'Brak pakietu'}
                     </span>
-                    <span className={cn("text-[10px] mt-0.5 truncate w-full", getSummaryTextColor(selectedBsi, baseBsi?.code))}>
+                    <span className={cn("text-[10px] items-center gap-1.5 mt-1.5 truncate w-full flex", getSummaryTextColor(selectedBsi, baseBsi?.code))}>
+                        <div className={cn("w-1 h-1 rounded-full", (selectedBsi === baseBsi?.code || !selectedBsi) ? "bg-gray-300" : "bg-green-500")} />
                         {getSummaryText(selectedBsi, baseBsi?.code, baseBsiPrice)}
                     </span>
                 </div>

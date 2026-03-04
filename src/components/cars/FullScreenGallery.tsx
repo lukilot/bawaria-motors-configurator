@@ -82,7 +82,7 @@ export function FullScreenGallery({ images, initialIndex, isOpen, onClose }: Ful
                         position: 'fixed',
                         inset: 0,
                         zIndex: 9999,
-                        background: '#fff',
+                        background: '#0a0a0a',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -94,7 +94,7 @@ export function FullScreenGallery({ images, initialIndex, isOpen, onClose }: Ful
                     <button
                         onClick={e => { e.stopPropagation(); onClose(); }}
                         style={{ position: 'fixed', top: 24, right: 24, zIndex: 10000 }}
-                        className="text-gray-400 hover:text-black hover:bg-gray-100 rounded-full p-2 transition-colors"
+                        className="text-white/40 hover:text-white hover:bg-white/10 rounded-full p-3 transition-all active:scale-95"
                     >
                         <X className="w-8 h-8" />
                     </button>
@@ -129,14 +129,14 @@ export function FullScreenGallery({ images, initialIndex, isOpen, onClose }: Ful
                             <button
                                 onClick={e => { e.stopPropagation(); prevImage(); }}
                                 style={{ position: 'fixed', left: 16, top: '50%', transform: 'translateY(-50%)', zIndex: 10000 }}
-                                className="p-4 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-all"
+                                className="p-4 text-white/20 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"
                             >
                                 <ChevronLeft className="w-10 h-10" />
                             </button>
                             <button
                                 onClick={e => { e.stopPropagation(); nextImage(); }}
                                 style={{ position: 'fixed', right: 16, top: '50%', transform: 'translateY(-50%)', zIndex: 10000 }}
-                                className="p-4 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-all"
+                                className="p-4 text-white/20 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"
                             >
                                 <ChevronRight className="w-10 h-10" />
                             </button>

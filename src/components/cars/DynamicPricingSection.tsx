@@ -40,19 +40,14 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
     return (
         <div className="space-y-10">
             {/* Service Configurator */}
-            <div className={cn(
-                "p-8 rounded-3xl border transition-all duration-500",
-                isDark ? "bg-white/5 border-white/10" : "bg-gray-50 border-gray-100"
-            )}>
-                <ServicePackageConfigurator
-                    currentCodes={car.option_codes}
-                    seriesCode={seriesCode}
-                    fuelType={fuelType || car.fuel_type}
-                    onPriceUpdate={setAdditionalCost}
-                    onSelectionChange={setSelectedServiceCodes}
-                    isDark={isDark}
-                />
-            </div>
+            <ServicePackageConfigurator
+                currentCodes={car.option_codes}
+                seriesCode={seriesCode}
+                fuelType={fuelType || car.fuel_type}
+                onPriceUpdate={setAdditionalCost}
+                onSelectionChange={setSelectedServiceCodes}
+                isDark={isDark}
+            />
 
             {/* Price Card - Premium Glassmorphism */}
             <div className={cn(

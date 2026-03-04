@@ -52,9 +52,11 @@ export function SiteHeader() {
                 "fixed top-0 left-0 right-0 z-[1000] transition-all duration-500 ease-in-out px-4 md:px-12",
                 isAdmin
                     ? "py-3 bg-white/80 backdrop-blur-xl border-b border-black/5 shadow-sm"
-                    : isScrolled
-                        ? "py-3 bg-white/70 backdrop-blur-2xl border-b border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
-                        : "py-6 md:py-8 bg-transparent border-b border-transparent"
+                    : isVdp
+                        ? "py-3 bg-white/80 backdrop-blur-xl border-b border-black/5 md:bg-transparent md:border-transparent"
+                        : isScrolled
+                            ? "py-3 bg-white/70 backdrop-blur-2xl border-b border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
+                            : "py-6 md:py-8 bg-transparent border-b border-transparent"
             )}
         >
             <div className="max-w-[1800px] mx-auto flex items-center justify-between">
@@ -155,7 +157,7 @@ export function SiteHeader() {
                                         }}
                                         className={cn(
                                             "flex items-center gap-2 px-3 py-2 rounded-full transition-all text-[10px] font-bold uppercase tracking-widest group",
-                                            isScrolled
+                                            isScrolled || isVdp
                                                 ? "bg-black/5 text-gray-900 hover:bg-black hover:text-white"
                                                 : isMSeries
                                                     ? "bg-white/10 text-white hover:bg-white hover:text-black border border-white/10"
@@ -192,7 +194,30 @@ export function SiteHeader() {
                                 )}
                             </AnimatePresence>
 
-                            {/* VDP VIN Selector Integrated */}
+                            {/* VDP Model Info (Mobile Only) */}
+                            {isVdp && currentCar && (
+                                <div className="flex lg:hidden flex-col min-w-0 max-w-[140px] md:max-w-xs transition-all">
+                                    <h2 className={cn(
+                                        "text-sm font-black tracking-tight truncate leading-none mb-0.5",
+                                        isMSeries && !isScrolled ? "text-white" : "text-black"
+                                    )}>
+                                        {currentCar.model_name || `BMW ${currentCar.model_code}`}
+                                    </h2>
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                        {(currentCar.status_code > 190) && (
+                                            <span className="shrink-0 w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+                                        )}
+                                        <span className={cn(
+                                            "text-[8px] font-bold uppercase tracking-widest truncate opacity-60",
+                                            isMSeries && !isScrolled ? "text-white/60" : "text-black/60"
+                                        )}>
+                                            {currentCar.status_code > 190 ? 'Dostępny od ręki' : 'W ofercie'}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* VDP VIN Selector Integrated (Desktop) */}
                             {isVdp && currentCar && (
                                 <div className={cn(
                                     "hidden lg:flex items-center gap-3 px-4 py-2 rounded-full border transition-colors duration-500",

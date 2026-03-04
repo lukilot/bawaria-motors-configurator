@@ -292,31 +292,6 @@ export default async function CarPage({ params }: PageProps) {
 
     return (
         <main className={cn("min-h-screen font-sans pb-32 pt-12 lg:pt-12 transition-colors duration-500", theme.bg, theme.text)}>
-            {/* MOBILE: Sticky Header */}
-            <div className={cn(
-                "fixed top-0 left-0 right-0 z-[100] lg:hidden border-b px-6 py-4 backdrop-blur-2xl transition-all duration-500",
-                isMSeries ? "bg-[#0f0f0f]/80 border-white/10" : "bg-white/80 border-black/5"
-            )}>
-                <div className="flex items-center gap-4">
-                    <BackButton
-                        label=""
-                        className={cn(
-                            "flex items-center justify-center w-10 h-10 rounded-full border transition-all active:scale-95",
-                            isMSeries ? "bg-white/5 border-white/10 text-white" : "bg-black/5 border-black/5 text-black"
-                        )}
-                    />
-                    <div className="flex flex-col min-w-0">
-                        <h2 className="text-xl font-black tracking-tight truncate leading-none mb-1">{modelName}</h2>
-                        <div className="flex items-center gap-2">
-                            {showReady && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
-                            <span className="text-[9px] font-black uppercase tracking-widest opacity-40">
-                                {showReady ? 'Dostępny od ręki' : showSold ? 'Sprzedany' : 'W ofercie'}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <VdpStoreInit car={enrichedCar} siblings={siblings} />
 
             <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 px-6 pt-12 lg:pt-8">

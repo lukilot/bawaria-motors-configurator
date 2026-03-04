@@ -316,8 +316,8 @@ export default async function CarPage({ params }: PageProps) {
                         isElectric={isElectric && !isMSeries}
                     />
 
-                    {/* Accordions - Desktop/Tablet Position (between gallery and options) */}
-                    <div className={cn("hidden lg:block mt-16 space-y-px border-t pt-6", theme.border)}>
+                    {/* Specs Section - Visible on all devices on the left now */}
+                    <div className={cn("mt-16 space-y-px border-t pt-10", theme.border)}>
                         <SpecsAccordion title="Dane techniczne" className={theme.border} titleClassName={theme.accordionTitle}>
                             <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
                                 <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
@@ -387,47 +387,114 @@ export default async function CarPage({ params }: PageProps) {
                         </SpecsAccordion>
                     </div>
 
-                    {/* Options List - Desktop Position */}
-                    <div className="hidden lg:block mt-16 max-h-[800px] overflow-y-auto pr-4 -mr-4">
+                    {/* Car Variants (Config Twins) - BMW OS X Style - Moved to Left for better hierarchy */}
+                    {variants.length > 0 && (
+                        <div className={cn("mt-16 pt-10 border-t", theme.border)}>
+                            <div className="flex items-center gap-3 mb-8">
+                                <h3 className="text-[11px] text-gray-400 uppercase tracking-[0.4em] font-bold">Inna kolorystyka</h3>
+                                <div className="h-px flex-1 bg-current opacity-10" />
+                            </div>
+                            <div className="flex flex-col gap-4">
+                                {variants.map(v => {
+                                    const vColor = dictionaries.color[v.color_code || '']?.name || v.color_code;
+                                    const vUpholstery = dictionaries.upholstery[v.upholstery_code || '']?.name || v.upholstery_code;
+
+                                    const exteriorImg = v.images?.[0]?.url;
+                                    const interiorImg = v.images && v.images.length > 0 ? v.images[v.images.length - 1]?.url : undefined;
+
+                                    return (
+                                        <Link
+                                            key={v.vin}
+                                            replace
+                                            href={`/cars/${v.vin}`}
+                                            className={cn(
+                                                "group flex items-center gap-6 p-1 rounded-2xl transition-all hover:bg-black/[0.02]",
+                                                isMSeries ? "hover:bg-white/5" : ""
+                                            )}
+                                        >
+                                            {/* Image Composite - Side-by-Side Duo Split */}
+                                            <div className="relative w-80 h-28 shrink-0 flex overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
+                                                {/* Exterior (Left 50%) */}
+                                                <div className="w-1/2 h-full bg-white relative overflow-hidden">
+                                                    {exteriorImg ? (
+                                                        <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-gray-100" />
+                                                    )}
+                                                    <div className="absolute right-0 inset-y-0 w-px bg-black/[0.1] z-10" />
+                                                </div>
+
+                                                {/* Interior (Right 50%) */}
+                                                <div className="w-1/2 h-full bg-gray-50 relative overflow-hidden">
+                                                    {interiorImg ? (
+                                                        <img src={interiorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-gray-200" />
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Text Info */}
+                                            <div className="flex flex-col min-w-0 pr-4">
+                                                <span className={cn(
+                                                    "text-[10px] font-bold uppercase tracking-[0.1em] truncate mb-0.5",
+                                                    isMSeries ? "text-gray-100" : "text-gray-900"
+                                                )}>
+                                                    {vColor}
+                                                </span>
+                                                <span className="text-[9px] text-gray-400 uppercase tracking-widest truncate">
+                                                    {vUpholstery}
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Options List - Integrated into main content (No Scroll) - No redundant header here as OptionsList internal header is more detailed */}
+                    <div className="mt-20 pt-16 border-t border-black/[0.03]">
                         <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} isElectric={isElectric && !isMSeries} />
                     </div>
                 </div>
 
-                {/* RIGHT: Info & Sticky Sidebar (Price only) */}
-                <div className="lg:col-span-4">
-                    <div className="sticky top-28 space-y-8">
+                {/* RIGHT: Info Summary & Sticky Sidebar (Price & Call to Actions) */}
+                <div className="lg:col-span-4 lg:relative">
+                    <div className="lg:sticky lg:top-28 space-y-8 pb-12 pt-4 lg:pt-0">
 
-                        {/* Header Info */}
-                        <div className="pt-4 lg:pt-0">
-                            <div className="flex flex-wrap items-center gap-4 mb-8">
-                                {showSold && (
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-gray-400" />
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Sprzedany</span>
-                                    </div>
-                                )}
+                        {/* Status Badges */}
+                        <div className="flex flex-wrap items-center gap-4 mb-4">
+                            {showSold && (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-gray-400" />
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Sprzedany</span>
+                                </div>
+                            )}
 
-                                {showReady && (
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-green-600">Dostępny od ręki</span>
-                                    </div>
-                                )}
+                            {showReady && (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-green-600">Dostępny od ręki</span>
+                                </div>
+                            )}
 
-                                {showReserved && (
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-600">Zarezerwowany</span>
-                                    </div>
-                                )}
+                            {showReserved && (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-600">Zarezerwowany</span>
+                                </div>
+                            )}
 
-                                {totalAvailable > 1 && (
-                                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/5 rounded-full border border-blue-500/10">
-                                        <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">{totalAvailable} egzemplarze</span>
-                                    </div>
-                                )}
-                            </div>
+                            {totalAvailable > 1 && (
+                                <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/5 rounded-full border border-blue-500/10">
+                                    <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">{totalAvailable} egzemplarze</span>
+                                </div>
+                            )}
+                        </div>
 
+                        {/* Model & Primary Info */}
+                        <div>
                             <h1 className={cn("text-5xl lg:text-7xl font-bold tracking-tight leading-[1] mb-6", theme.text)}>
                                 {modelName}
                             </h1>
@@ -440,164 +507,16 @@ export default async function CarPage({ params }: PageProps) {
                                     Lakier: {colorName}
                                 </p>
                             )}
-
-                            {/* Action Buttons: Garage & Compare */}
-                            <CarActionButtons car={enrichedCar} className="mt-10" />
-
-                            {/* Car Variants (Config Twins) - BMW OS X Style */}
-                            {variants.length > 0 && (
-                                <div className={cn("mt-16 pt-10 border-t", theme.border)}>
-                                    <div className="flex items-center gap-3 mb-8">
-                                        <h3 className="text-[11px] text-gray-400 uppercase tracking-[0.4em] font-bold">Inna kolorystyka</h3>
-                                        <div className="h-px flex-1 bg-current opacity-10" />
-                                    </div>
-                                    <div className="flex flex-col gap-4">
-                                        {variants.map(v => {
-                                            const vColor = dictionaries.color[v.color_code || '']?.name || v.color_code;
-                                            const vUpholstery = dictionaries.upholstery[v.upholstery_code || '']?.name || v.upholstery_code;
-
-                                            const exteriorImg = v.images?.[0]?.url;
-                                            const interiorImg = v.images && v.images.length > 0 ? v.images[v.images.length - 1]?.url : undefined;
-
-                                            return (
-                                                <Link
-                                                    key={v.vin}
-                                                    replace
-                                                    href={`/cars/${v.vin}`}
-                                                    className={cn(
-                                                        "group flex items-center gap-6 p-1 rounded-2xl transition-all hover:bg-black/[0.02]",
-                                                        isMSeries ? "hover:bg-white/5" : ""
-                                                    )}
-                                                >
-                                                    {/* Image Composite - Side-by-Side Duo Split (User requested) */}
-                                                    <div className="relative w-72 h-24 shrink-0 flex overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
-                                                        {/* Exterior (Left 50%) */}
-                                                        <div className="w-1/2 h-full bg-white relative overflow-hidden">
-                                                            {exteriorImg ? (
-                                                                <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                            ) : (
-                                                                <div className="w-full h-full bg-gray-100" />
-                                                            )}
-                                                            {/* Subtle inner vertical divider line */}
-                                                            <div className="absolute right-0 inset-y-0 w-px bg-black/[0.1] z-10" />
-                                                        </div>
-
-                                                        {/* Interior (Right 50%) */}
-                                                        <div className="w-1/2 h-full bg-gray-50 relative overflow-hidden">
-                                                            {interiorImg ? (
-                                                                <img src={interiorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                            ) : (
-                                                                <div className="w-full h-full bg-gray-200" />
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Text Info */}
-                                                    <div className="flex flex-col min-w-0 pr-4">
-                                                        <span className={cn(
-                                                            "text-[10px] font-bold uppercase tracking-[0.1em] truncate mb-0.5",
-                                                            isMSeries ? "text-gray-100" : "text-gray-900"
-                                                        )}>
-                                                            {vColor}
-                                                        </span>
-                                                        <span className="text-[9px] text-gray-400 uppercase tracking-widest truncate">
-                                                            {vUpholstery}
-                                                        </span>
-                                                    </div>
-                                                </Link>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
+                        {/* Action Buttons: Garage & Compare */}
+                        <CarActionButtons car={enrichedCar} className="mt-6" />
 
-
-                        {/* Price Card & Service Configurator */}
+                        {/* Pricing Section stays on right */}
                         <DynamicPricingSection car={car} seriesCode={enrichedCar.body_group || ''} isDark={isMSeries} fuelType={enrichedCar.fuel_type} bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)} />
-
-                        {/* Accordions - Mobile Only */}
-                        <div className="lg:hidden space-y-px border-t border-gray-100 pt-6">
-                            <SpecsAccordion title="Dane techniczne" className={theme.border} titleClassName={theme.accordionTitle}>
-                                <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
-                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                                        <span>Moc</span>
-                                        <span className={cn("font-medium", theme.accentText)}>{enrichedCar.power} KM</span>
-                                    </div>
-                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                                        <span>Przyspieszenie 0-100 km/h</span>
-                                        <span className={cn("font-medium", theme.accentText)}>{enrichedCar.acceleration} s</span>
-                                    </div>
-                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                                        <span>Rodzaj paliwa</span>
-                                        <span className={cn("font-medium", theme.accentText)}>{isElectric ? 'Elektryczny' : enrichedCar.fuel_type}</span>
-                                    </div>
-                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                                        <span>Rodzaj napędu</span>
-                                        <span className={cn("font-medium", theme.accentText)}>
-                                            {dictionaries.drivetrain[car.drivetrain || '']?.name || car.drivetrain}
-                                        </span>
-                                    </div>
-                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                                        <span>Prędkość maksymalna</span>
-                                        <span className={cn("font-medium", theme.accentText)}>{enrichedCar.max_speed} km/h</span>
-                                    </div>
-                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                                        <span>Pojemność bagażnika</span>
-                                        <span className={cn("font-medium", theme.accentText)}>{enrichedCar.trunk_capacity} l</span>
-                                    </div>
-                                </div>
-                            </SpecsAccordion>
-
-                            <SpecsAccordion title="Seria i Nadwozie" className={theme.border} titleClassName={theme.accordionTitle}>
-                                <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
-                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                                        <span>Rok produkcji</span>
-                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>
-                                            {car.production_date ? new Date(car.production_date).getFullYear() : '2024'}
-                                        </span>
-                                    </div>
-                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                                        <span>Seria</span>
-                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.series}</span>
-                                    </div>
-                                    <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                                        <span>Typ nadwozia</span>
-                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{enrichedCar.body_type}</span>
-                                    </div>
-                                    {/* The following div for "Kod modelu" was removed as per instruction */}
-                                </div>
-                            </SpecsAccordion>
-
-                            <SpecsAccordion title="Tapicerka i kolor" className={theme.border} titleClassName={theme.accordionTitle}>
-                                <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
-                                    <div className={cn("flex justify-between py-2 items-center border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                                        <span>Kolor</span>
-                                        {car.color_code === '490' ? (
-                                            <BMWIndividualBadge compact colorName={dictionaries.color[car.individual_color || '']?.name || car.individual_color} />
-                                        ) : (
-                                            <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{colorName}</span>
-                                        )}
-                                    </div>
-                                    <div className={cn("flex justify-between py-2 items-center border-b", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                                        <span>Tapicerka</span>
-                                        <span className={cn("font-medium", isMSeries ? "text-white" : "text-black")}>{upholsteryName}</span>
-                                    </div>
-                                </div>
-                            </SpecsAccordion>
-                        </div>
-
                     </div>
                 </div>
-
-
-
-                <div className="lg:hidden mt-2 pt-6 border-t border-gray-100 px-4">
-                    <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} isElectric={isElectric && !isMSeries} />
-                </div>
-
-            </div >
-        </main >
+            </div>
+        </main>
     );
 }

@@ -448,7 +448,7 @@ export default async function CarPage({ params }: PageProps) {
                             {variants.length > 0 && (
                                 <div className={cn("mt-16 pt-10 border-t", theme.border)}>
                                     <div className="flex items-center gap-3 mb-8">
-                                        <h3 className="text-[11px] text-gray-400 uppercase tracking-[0.4em] font-bold">Warianty</h3>
+                                        <h3 className="text-[11px] text-gray-400 uppercase tracking-[0.4em] font-bold">Inna kolorystyka</h3>
                                         <div className="h-px flex-1 bg-current opacity-10" />
                                     </div>
                                     <div className="flex flex-col gap-4">
@@ -470,7 +470,7 @@ export default async function CarPage({ params }: PageProps) {
                                                     )}
                                                 >
                                                     {/* Image Composite - Side-by-Side Duo Split (User requested) */}
-                                                    <div className="relative w-64 h-32 shrink-0 flex overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
+                                                    <div className="relative w-72 h-24 shrink-0 flex overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
                                                         {/* Exterior (Left 50%) */}
                                                         <div className="w-1/2 h-full bg-white relative overflow-hidden">
                                                             {exteriorImg ? (

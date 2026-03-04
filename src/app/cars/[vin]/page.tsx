@@ -339,9 +339,9 @@ export default async function CarPage({ params }: PageProps) {
                         </div>
 
                         {/* RIGHT: Sticky Summary Section (Desktop Only) */}
-                        <div className="hidden lg:flex lg:w-[38%] lg:sticky lg:top-24 lg:h-[calc(100vh-160px)] lg:flex-col lg:justify-start pb-6 overflow-y-auto no-scrollbar">
+                        <div className="hidden lg:flex lg:w-[38%] lg:sticky lg:top-24 lg:h-auto lg:flex-col lg:justify-start gap-y-28 pt-0 pb-12 overflow-y-auto no-scrollbar">
                             {/* TOP: Identity & Status */}
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 {/* Badges */}
                                 <div className="flex flex-wrap gap-2">
                                     {showReady && (
@@ -358,7 +358,7 @@ export default async function CarPage({ params }: PageProps) {
                                 </div>
 
                                 {/* Title & Vin Selector */}
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     <h1 className={cn("text-4xl lg:text-5xl font-bold tracking-tight leading-none", theme.text)}>
                                         {modelName}
                                     </h1>
@@ -366,11 +366,8 @@ export default async function CarPage({ params }: PageProps) {
                                 </div>
                             </div>
 
-                            {/* Flexible spacer that limits the gap to prevent disconnection on tall screens */}
-                            <div className="flex-1 max-h-32 min-h-[2rem]" />
-
-                            {/* BOTTOM: Pricing & Action */}
-                            <div className="space-y-4 mt-auto">
+                            {/* BOTTOM: Pricing & Action (Fixed 112px gap from Top for perfect balance) */}
+                            <div className="space-y-6">
                                 <DynamicPricingSection car={car} seriesCode={enrichedCar.body_group || ''} isDark={isMSeries} fuelType={enrichedCar.fuel_type} bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)} />
                                 <CarActionButtons car={enrichedCar} />
                             </div>

@@ -60,9 +60,23 @@ export function MobileStickyFooter({ car: propCar, isDark: propIsDark, bulletinD
 
                     <div className="flex flex-col">
                         <span className="text-[8px] font-bold uppercase tracking-[0.2em] opacity-40 mb-0.5">Cena końcowa</span>
-                        <span className="text-xl font-black tracking-tighter leading-none">
-                            {formatPrice(finalPrice)}
-                        </span>
+                        {(hasManualDiscount || hasBulletinDiscount) ? (
+                            <div className="flex items-baseline gap-2">
+                                <span className={cn(
+                                    "text-[10px] line-through decoration-red-500/40 opacity-50",
+                                    isDark ? "text-gray-400" : "text-gray-500"
+                                )}>
+                                    {formatPrice(car.list_price + additionalCost)}
+                                </span>
+                                <span className="text-xl font-black tracking-tighter leading-none">
+                                    {formatPrice(finalPrice)}
+                                </span>
+                            </div>
+                        ) : (
+                            <span className="text-xl font-black tracking-tighter leading-none">
+                                {formatPrice(finalPrice)}
+                            </span>
+                        )}
                     </div>
                 </div>
 

@@ -383,19 +383,19 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                             {/* Price Block */}
                             <div className="flex flex-row md:flex-col items-end justify-between md:justify-end xl:items-end w-full xl:w-auto mt-1 md:mt-0 xl:min-w-[140px] border-t md:border-t-0 pt-3 md:pt-0 border-gray-200/50">
                                 <div className="flex flex-col md:items-end w-full">
-                                    <span className={cn("text-[9px] md:text-[10px] uppercase tracking-widest font-bold mb-0.5 md:mb-1.5", isMSeries ? "text-white/50" : "text-gray-500")}>Cena detaliczna</span>
-                                    <div className="flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-0">
+                                    <span className={cn("text-[8px] md:text-[9px] uppercase tracking-[0.2em] font-bold mb-0.5", isMSeries ? "text-white/40" : "text-gray-400")}>Oferta</span>
+                                    <div className="flex flex-col items-start md:items-end">
                                         {hasDiscount ? (
                                             <>
-                                                <span className={cn("text-[11px] md:text-xs font-medium line-through md:mb-1", isMSeries ? "text-white/40" : "text-gray-400")}>
+                                                <span className={cn("text-[10px] sm:text-[11px] font-bold line-through decoration-red-500/50 mb-0.5", isMSeries ? "text-white/50" : "text-gray-500")}>
                                                     {formatPrice(car.list_price)}
                                                 </span>
-                                                <span className={cn("text-[18px] sm:text-[22px] lg:text-[24px] font-semibold tracking-tight leading-none", isMSeries ? "text-white" : "text-gray-900")}>
+                                                <span className={cn("text-[20px] sm:text-[22px] lg:text-[24px] font-black tracking-tight leading-none", isMSeries ? "text-white" : "text-gray-900")}>
                                                     {formatPrice(rawEffectivePrice)}
                                                 </span>
                                             </>
                                         ) : (
-                                            <span className={cn("text-[18px] sm:text-[22px] lg:text-[24px] font-semibold tracking-tight leading-none", isMSeries ? "text-white" : "text-gray-900")}>
+                                            <span className={cn("text-[20px] sm:text-[22px] lg:text-[24px] font-black tracking-tight leading-none mt-3 md:mt-2", isMSeries ? "text-white" : "text-gray-900")}>
                                                 {formatPrice(car.list_price)}
                                             </span>
                                         )}

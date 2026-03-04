@@ -243,13 +243,13 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
                                     {modelName || `BMW Model ${car.model_code}`}
                                 </h3>
 
-                                <div className="flex items-end gap-3 mt-2 md:mt-3 pb-1 md:pb-0">
+                                <div className="flex flex-col items-start mt-1.5 md:mt-2">
                                     {hasDiscount && (
-                                        <span className={cn("text-xs md:text-sm font-medium line-through mb-1", isMSeries ? "text-white/50" : "text-gray-500 md:text-white/50")}>
+                                        <span className={cn("text-[10px] sm:text-xs font-bold line-through decoration-red-500/50 mb-0.5", isMSeries ? "text-white/50" : "text-gray-500 md:text-white/50")}>
                                             {formatPrice(car.list_price)}
                                         </span>
                                     )}
-                                    <span className={cn("text-[20px] sm:text-[22px] md:text-[24px] font-semibold tracking-tight leading-none", isMSeries ? "text-white" : "text-gray-900 md:text-white")}>
+                                    <span className={cn("text-xl sm:text-2xl font-black tracking-tight leading-none", isMSeries ? "text-white" : "text-gray-900 md:text-white")}>
                                         {formatPrice(effectivePrice)}
                                     </span>
                                 </div>

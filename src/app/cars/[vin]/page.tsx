@@ -469,56 +469,42 @@ export default async function CarPage({ params }: PageProps) {
                                                         isMSeries ? "hover:bg-white/5" : ""
                                                     )}
                                                 >
-                                                    {/* Image Composite - BMW OS X Inspired Trapezoids */}
-                                                    <div className="relative w-40 h-28 shrink-0">
-                                                        {/* Interior (Back) */}
+                                                    {/* Image Composite - BMW Slanted Split Duo-Card */}
+                                                    <div className="relative w-56 h-28 shrink-0 overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
+                                                        {/* Exterior (Left Side) - Fixed layout */}
                                                         <div
-                                                            className="absolute bottom-1 right-2 w-[75%] h-[85%] bg-white/20 p-[1px]"
+                                                            className="absolute inset-y-0 left-0 w-[65%] z-10 bg-white"
                                                             style={{
-                                                                clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
-                                                                WebkitClipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
-                                                                filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.5))'
+                                                                clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)',
+                                                                WebkitClipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)'
                                                             }}
                                                         >
-                                                            <div
-                                                                className="w-full h-full overflow-hidden bg-black/40"
-                                                                style={{
-                                                                    clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
-                                                                    WebkitClipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)'
-                                                                }}
-                                                            >
-                                                                {interiorImg ? (
-                                                                    <img src={interiorImg} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
-                                                                ) : (
-                                                                    <div className="w-full h-full bg-gray-200" />
-                                                                )}
-                                                            </div>
+                                                            {exteriorImg ? (
+                                                                <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                            ) : (
+                                                                <div className="w-full h-full bg-gray-100" />
+                                                            )}
                                                         </div>
 
-                                                        {/* Exterior (Front) */}
-                                                        <div
-                                                            className="absolute top-1 left-2 w-[75%] h-[85%] bg-white p-[1px] z-10"
-                                                            style={{
-                                                                clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
-                                                                WebkitClipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
-                                                                filter: 'drop-shadow(8px 8px 16px rgba(0,0,0,0.4))'
-                                                            }}
-                                                        >
-                                                            <div
-                                                                className="w-full h-full overflow-hidden bg-white"
-                                                                style={{
-                                                                    clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
-                                                                    WebkitClipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)'
-                                                                }}
-                                                            >
-                                                                {exteriorImg ? (
-                                                                    <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                                ) : (
-                                                                    <div className="w-full h-full bg-gray-100" />
-                                                                )}
-                                                            </div>
+                                                        {/* Interior (Right Side) - Full visibility */}
+                                                        <div className="absolute inset-y-0 right-0 w-[55%]">
+                                                            {interiorImg ? (
+                                                                <img src={interiorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                            ) : (
+                                                                <div className="w-full h-full bg-gray-200" />
+                                                            )}
                                                         </div>
+
+                                                        {/* Subtle Divider Line */}
+                                                        <div
+                                                            className="absolute inset-y-0 left-[65%] w-px bg-white/40 z-20"
+                                                            style={{
+                                                                transform: 'skewX(-11.5deg) translateX(-20px)',
+                                                                height: '100%'
+                                                            }}
+                                                        />
                                                     </div>
+                                                    streams of the interior view are now fully visible and the exterior car is perfectly framed. The diagonal split adds a dynamic, premium tech vibe.
 
                                                     {/* Text Info */}
                                                     <div className="flex flex-col min-w-0 pr-4">

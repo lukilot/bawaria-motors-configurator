@@ -145,7 +145,14 @@ export function SiteHeader() {
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: -10 }}
-                                        onClick={() => router.push('/cars')}
+                                        onClick={() => {
+                                            const lastSrp = sessionStorage.getItem('bawaria_last_srp');
+                                            if (lastSrp) {
+                                                router.push(lastSrp);
+                                            } else {
+                                                router.push('/cars');
+                                            }
+                                        }}
                                         className={cn(
                                             "flex items-center gap-2 px-3 py-2 rounded-full transition-all text-[10px] font-bold uppercase tracking-widest group",
                                             isScrolled
@@ -241,7 +248,7 @@ export function SiteHeader() {
                                 className={cn(
                                     "relative flex items-center gap-2.5 px-4 py-2.5 rounded-full transition-all duration-500 text-[10px] font-bold uppercase tracking-[0.15em] border group/btn",
                                     isGarageOpen
-                                        ? "bg-white text-black border-white shadow-lg" // Prominent Close state
+                                        ? "opacity-0 pointer-events-none translate-x-4" // Prominent Close state
                                         : count > 0
                                             ? "border-black bg-black text-white hover:bg-gray-800"
                                             : isScrolled
@@ -251,41 +258,16 @@ export function SiteHeader() {
                                                     : "border-black/10 bg-white/10 text-gray-900 hover:bg-black hover:text-white"
                                 )}
                             >
-                                <AnimatePresence mode="wait">
-                                    {isGarageOpen ? (
-                                        <motion.div
-                                            key="close"
-                                            initial={{ scale: 0, rotate: -90 }}
-                                            animate={{ scale: 1, rotate: 0 }}
-                                            exit={{ scale: 0, rotate: 90 }}
-                                        >
-                                            <X className="w-3.5 h-3.5" />
-                                        </motion.div>
-                                    ) : (
-                                        <motion.div
-                                            key="garage"
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            exit={{ scale: 0 }}
-                                            className="flex items-center gap-2.5"
-                                        >
-                                            <Warehouse className="w-3.5 h-3.5 transition-transform duration-500 group-hover/btn:scale-110" />
-                                            <span className="hidden sm:inline">Garaż</span>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                <div className="flex items-center gap-2.5">
+                                    <Warehouse className="w-3.5 h-3.5 transition-transform duration-500 group-hover/btn:scale-110" />
+                                    <span className="hidden sm:inline">Garaż</span>
+                                </div>
 
-                                {!isGarageOpen && count > 0 && (
-                                    <motion.span
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        className="bg-white text-black text-[9px] min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full font-bold leading-none shadow-sm ml-1"
-                                    >
+                                {count > 0 && (
+                                    <span className="bg-white text-black text-[9px] min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full font-bold leading-none shadow-sm ml-1">
                                         {count}
-                                    </motion.span>
+                                    </span>
                                 )}
-
-                                {isGarageOpen && <span className="hidden sm:inline">Zamknij</span>}
                             </button>
 
                         </div>

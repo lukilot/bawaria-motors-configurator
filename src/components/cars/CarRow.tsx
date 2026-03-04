@@ -1,13 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Warehouse, Scale } from 'lucide-react';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
+import { ArrowRight, Warehouse, Scale } from 'lucide-react';
 import { BMWIndividualBadge } from './BMWIndividualBadge';
 import { useGarageStore } from '@/store/garageStore';
 import { useCompareStore } from '@/store/compareStore';
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getColor } from '@/lib/colors';
 
 interface CarRowProps {
     car: StockCar;
@@ -20,68 +22,24 @@ interface CarRowProps {
         drivetrain: Record<string, any>;
     };
     discountedPrice?: number;
-};
+}
 
 export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRowProps) {
-    // Logic to determine availability
-    // Logic to determine availability
-    // Logic to determine availability
     const isSold = (car.order_status || '').includes('Sprzedany');
     const reservationStr = (car.reservation_details || '').trim();
     const isReserved = !!reservationStr && reservationStr.toLowerCase() !== 'rezerwuj';
-    // Available if status > 190 (regardless of reservation, but logic below handles display)
     const isReady = car.status_code > 190;
     const isMSeries = (car.series || '').includes('Seria M');
     const isElectric = car.fuel_type === 'Elektryczny';
 
-    const hasImages = car.images && car.images.length > 0;
-
-    // Pricing
     const formatPrice = (price: number) =>
-        new Intl.NumberFormat('pl-PL', { style: 'currency', currency: car.currency }).format(price);
-
-    // Image Logic
-    // 1. Main Image (First)
-    // 2. Thumbnails (Next 2)
-    // 3. Last Image (Assumed Interior if enough images, otherwise 4th)
-
-    // We want to show index 0 (Main), 1, 2, and then Last Key.
-
-    let displayImages: { url: string, alt: string }[] = [];
-
-    if (hasImages) {
-        // Main Image
-        const mainImg = car.images![0];
-
-        // Middle Thumbnails (up to 2)
-        const middleImgs = car.images!.slice(1, 3);
-
-        // Last Image (Interior?) - only if we have more than 3 images to avoid dupes
-        // If we have 4 images: 0, 1, 2, 3. 
-        // If we have 3 images: 0, 1, 2.
-
-        const lastImg = car.images!.length > 3 ? car.images![car.images!.length - 1] : (car.images!.length > 2 ? car.images![2] : null);
-
-        // Filter out nulls and duplicates (basic check)
-        // Actually, let's just grab 0, 1, 2, and Last.
-
-        displayImages.push({ url: mainImg.url, alt: 'Front View' });
-
-        middleImgs.forEach((img, idx) => displayImages.push({ url: img.url, alt: `View ${idx + 2}` }));
-
-        if (lastImg && !middleImgs.includes(lastImg)) {
-            displayImages.push({ url: lastImg.url, alt: 'Interior / Detail' });
-        }
-
-        // Limit to 4 total just in case
-        displayImages = displayImages.slice(0, 4);
-    }
+        new Intl.NumberFormat('pl-PL', { style: 'currency', currency: car.currency, maximumFractionDigits: 0 }).format(price);
 
     const { addCar: addGarageCar, removeCar: removeGarageCar } = useGarageStore();
     const { compareCars, addCar: addCompareCar, removeCar: removeCompareCar } = useCompareStore();
-    // Direct selectors — tracked precisely by Zustand so re-renders fire when state changes
+
     const isCarCompared = useCompareStore(state => state.compareCars.some(c => c.vin === car.vin));
-    const isCarSaved = useGarageStore(state => state.savedCars.some(c => c.vin === car.vin));
+    const isCarSaved = useGarageStore(state => state.savedCars?.some((c: any) => c.vin === car.vin));
 
     const [clientMounted, setClientMounted] = useState(false);
     useEffect(() => { setClientMounted(true); }, []);
@@ -92,8 +50,11 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
     const toggleGarage = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (saved) removeGarageCar(car.vin);
-        else addGarageCar(car);
+        if (saved) {
+            removeGarageCar(car.vin);
+        } else {
+            addGarageCar(car);
+        }
     };
 
     const toggleCompare = (e: React.MouseEvent) => {
@@ -112,287 +73,295 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
 
     const displayedModelName = modelName || `BMW ${car.model_code}`;
 
+    // Image Logic
+    const allImages = car.images || [];
+    const hasImages = allImages.length > 0;
+
+    // Ostatnie zdjęcie z galerii to zawsze wnętrze w naszych systemach
+    const interiorImage = hasImages && allImages.length > 1 ? allImages[allImages.length - 1] : null;
+
+    // Do scrubbowania wyciągamy pierwsze max 5 zdjęć (ale wykluczamy to, które użyliśmy jako wnętrze)
+    const scrubImages = hasImages
+        ? allImages.filter(img => img.url !== interiorImage?.url).slice(0, 5)
+        : [];
+
+    const displayImages = scrubImages.length > 0 ? scrubImages : (interiorImage ? [interiorImage] : []);
+
+    const [activeImgIdx, setActiveImgIdx] = useState(0);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (displayImages.length <= 1) return;
+        const { left, width } = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - left;
+        const sectionWidth = width / displayImages.length;
+        const newIndex = Math.min(Math.floor(x / sectionWidth), displayImages.length - 1);
+        if (newIndex !== activeImgIdx) setActiveImgIdx(newIndex);
+    };
+
+    const handleMouseLeave = () => {
+        setActiveImgIdx(0);
+    };
+
+    const rawEffectivePrice = (car.special_price && car.special_price < car.list_price)
+        ? car.special_price
+        : (discountedPrice && discountedPrice < car.list_price)
+            ? discountedPrice
+            : car.list_price;
+
+    const hasDiscount = rawEffectivePrice < car.list_price;
+    const colorName = dictionaries.color[car.color_code]?.name;
+
     return (
-        <div className={cn(
-            "group rounded-sm overflow-hidden transition-all duration-300 relative",
-            isMSeries
-                ? "bg-[#1a1a1a] border border-[#333] hover:border-[#53A0DE]/30 hover:shadow-[0_20px_50px_-12px_rgba(83,160,222,0.2)]"
-                : isElectric
-                    ? "bg-white border border-blue-100 hover:border-blue-300 hover:shadow-[0_10px_40px_-10px_rgba(6,83,182,0.15)]"
-                    : "bg-white border border-gray-100 hover:shadow-lg",
-            isSold && "opacity-60 grayscale-[0.5] hover:shadow-none hover:opacity-60"
-        )}>
-            {/* Custom M Hover Gradient Shadow (Blur) - Subtle for List View */}
-            {isMSeries && (
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#53A0DE] via-[#02256E] to-[#E40424] opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500 -z-10" />
+        <div className="group relative w-full transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] will-change-transform shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] md:hover:-translate-y-1 z-10">
+            {/* Ambilight Glow Underlay */}
+            {(isMSeries || isElectric) && (
+                <div
+                    className={cn(
+                        "hidden md:block absolute -inset-2 opacity-0 transition-all duration-700 z-[-1] rounded-3xl pointer-events-none blur-2xl group-hover:opacity-90 mix-blend-screen",
+                        isMSeries
+                            ? "bg-gradient-to-tr from-[#53A0DE] via-[#02256E] to-[#E40424]"
+                            : "bg-gradient-to-tr from-[#0653B6] via-[#106ABF] to-[#2E95D3]"
+                    )}
+                />
             )}
 
-            {/* Custom Electric Hover Gradient Shadow (Blue Glow) */}
-            {isElectric && !isMSeries && (
-                <div className="absolute -inset-0.5 bg-blue-400/20 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500 -z-10" />
-            )}
-
-            <Link href={`/cars/${encodeURIComponent(car.vin)}`} className={cn("flex flex-col md:flex-row h-full", isSold && "cursor-default pointer-events-none")}>
-
-                {/* Left: Images (Grid) */}
-                <div className={cn("w-full md:w-[45%] lg:w-[40%] flex flex-col relative", isMSeries ? (hasImages ? "bg-[#0f0f0f]" : "bg-gray-200") : "bg-white")}>
-
-                    {/* Action Buttons */}
-                    <div className="absolute top-3 left-3 z-30 flex flex-col gap-2">
-                        <button
-                            onClick={toggleGarage}
-                            className={cn(
-                                "p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-sm",
-                                saved ? "bg-black text-white" : "bg-white/80 text-gray-900 border border-gray-200 hover:bg-white"
-                            )}
-                            title={saved ? "Usuń z garażu" : "Dodaj do garażu"}
-                        >
-                            <Warehouse className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={toggleCompare}
-                            className={cn(
-                                "p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-sm",
-                                compared ? "bg-black text-white" : "bg-white/80 text-gray-900 border border-gray-200 hover:bg-white"
-                            )}
-                            title={compared ? "Usuń z porównania" : "Porównaj"}
-                        >
-                            <Scale className="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    {/* Main Image */}
-                    <div className="relative aspect-[4/3] md:aspect-auto md:flex-1 overflow-hidden">
-                        {hasImages ? (
-                            <img
-                                src={displayImages[0].url}
-                                alt={displayImages[0].alt}
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                        ) : (
-                            // Cover Image Logic
+            <div className={cn(
+                "rounded-2xl overflow-hidden relative flex flex-col md:flex-row min-h-auto md:min-h-[220px] lg:h-[280px]",
+                isMSeries
+                    ? "bg-[#18181A] border border-white/5 group-hover:border-white/10"
+                    : "bg-white border border-gray-100 group-hover:border-gray-200/80",
+                isSold && "opacity-60 grayscale-[0.5]",
+                compared && "ring-2 ring-blue-500 ring-offset-2 ring-offset-white"
+            )}>
+                {/* Left Image Pane (Scrubbable) */}
+                <div
+                    className="w-full h-[260px] sm:h-[320px] md:h-auto md:w-[45%] lg:w-[40%] relative bg-gray-900 overflow-hidden shrink-0 border-b md:border-b-0 border-white/5"
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                >
+                    {/* Images */}
+                    <Link href={`/cars/${encodeURIComponent(car.vin)}`} className={cn("absolute inset-0 z-0", isSold && "cursor-default pointer-events-none")}>
+                        {displayImages.length > 0 ? (
                             <>
-                                <img
-                                    src="/images/car-cover.png"
-                                    alt="In Preparation"
-                                    className="w-full h-full object-cover opacity-80 mix-blend-multiply grayscale-[0.2]"
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-[1px]">
-                                    <span className="bg-white/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-900 border border-gray-200 shadow-sm">
-                                        {isSold ? 'Pojazd Sprzedany' : 'Oferta w trakcie przygotowywania'}
-                                    </span>
+                                {/* Desktop Hover Scrubbing Images */}
+                                <div className="hidden md:block absolute inset-0">
+                                    {displayImages.map((img, idx) => (
+                                        <img
+                                            key={idx}
+                                            src={img.url}
+                                            alt={`${displayedModelName}`}
+                                            className={cn(
+                                                "absolute inset-0 w-full h-full object-cover transition-opacity duration-300 pointer-events-none group-hover:scale-105 ease-[cubic-bezier(0.2,0.8,0.2,1)]",
+                                                idx === activeImgIdx ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                    ))}
+                                </div>
+
+                                {/* Mobile Static Image */}
+                                <div className="md:hidden absolute inset-0 z-10">
+                                    <img src={displayImages[0].url} alt={`${displayedModelName}`} className="w-full h-full object-cover" />
                                 </div>
                             </>
-                        )}
-                        {/* M Badge on List View */}
-                        {isMSeries && (
-                            <div className="absolute top-0 right-0 z-20">
-                                <div className="relative bg-black/80 backdrop-blur-md text-white px-3 py-1 flex items-center gap-2 skew-x-[-12deg] mr-[-10px] mt-2 translate-x-2">
-                                    <span className="text-[9px] font-bold uppercase tracking-widest skew-x-[12deg] pr-2">M Power</span>
+                        ) : (
+                            <div className="absolute inset-0 w-full h-full">
+                                <img
+                                    src="/images/car-cover.png"
+                                    alt="Vehicle in Preparation"
+                                    className="absolute inset-0 w-full h-full object-cover opacity-90 pointer-events-none md:group-hover:scale-105 ease-[cubic-bezier(0.2,0.8,0.2,1)] transition-transform duration-700"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center p-4">
+                                    <div className="bg-black/60 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full shadow-lg pointer-events-none z-10 transition-transform md:group-hover:scale-105 duration-700">
+                                        <span className="text-white text-[10px] md:text-xs font-bold uppercase tracking-widest text-center shadow-black drop-shadow-md">
+                                            Oferta w przygotowaniu
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         )}
-                        {/* Electric Badge on List View */}
-                        {isElectric && !isMSeries && (
-                            <div className="absolute top-0 right-0 z-20">
-                                <div className="relative bg-white/90 backdrop-blur-md text-[#0653B6] px-3 py-1 flex items-center gap-2 skew-x-[-12deg] mr-[-10px] mt-2 translate-x-2 border-l border-b border-blue-100 shadow-sm">
-                                    <span className="text-[9px] font-bold uppercase tracking-widest skew-x-[12deg] pr-2">BMW i</span>
-                                </div>
-                            </div>
-                        )}
-                    </div>
 
-                    {/* 3 Thumbnails Row */}
-                    {hasImages && displayImages.length > 1 && (
-                        <div className={cn("grid grid-cols-3 h-20 md:h-24 border-t", isMSeries ? "border-gray-800" : "border-gray-100")}>
-                            {/* Slot 1 */}
-                            <div className={cn("relative border-r overflow-hidden", isMSeries ? "border-gray-800" : "border-gray-100")}>
-                                {displayImages[1] && (
-                                    <img src={displayImages[1].url} className="w-full h-full object-cover" alt="" />
-                                )}
+                        {/* Gradient Overlay for buttons readability */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10 pointer-events-none opacity-60 md:transition-opacity duration-700 md:group-hover:opacity-80" />
+
+                        {/* Scrubber Ticks */}
+                        {displayImages.length > 1 && (
+                            <div className="hidden md:flex absolute top-5 left-0 right-0 z-20 justify-center gap-2 px-6 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                                {displayImages.map((_, idx) => (
+                                    <div key={idx} className={cn("h-[3px] rounded-full flex-1 max-w-[40px] transition-all duration-300", idx === activeImgIdx ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" : "bg-white/30")} />
+                                ))}
                             </div>
-                            {/* Slot 2 */}
-                            <div className={cn("relative border-r overflow-hidden", isMSeries ? "border-gray-800" : "border-gray-100")}>
-                                {displayImages[2] && (
-                                    <img src={displayImages[2].url} className="w-full h-full object-cover" alt="" />
-                                )}
+                        )}
+                    </Link>
+
+
+                    {/* Premium Interactive PIP Thumbnail - Interior view */}
+                    {interiorImage && (
+                        <Link href={`/cars/${encodeURIComponent(car.vin)}`} className="absolute bottom-5 right-5 z-40 group/pip w-16 h-16 sm:w-[72px] sm:h-[72px] cursor-pointer block">
+                            {/* By using specific pixel radiuses (rounded-[32px] for 64px, rounded-[36px] for 72px) instead of rounded-full, the border-radius transitions perfectly smoothly to rounded-[24px] without weird snapping mid-animation. */}
+                            <div className="absolute bottom-0 right-0 overflow-hidden w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-[32px] sm:rounded-[36px] border border-white/30 shadow-[0_4px_12px_rgba(0,0,0,0.4)] bg-black/40 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover/pip:w-[280px] sm:group-hover/pip:w-[320px] group-hover/pip:h-[200px] sm:group-hover/pip:h-[220px] group-hover/pip:rounded-[20px] group-hover/pip:shadow-[0_24px_48px_rgba(0,0,0,0.6)] group-hover/pip:border-white/40">
+                                <img src={interiorImage.url} alt="Wnętrze" className="absolute inset-0 w-full h-full object-cover scale-[1.3] group-hover/pip:scale-100 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]" />
                             </div>
-                            {/* Slot 3 (Interior) */}
-                            <div className="relative overflow-hidden">
-                                {displayImages[3] && (
-                                    <img src={displayImages[3].url} className="w-full h-full object-cover" alt="" />
-                                )}
-                            </div>
-                        </div>
+                        </Link>
                     )}
                 </div>
 
-                {/* Right: Details */}
-                <div className="flex-1 p-5 flex flex-col relative">
+                {/* Right Info Pane */}
+                <Link href={`/cars/${encodeURIComponent(car.vin)}`} className={cn("flex-1 p-5 lg:p-8 flex flex-col justify-between md:justify-end relative overflow-hidden", isSold && "cursor-default pointer-events-none")}>
 
-                    {/* Header */}
-                    <div>
-                        <div className="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 className={cn("text-2xl font-bold tracking-tight transition-colors", isMSeries ? "text-white group-hover:text-blue-400" : "text-gray-900 group-hover:text-blue-700")}>
-                                    {displayedModelName}
-                                </h3>
-                                <div className="mt-0">
-                                    <span className="text-[10px] text-gray-400 font-mono tracking-wider uppercase">
+                    {/* Minimalist Action Buttons (Top Left of Info Pane) */}
+                    <div className="absolute top-5 left-5 lg:top-8 lg:left-8 z-30 flex flex-row items-center gap-5">
+                        <button
+                            onClick={toggleGarage}
+                            className={cn(
+                                "flex items-center gap-2 group/action hover:opacity-100 transition-opacity duration-300",
+                                saved
+                                    ? (isMSeries ? "text-white opacity-100" : "text-black opacity-100")
+                                    : (isMSeries ? "text-white opacity-40" : "text-gray-900 opacity-40")
+                            )}
+                        >
+                            <Warehouse className={cn("w-4 h-4 transition-transform duration-300 origin-bottom", !saved && "group-hover/action:scale-110")} />
+                            <span className="text-[9px] uppercase font-bold tracking-[0.2em]">{saved ? "Zapisany" : "Zapisz"}</span>
+                        </button>
+
+                        <button
+                            onClick={toggleCompare}
+                            className={cn(
+                                "flex items-center gap-2 group/action hover:opacity-100 transition-opacity duration-300",
+                                compared
+                                    ? "text-blue-500 opacity-100"
+                                    : (isMSeries ? "text-white opacity-40" : "text-gray-900 opacity-40")
+                            )}
+                        >
+                            <Scale className={cn("w-4 h-4 transition-transform duration-300 origin-bottom", !compared && "group-hover/action:scale-110")} />
+                            <span className="text-[9px] uppercase font-bold tracking-[0.2em]">{compared ? "Dodany" : "Porównaj"}</span>
+                        </button>
+                    </div>
+
+                    {/* Brand Badges Top Right (Mobile visible statically, desktop visible) */}
+                    <div className="absolute top-4 md:top-5 right-4 md:right-5 z-30 flex flex-col items-end gap-1.5 text-[9px] uppercase font-bold tracking-widest text-white">
+                        {car.available_count && car.available_count > 1 && (
+                            <div className={cn("px-2.5 py-1.5 rounded-sm border shadow-sm", isMSeries ? "bg-black/80 border-white/20 text-white backdrop-blur-xl" : "bg-white border-gray-200 text-gray-800 shadow-sm")}>
+                                {car.available_count} dostępne
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Transform Container for Title & Price */}
+                    {/* Mobile: Normal flow, no transform. Desktop: Transforms up on hover */}
+                    <div className="relative w-full flex flex-col md:justify-end transform md:transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] md:group-hover:-translate-y-[90px] lg:group-hover:-translate-y-[85px] z-10">
+                        <div className="flex flex-col xl:flex-row xl:justify-between items-start xl:items-end gap-3 md:gap-5">
+                            <div className="flex-1 min-w-0 pr-8 md:pr-0">
+                                <div className="flex items-center gap-3 md:gap-4 mb-2">
+                                    <span className={cn("text-[9px] md:text-[10px] font-mono tracking-widest uppercase opacity-70 group-hover:opacity-100 transition-opacity", isMSeries ? "text-white/60" : "text-gray-500")}>
                                         {car.vin}
                                     </span>
+                                    {/* Status Badges */}
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {isSold && (
+                                            <span className={cn("px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm", isMSeries ? "bg-white/10 text-white/50" : "bg-gray-100 text-gray-500")}>
+                                                Sprzedany
+                                            </span>
+                                        )}
+                                        {!isSold && isReady && (
+                                            <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm", isMSeries ? "bg-white/5 border border-green-900/40 text-green-400" : "bg-green-50/80 text-green-700")}>
+                                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shrink-0" />
+                                                Dostępny
+                                            </span>
+                                        )}
+                                        {!isSold && isReserved && (
+                                            <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm", isMSeries ? "bg-white/5 border border-yellow-900/40 text-yellow-500" : "bg-yellow-50 text-yellow-700")}>
+                                                <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full shrink-0" />
+                                                Rezerwacja
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <h3 className={cn("text-[20px] sm:text-[26px] lg:text-[32px] font-bold tracking-tight leading-[1.1] line-clamp-2 md:pr-4 transition-colors duration-300",
+                                    isMSeries ? "text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400" : "text-gray-900"
+                                )}>
+                                    {displayedModelName}
+                                </h3>
+                            </div>
+
+                            {/* Price Block */}
+                            <div className="flex flex-row md:flex-col items-end justify-between md:justify-end xl:items-end w-full xl:w-auto mt-1 md:mt-0 xl:min-w-[140px] border-t md:border-t-0 pt-3 md:pt-0 border-gray-200/50">
+                                <div className="flex flex-col md:items-end w-full">
+                                    <span className={cn("text-[9px] md:text-[10px] uppercase tracking-widest font-bold mb-0.5 md:mb-1.5", isMSeries ? "text-white/50" : "text-gray-500")}>Cena detaliczna</span>
+                                    <div className="flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-0">
+                                        {hasDiscount ? (
+                                            <>
+                                                <span className={cn("text-[11px] md:text-xs font-medium line-through md:mb-1", isMSeries ? "text-white/40" : "text-gray-400")}>
+                                                    {formatPrice(car.list_price)}
+                                                </span>
+                                                <span className={cn("text-[18px] sm:text-[22px] lg:text-[24px] font-semibold tracking-tight leading-none", isMSeries ? "text-white" : "text-gray-900")}>
+                                                    {formatPrice(rawEffectivePrice)}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span className={cn("text-[18px] sm:text-[22px] lg:text-[24px] font-semibold tracking-tight leading-none", isMSeries ? "text-white" : "text-gray-900")}>
+                                                {formatPrice(car.list_price)}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                            {/* Badges Container */}
-                            <div className="flex flex-col items-end gap-1">
-                                {isSold && (
-                                    <span className="px-2 py-1 bg-gray-200 text-gray-600 text-[10px] font-bold uppercase tracking-wider rounded-sm">
-                                        Sprzedany
-                                    </span>
-                                )}
-
-                                {!isSold && isReady && (
-                                    <span className={cn(
-                                        "inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm",
-                                        isMSeries
-                                            ? "bg-black/40 text-green-400 border border-green-900/50"
-                                            : "bg-green-50 text-green-700"
-                                    )}>
-                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shrink-0" />
-                                        Dostępny od ręki
-                                    </span>
-                                )}
-
-                                {!isSold && isReserved && (
-                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-yellow-50 text-yellow-700 text-[10px] font-bold uppercase tracking-wider rounded-sm">
-                                        <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full shrink-0" />
-                                        Zarezerwowany
-                                    </span>
-                                )}
-
-                                {/* Available Count Badge */}
-                                {(car.available_count || 0) > 1 && (
-                                    <span className={cn(
-                                        "inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm border",
-                                        isMSeries ? "bg-white/10 text-gray-300 border-white/10" : "bg-blue-50 text-blue-700 border-blue-100"
-                                    )}>
-                                        {car.available_count} szt. dostępnych
-                                    </span>
-                                )}
-                            </div>
                         </div>
+                    </div>
 
-                        <div className={cn("grid grid-cols-2 gap-y-3 gap-x-8 mt-4 text-sm", isMSeries ? "text-gray-400" : "text-gray-600")}>
+                    {/* Spec Drawer (Slides in at bottom on desktop like a notch, statically visible on mobile inline) */}
+                    <div className="mt-5 md:mt-0 md:absolute md:bottom-0 md:left-5 md:right-5 lg:left-8 lg:right-8 md:opacity-0 transform md:translate-y-full md:group-hover:translate-y-0 md:transition-all md:duration-700 md:ease-[cubic-bezier(0.2,0.8,0.2,1)] md:group-hover:opacity-100 z-10">
+                        <div className={cn("rounded-[16px] md:rounded-t-[20px] md:rounded-b-none p-4 md:p-5 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4 md:shadow-[0_-8px_30px_rgba(0,0,0,0.06)]",
+                            isMSeries ? "bg-white/5 md:bg-black/95 border border-white/5 md:border-white/10 md:border-b-0 md:backdrop-blur-2xl" : "bg-gray-50 md:bg-white/95 border border-gray-100 md:border-gray-200/80 md:border-b-0 md:backdrop-blur-2xl")}>
                             <div className="flex flex-col min-w-0">
-                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Lakier</span>
+                                <span className={cn("text-[8px] uppercase font-bold tracking-wider mb-1", isMSeries ? "text-white/40" : "text-gray-400")}>Lakier</span>
                                 {car.color_code === '490' ? (
-                                    <BMWIndividualBadge compact colorName={dictionaries.color[car.individual_color || '']?.name || car.individual_color} className="mt-0.5 w-fit max-w-full" />
+                                    <BMWIndividualBadge
+                                        compact
+                                        className={cn("text-[10px] font-bold uppercase", isMSeries ? "text-white drop-shadow-md" : "text-gray-900")}
+                                        colorName={dictionaries.color[car.individual_color || '']?.name || car.individual_color}
+                                    />
                                 ) : (
-                                    <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")} title={car.color_code}>
+                                    <span className={cn("text-[10px] font-bold uppercase break-words leading-tight mt-0.5", isMSeries ? "text-white drop-shadow-md" : "text-gray-900")}>
                                         {dictionaries.color[car.color_code]?.name || car.color_code}
                                     </span>
                                 )}
                             </div>
                             <div className="flex flex-col min-w-0">
-                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Tapicerka</span>
-                                <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")} title={car.upholstery_code}>
+                                <span className={cn("text-[8px] uppercase font-bold tracking-wider mb-1", isMSeries ? "text-white/40" : "text-gray-400")}>Tapicerka</span>
+                                <span className={cn("text-[10px] font-bold uppercase break-words leading-tight mt-0.5", isMSeries ? "text-white drop-shadow-md" : "text-gray-900")}>
                                     {dictionaries.upholstery[car.upholstery_code]?.name || car.upholstery_code}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Rok produkcji</span>
-                                <span className={cn("font-medium text-xs", isMSeries ? "text-gray-200" : "text-gray-900")}>
-                                    {car.production_date ? new Date(car.production_date).getFullYear() : '2024'}
+                                <span className={cn("text-[8px] uppercase font-bold tracking-wider mb-1", isMSeries ? "text-white/40" : "text-gray-400")}>Napęd</span>
+                                <span className={cn("text-[10px] font-bold uppercase truncate", isElectric && !isMSeries ? "text-blue-600" : isMSeries ? "text-white drop-shadow-md" : "text-gray-900")}>
+                                    {car.fuel_type || '-'} • {car.power ? `${car.power} KM` : '-'}
                                 </span>
                             </div>
-                            <div className="flex flex-col">
-                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Moc</span>
-                                <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")}>
-                                    {car.power ? `${car.power} KM` : '-'}
-                                </span>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Rodzaj paliwa</span>
-                                <span className={cn("font-medium truncate text-xs", isElectric && !isMSeries ? "text-[#0653B6]" : isMSeries ? "text-gray-200" : "text-gray-900")}>
-                                    {car.fuel_type || '-'}
-                                </span>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Napęd</span>
-                                <span className={cn("font-medium text-xs", isMSeries ? "text-gray-200" : "text-gray-900")}>
-                                    {dictionaries.drivetrain[car.drivetrain || '']?.name || car.drivetrain || '-'}
-                                </span>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className={cn("text-[10px] uppercase tracking-wider font-semibold italic", isMSeries ? "text-gray-500" : "text-gray-400")}>Typ nadwozia</span>
-                                <span className={cn("font-medium truncate text-xs", isMSeries ? "text-gray-200" : "text-gray-900")}>
-                                    {car.body_type || '-'}
-                                </span>
+                            <div className="flex flex-col justify-end items-start md:items-end">
+                                <div className={cn("flex items-center gap-1.5 transition-colors", isMSeries ? "text-white/40 group-hover/link:text-white" : "text-gray-400 group-hover/link:text-gray-900")}>
+                                    <span className="text-[10px] uppercase tracking-widest font-bold">Detale</span>
+                                    <ArrowRight className="w-3.5 h-3.5" />
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Footer: Price & CTA */}
-                    <div className={cn("mt-auto flex items-end justify-between border-t pt-4", isMSeries ? "border-gray-800" : "border-gray-50")}>
-                        <div className="flex flex-col">
-                            {car.list_price > 0 && (() => {
-                                // Priority: manual special_price > bulletin discountedPrice > list_price
-                                const hasManualDiscount = car.special_price && car.special_price < car.list_price;
-                                const hasBulletinDiscount = !hasManualDiscount && discountedPrice && discountedPrice < car.list_price;
-                                const effectivePrice = hasManualDiscount ? car.special_price! : hasBulletinDiscount ? discountedPrice! : car.list_price;
-                                const showCrossedOut = hasManualDiscount || hasBulletinDiscount;
-
-                                return showCrossedOut ? (
-                                    <>
-                                        <span className="text-xs text-gray-400 line-through mb-0.5">
-                                            {formatPrice(car.list_price)}
-                                        </span>
-                                        <span className={cn("text-2xl font-bold tracking-tight", isMSeries ? "text-white" : "text-gray-900")}>
-                                            {formatPrice(effectivePrice)}
-                                        </span>
-                                    </>
-                                ) : (
-                                    <span className={cn("text-2xl font-bold tracking-tight", isMSeries ? "text-white" : "text-gray-900")}>
-                                        {formatPrice(car.list_price)}
-                                    </span>
-                                );
-                            })()}
-                        </div>
-
-                        <div className={cn(
-                            "flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all",
-                            isSold ? "text-gray-400 cursor-not-allowed" :
-                                (isMSeries ? "text-gray-400 group-hover:text-blue-400" :
-                                    isElectric ? "text-gray-400 group-hover:text-[#0653B6]" :
-                                        "text-black group-hover:text-blue-700")
-                        )}>
-                            {isSold ? (
-                                <span>Sprzedany</span>
-                            ) : (
-                                <>
-                                    <span>Szczegóły</span>
-                                    <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-                                </>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* M Bottom Border */}
+                    {/* Bottom Border Accent */}
                     {isMSeries && (
-                        <div className="absolute bottom-0 left-0 w-full h-1 flex">
-                            <div className="w-1/3 bg-[#53A0DE]" />
-                            <div className="w-1/3 bg-[#02256E]" />
-                            <div className="w-1/3 bg-[#E40424]" />
+                        <div className="absolute bottom-0 left-0 right-0 h-1.5 flex z-30 opacity-80 group-hover:opacity-100 transition-opacity">
+                            <div className="flex-1 bg-[#53A0DE]" />
+                            <div className="flex-1 bg-[#02256E]" />
+                            <div className="flex-1 bg-[#E40424]" />
                         </div>
                     )}
-
-                    {/* Electric Bottom Border */}
                     {isElectric && !isMSeries && (
-                        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-[#0653B6] to-[#2E95D3]" />
+                        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#0653B6] to-[#2E95D3] z-30 opacity-80 group-hover:opacity-100 transition-opacity" />
                     )}
-                </div>
+                </Link>
 
-            </Link>
+            </div>
         </div>
     );
 }

@@ -24,111 +24,53 @@ interface FilterSidebarProps {
     };
 }
 
-const COLOR_MAP: Record<string, string> = {
-    // Polish
-    'Czarny': '#000000',
-    'Biały': '#ffffff',
-    'Szary': '#9ca3af', // Gray-400
-    'Grafitowy': '#374151', // Gray-700
-    'Srebrny': '#e5e7eb', // Gray-200 (Silver)
-    'Niebieski': '#2563eb', // Blue-600
-    'Błękitny': '#93c5fd', // Blue-300
-    'Granatowy': '#1e3a8a', // Blue-900
-    'Turkusowy': '#2dd4bf', // Teal-400
-    'Czerwony': '#dc2626', // Red-600
-    'Bordowy': '#7f1d1d', // Red-900
-    'Brązowy': '#78350f', // Amber-900
-    'Beżowy': '#f5f5dc', // Beige
-    'Kremowy': '#fef3c7', // Amber-100
-    'Zielony': '#15803d', // Green-700
-    'Oliwkowy': '#3f6212', // Lime-800
-    'Pomarańczowy': '#ea580c', // Orange-600
-    'Żółty': '#eab308', // Yellow-500
-    'Złoty': '#ca8a04', // Yellow-600
-    'Miedziany': '#b45309', // Amber-700
-    'Fioletowy': '#7e22ce', // Purple-700
-    'Różowy': '#db2777', // Pink-600
-
-    // English (just in case)
-    'Black': '#000000',
-    'White': '#ffffff',
-    'Gray': '#9ca3af',
-    'Grey': '#9ca3af',
-    'Silver': '#e5e7eb',
-    'Blue': '#2563eb',
-    'Red': '#dc2626',
-    'Brown': '#78350f',
-    'Beige': '#f5f5dc',
-    'Green': '#15803d',
-    'Orange': '#ea580c',
-    'Yellow': '#eab308',
-    'Gold': '#ca8a04',
-    'Purple': '#7e22ce',
-};
-
-// Helper to safely get color (case-insensitive)
-const getColor = (name: string) => {
-    if (!name) return '#e5e7eb';
-    const trimmed = name.trim();
-    // Try exact match
-    if (COLOR_MAP[trimmed]) return COLOR_MAP[trimmed];
-    // Try capitalized
-    const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
-    if (COLOR_MAP[capitalized]) return COLOR_MAP[capitalized];
-
-    // Fallback based on substring
-    const lower = trimmed.toLowerCase();
-    if (lower.includes('czarn')) return COLOR_MAP['Czarny'];
-    if (lower.includes('biał')) return COLOR_MAP['Biały'];
-    if (lower.includes('szar')) return COLOR_MAP['Szary'];
-    if (lower.includes('srebr')) return COLOR_MAP['Srebrny'];
-    if (lower.includes('niebies')) return COLOR_MAP['Niebieski'];
-    if (lower.includes('czerwo')) return COLOR_MAP['Czerwony'];
-    if (lower.includes('brąz')) return COLOR_MAP['Brązowy'];
-    if (lower.includes('beż')) return COLOR_MAP['Beżowy'];
-    if (lower.includes('ziel')) return COLOR_MAP['Zielony'];
-
-    return '#e5e7eb'; // Default gray
-};
+import { getColor } from '@/lib/colors';
 
 
 
 const Section = ({ id, title, children, expanded, onToggle }: { id: string, title: string, children: React.ReactNode, expanded: boolean, onToggle: (id: string) => void }) => (
-    <div className="border-b border-gray-100 py-6">
+    <div className="py-5">
         <button
             onClick={() => onToggle(id)}
             className="flex w-full items-center justify-between text-left group"
         >
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-900 group-hover:text-blue-600 transition-colors">
+            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-900/60 group-hover:text-black transition-colors">
                 {title}
             </span>
             {expanded ? (
-                <ChevronUp className="w-3 h-3 text-gray-400" />
+                <ChevronUp className="w-3 h-3 text-gray-300 transition-transform group-hover:text-gray-600" />
             ) : (
-                <ChevronDown className="w-3 h-3 text-gray-400" />
+                <ChevronDown className="w-3 h-3 text-gray-300 transition-transform group-hover:text-gray-600" />
             )}
         </button>
 
         <div className={cn(
-            "overflow-hidden transition-all duration-300 ease-in-out",
-            expanded ? "max-h-[800px] opacity-100 mt-6" : "max-h-0 opacity-0"
+            "overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)]",
+            expanded ? "max-h-[800px] opacity-100 mt-5" : "max-h-0 opacity-0"
         )}>
             {children}
         </div>
     </div>
 );
 
-const FilterPill = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
+const FilterPill = ({ label, active, onClick, isMSeries }: { label: string, active: boolean, onClick: () => void, isMSeries?: boolean }) => (
     <button
         onClick={onClick}
         className={cn(
-            "px-3 py-2 text-[10px] font-bold uppercase tracking-widest border transition-all duration-200 text-center",
+            "relative px-3 py-2.5 text-[10px] uppercase font-semibold tracking-wider transition-all duration-300 text-center overflow-hidden rounded-[8px]",
             active
-                ? "bg-black text-white border-black"
-                : "bg-transparent text-gray-500 border-gray-200 hover:border-gray-900 hover:text-gray-900"
+                ? "bg-gray-900 text-white shadow-md"
+                : "bg-gray-50/50 text-gray-500 hover:bg-gray-100 hover:text-gray-900",
         )}
     >
-        {label}
+        {isMSeries && (
+            <div className={cn("absolute bottom-0 left-0 right-0 h-0.5 flex transition-opacity", active ? "opacity-100" : "opacity-80")}>
+                <div className="flex-1 bg-[#53A0DE]" />
+                <div className="flex-1 bg-[#02256E]" />
+                <div className="flex-1 bg-[#E40424]" />
+            </div>
+        )}
+        <span className="relative z-10">{label}</span>
     </button>
 );
 
@@ -190,6 +132,20 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
         router.replace(pathname, { scroll: false });
     };
 
+    const removeSearchTerm = (termToRemove: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        const currentQ = params.get('q') || '';
+        const newTerms = currentQ.split(/[\s,]+/).filter(Boolean).filter(t => t.toLowerCase() !== termToRemove.toLowerCase());
+
+        if (newTerms.length > 0) {
+            params.set('q', newTerms.join(' '));
+        } else {
+            params.delete('q');
+        }
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    };
+
+    const activeSearchTerms = (searchParams.get('q') || '').split(/[\s,]+/).filter(Boolean);
     const activeSeries = searchParams.getAll('series');
     const activeBody = searchParams.getAll('body');
     const activeColorGroup = searchParams.getAll('colorGroup');
@@ -228,7 +184,8 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
 
     // Debounced URL updates for Sliders and Search
     useEffect(() => {
-        isTypingRef.current = true;
+        if (!isTypingRef.current) return;
+
         const timer = setTimeout(() => {
             const params = new URLSearchParams(searchParams.toString());
 
@@ -250,6 +207,8 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
             if (params.toString() !== searchParams.toString()) {
                 router.replace(`${pathname}?${params.toString()}`, { scroll: false });
             }
+
+            // Allow URL to override local state again after we pushed the update
             isTypingRef.current = false;
         }, 300);
         return () => clearTimeout(timer);
@@ -283,11 +242,11 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
 
             {/* Sidebar Content */}
             <aside className={cn(
-                "fixed lg:sticky top-0 lg:top-24 left-0 h-full lg:h-[calc(100vh-8rem)] w-[320px] bg-white lg:bg-transparent z-50 lg:z-0 hidden lg:block overflow-y-auto px-6 py-8 border-r border-gray-100 lg:border-none shadow-2xl lg:shadow-none transition-transform duration-500 ease-porsche scrollbar-hide",
+                "fixed lg:sticky top-0 lg:top-24 left-0 h-full lg:h-[calc(100vh-8rem)] w-[320px] bg-white lg:bg-transparent z-50 lg:z-0 hidden lg:block overflow-y-auto px-6 py-8 shadow-[1px_0_40px_rgba(0,0,0,0.03)] lg:shadow-none transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] scrollbar-hide",
                 isOpen ? "translate-x-0 !block" : "-translate-x-full lg:translate-x-0"
             )}>
                 <div className="flex items-center justify-between lg:hidden mb-10">
-                    <h2 className="text-xs font-bold uppercase tracking-widest">Filtry</h2>
+                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-900">Filtry</h2>
                     <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                         <X className="w-5 h-5" />
                     </button>
@@ -295,12 +254,12 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
 
                 {/* Active Filters & Reset */}
                 {hasActiveFilters && (
-                    <div className="mb-8 space-y-4">
+                    <div className="mb-10 space-y-5">
                         <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Aktywne filtry</span>
+                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Aktywne filtry</span>
                             <button
                                 onClick={clearFilters}
-                                className="text-[10px] font-bold uppercase tracking-widest text-red-600 hover:text-red-800 flex items-center gap-1.5 transition-colors"
+                                className="text-[9px] font-bold uppercase tracking-widest text-[#E40424] hover:text-[#b3031c] flex items-center gap-1.5 transition-colors"
                             >
                                 <RotateCcw className="w-3 h-3" />
                                 Reset
@@ -308,15 +267,28 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                         </div>
 
                         <div className="flex flex-wrap gap-2">
+                            {/* Text Search Terms */}
+                            {activeSearchTerms.map((term, i) => (
+                                <button
+                                    key={`q-${term}-${i}`}
+                                    onClick={() => removeSearchTerm(term)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 border border-gray-900 hover:bg-black text-white rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group shadow-sm"
+                                >
+                                    <span className="opacity-70 font-normal pr-1 border-r border-white/20">Tag</span>
+                                    {term}
+                                    <X className="w-3 h-3 text-white/50 group-hover:text-white" />
+                                </button>
+                            ))}
+
                             {/* Series */}
                             {activeSeries.map(s => (
                                 <button
                                     key={`s-${s}`}
                                     onClick={() => toggleFilter('series', s)}
-                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
                                 >
                                     {s}
-                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
                                 </button>
                             ))}
 
@@ -325,10 +297,10 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                 <button
                                     key={`b-${b}`}
                                     onClick={() => toggleFilter('body', b)}
-                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
                                 >
                                     {b}
-                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
                                 </button>
                             ))}
 
@@ -337,15 +309,15 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                 <button
                                     key={`c-${c}`}
                                     onClick={() => toggleFilter('colorGroup', c)}
-                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
                                     title="Kolor nadwozia"
                                 >
-                                    <div className="flex items-center gap-1 opacity-50 border-r border-gray-300 pr-1.5 mr-0.5">
+                                    <div className="flex items-center gap-1 opacity-50 border-r border-gray-200 pr-1.5 mr-0.5">
                                         <SprayCan className="w-3 h-3" />
                                     </div>
-                                    <div className="w-2 h-2 rounded-full border border-gray-300" style={{ backgroundColor: getColor(c) }} />
+                                    <div className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: getColor(c) }} />
                                     {c}
-                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
                                 </button>
                             ))}
 
@@ -354,10 +326,10 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                 <button
                                     key={`u-${u}`}
                                     onClick={() => toggleFilter('upholsteryGroup', u)}
-                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
                                     title="Tapicerka"
                                 >
-                                    <div className="flex items-center gap-1 opacity-50 border-r border-gray-300 pr-1.5 mr-0.5">
+                                    <div className="flex items-center gap-1 opacity-50 border-r border-gray-200 pr-1.5 mr-0.5">
                                         <svg
                                             width="12"
                                             height="12"
@@ -374,9 +346,9 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                             <path d="M5 9h14a2 2 0 0 1 2 2v7a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3v-7a2 2 0 0 1 2-2z" />
                                         </svg>
                                     </div>
-                                    <div className="w-2 h-2 rounded-full border border-gray-300" style={{ backgroundColor: getColor(u) }} />
+                                    <div className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: getColor(u) }} />
                                     {u}
-                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
                                 </button>
                             ))}
 
@@ -385,10 +357,10 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                 <button
                                     key={`f-${f}`}
                                     onClick={() => toggleFilter('fuel', f)}
-                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
                                 >
                                     {f}
-                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
                                 </button>
                             ))}
 
@@ -397,10 +369,10 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                 <button
                                     key={`d-${d}`}
                                     onClick={() => toggleFilter('drivetrain', d)}
-                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
                                 >
                                     {d}
-                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
                                 </button>
                             ))}
 
@@ -413,10 +385,10 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                         params.delete('max');
                                         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
                                     }}
-                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
                                 >
                                     Cena
-                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
                                 </button>
                             )}
 
@@ -429,10 +401,10 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                         params.delete('pmax');
                                         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
                                     }}
-                                    className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-colors group"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
                                 >
                                     Moc
-                                    <X className="w-3 h-3 text-gray-400 group-hover:text-gray-900" />
+                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
                                 </button>
                             )}
                         </div>
@@ -440,21 +412,22 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                 )}
 
                 {/* Filter Controls Header - Configuration Text */}
-                {!hasActiveFilters && (
-                    <div className="flex items-center justify-between mb-8">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Konfiguracja</span>
-                    </div>
-                )}
+                <div className="flex items-center justify-between mb-6">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Pojazd & Opcje</span>
+                </div>
 
-                <div className="space-y-2">
+                <div className="space-y-4">
                     {/* Text Search */}
                     <div className="relative mb-6">
                         <input
                             type="text"
-                            placeholder="SZUKAJ..."
-                            className="w-full px-0 py-2 bg-transparent border-b border-gray-200 focus:outline-none focus:border-black transition-colors text-xs font-bold uppercase tracking-widest placeholder:text-gray-300"
+                            placeholder="Szukaj modelu, kodów, opcji..."
+                            className="w-full px-0 py-3 bg-transparent border-b border-gray-200 focus:outline-none focus:border-black transition-colors text-[11px] font-semibold text-gray-900 tracking-wider placeholder:text-gray-300 placeholder:font-normal"
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(e) => {
+                                isTypingRef.current = true;
+                                setSearch(e.target.value);
+                            }}
                         />
                     </div>
 
@@ -468,6 +441,7 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                         label={s}
                                         active={activeSeries.includes(s)}
                                         onClick={() => toggleFilter('series', s)}
+                                        isMSeries={s.includes('Seria M')}
                                     />
                                 ))}
                             </div>
@@ -590,6 +564,7 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                         step={10}
                                         minStepsBetweenThumbs={1}
                                         onValueChange={([min, max]) => {
+                                            isTypingRef.current = true;
                                             setPmin(min);
                                             setPmax(max);
                                         }}
@@ -613,7 +588,10 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                                         min={sliderMin}
                                         max={safeMaxPrice}
                                         step={5000}
-                                        onValueChange={([val]) => setSliderMax(val)}
+                                        onValueChange={([val]) => {
+                                            isTypingRef.current = true;
+                                            setSliderMax(val);
+                                        }}
                                     />
                                 </div>
                             </div>

@@ -3,16 +3,35 @@ import { StockCar } from '@/types/stock';
 
 function generateProductSignature(car: StockCar): string {
     const rawOptions = (car.option_codes || []).map(c => c.trim().toUpperCase()).sort().join('|');
-    const content = `${car.model_code}|${car.color_code}|${car.upholstery_code}|${rawOptions}|${car.production_date ? new Date(car.production_date).getFullYear() : '0'}`;
-    // Simple hash for signature (or just use the long string if length is fine, but hash is cleaner)
-    // Using a simple djb2 variant or just string for now to avoid external libs
-    // Let's use the content string directly but maybe base64 it to look like a code?
-    // Actually, just the content string is unique enough.
+    const individualColor = car.individual_color?.trim().toUpperCase() || '';
+    const content = `${car.model_code}|${car.color_code}|${individualColor}|${car.upholstery_code}|${rawOptions}|${car.production_date ? new Date(car.production_date).getFullYear() : '0'}`;
+    // Simple hash for signature, ensuring Individual colors get their own unique group
     return content;
 }
 
 export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Bawaria Motors') => {
     if (!cars || cars.length === 0) return { success: true, count: 0 };
+
+    // 0. Fetch existing DB records to preserve manual overrides like `individual_color`
+    // BMW Excel often lacks Individual paint codes, so if they were manually decoded/entered, we must preserve them to prevent merging!
+    const incomingVins = cars.map(c => c.vin);
+    const existingColors = new Map<string, string>();
+
+    // Batch fetch incoming VINs to prevent HeadersOverflowError (URI too long)
+    const BATCH_SIZE = 500;
+    for (let i = 0; i < incomingVins.length; i += BATCH_SIZE) {
+        const chunk = incomingVins.slice(i, i + BATCH_SIZE);
+        const { data: chunkCars, error } = await supabase
+            .from('stock_units')
+            .select('vin, individual_color')
+            .in('vin', chunk);
+
+        if (!error && chunkCars) {
+            chunkCars.forEach(c => {
+                if (c.individual_color) existingColors.set(c.vin, c.individual_color);
+            });
+        }
+    }
 
     // 1. Prepare Product Groups
     const signatures = new Set<string>();
@@ -20,6 +39,11 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
     const carSignatures = new Map<string, string>(); // VIN -> Signature
 
     cars.forEach(car => {
+        // Inject preserved individual color if it exists
+        if (!car.individual_color && existingColors.has(car.vin)) {
+            car.individual_color = existingColors.get(car.vin);
+        }
+
         const sig = generateProductSignature(car);
         carSignatures.set(car.vin, sig);
 
@@ -64,6 +88,7 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
             model_name: car.model_name,
             body_group: car.body_group,
             color_code: car.color_code,
+            individual_color: car.individual_color, // Explicitly preserve manual color
             upholstery_code: car.upholstery_code,
             fuel_type: car.fuel_type,
             power: car.power,

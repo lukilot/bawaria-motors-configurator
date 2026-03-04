@@ -27,28 +27,12 @@ export function BMWIndividualBadge({ colorName, className, compact }: BMWIndivid
 
     if (compact) {
         return (
-            <div className={cn("relative inline-flex items-center group overflow-hidden shrink-0", className)}>
-                {/* Thin Silver Frame */}
-                <div className="absolute inset-0 border border-black/5 rounded-[4px] pointer-events-none" />
-
-                <span className={cn(
-                    "relative flex items-center gap-2 px-2.5 py-1 rounded-[4px] bg-white/60 backdrop-blur-md transition-all duration-300 group-hover:bg-white/90",
-                )}>
-                    {/* The Individual Dot - subtle color shift */}
-                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-tr from-gray-400 to-gray-200 shadow-sm" />
-
-                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-900/80 group-hover:text-black">
-                        {displayName}
-                    </span>
+            <span className={cn("inline-flex items-center gap-1.5", className)}>
+                <span className="px-1.5 py-[3px] rounded-[3px] border border-current/[0.25] bg-current/[0.03] text-[7px] leading-none tracking-[0.15em] font-bold opacity-80 shrink-0">
+                    INDIVIDUAL
                 </span>
-
-                {/* Subtle Prism Sweep */}
-                <motion.div
-                    variants={refractionVariants}
-                    animate="animate"
-                    className="absolute inset-y-0 w-8 bg-gradient-to-r from-transparent via-blue-400/5 to-transparent skew-x-[-30deg] pointer-events-none blur-[2px]"
-                />
-            </div>
+                <span className="break-words leading-tight">{displayName}</span>
+            </span>
         );
     }
 

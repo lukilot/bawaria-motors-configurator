@@ -4,7 +4,20 @@ import { useState, Suspense, useMemo, useEffect, useRef } from 'react';
 import { StockCar } from '@/types/stock';
 import { FilterSidebar } from '@/components/cars/FilterSidebar';
 import { CarGrid } from '@/components/cars/CarGrid';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
+
+const SEARCH_ALIASES: Record<string, string[]> = {
+    'hak': ['towing', 'holowniczy', 'trailer'],
+    'laser': ['laserowe', 'laserlight'],
+    'skora': ['vernasca', 'merino', 'sensafin', 'sensatec', 'skórzana', 'skorzana'],
+    'panorama': ['szklany', 'panoramiczny', 'szyberdach'],
+    'kamera': ['kamery', 'surround', 'parking', 'cofania'],
+    'harman': ['kardon', 'audio', 'nagłośnienie', 'naglosnienie'],
+    'bowers': ['wilkins', 'audio', 'nagłośnienie', 'naglosnienie'],
+    'tempomat': ['driving assistant', 'aktywny'],
+    'pneumatyka': ['pneumatyczne'],
+    'm pakiet': ['sportowy', 'aerodynamiczny', 'msport']
+};
 
 interface SRPLayoutProps {
     cars: StockCar[];
@@ -53,10 +66,12 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
     useEffect(() => { sessionStorage.setItem(SESSION_KEY_COUNT, JSON.stringify(displayCount)); }, [displayCount]);
 
     // ── SRP URL tracking ──────────────────────────────────────────────────────
+    const pathname = usePathname();
     useEffect(() => {
-        const url = window.location.pathname + window.location.search;
+        const qs = searchParams.toString();
+        const url = pathname + (qs ? `?${qs}` : '');
         sessionStorage.setItem(SESSION_KEY_SRP, url);
-    }, [searchParams]);
+    }, [pathname, searchParams]);
 
     // ── Scroll save ───────────────────────────────────────────────────────────
     useEffect(() => {
@@ -213,7 +228,12 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
 
     // Filter + sort
     const filteredCars = useMemo(() => {
-        const query = searchParams.get('q')?.toLowerCase() || '';
+        // Normalize query to ignore diacritics
+        const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const rawQuery = searchParams.get('q') || '';
+        const query = normalize(rawQuery);
+        const searchTerms = query.split(/[\s,]+/).filter(term => term.length > 0);
+
         const selectedSeries = searchParams.getAll('series');
         const selectedBody = searchParams.getAll('body');
         const selectedFuel = searchParams.getAll('fuel');
@@ -226,11 +246,34 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
         const maxPower = parseInt(searchParams.get('pmax') || '1000');
 
         const filtered = enrichedCars.filter(car => {
-            const carPrice = car.special_price || car.list_price;
-            const modelName = (car.model_name || '').toLowerCase();
-            const vin = (car.vin || '').toLowerCase();
+            // Build search string for this car: vin + model + all option codes + all option names
+            if (searchTerms.length > 0) {
+                const rawOptions = car.option_codes || [];
+                const carOptionsStr = rawOptions.map((optCode: string) => {
+                    const entry = dictionaries.option[optCode];
+                    // entry can be a plain object OR an array (when body_groups exist)
+                    const optName: string = Array.isArray(entry)
+                        ? (entry[0]?.name || '')
+                        : (entry?.name || '');
+                    return `${optCode.toLowerCase()} ${normalize(optName)}`;
+                }).join(' ');
+                const colorName = normalize((dictionaries.color[car.color_code]?.name as string) || '');
+                const individualColorName = car.individual_color
+                    ? normalize((dictionaries.color[car.individual_color]?.name as string) || car.individual_color)
+                    : '';
+                const combined = `${(car.vin || '').toLowerCase()} ${normalize(car.model_name || '')} ${carOptionsStr} ${colorName} ${individualColorName}`;
 
-            const matchesQuery = !query || modelName.includes(query) || vin.includes(query);
+                // ALL terms must match. Each term can match itself OR any of its aliases.
+                const allMatch = searchTerms.every(term => {
+                    const aliases = (SEARCH_ALIASES[term] || []).map(normalize);
+                    const candidates = [term, ...aliases];
+                    return candidates.some(c => combined.includes(c));
+                });
+
+                if (!allMatch) return false;
+            }
+
+            const carPrice = car.special_price || car.list_price;
             const matchesSeries = selectedSeries.length === 0 || (car.series && selectedSeries.includes(car.series));
             const matchesBody = selectedBody.length === 0 || (car.body_type && selectedBody.includes(car.body_type));
             const matchesFuel = selectedFuel.length === 0 || (car.fuel_type && selectedFuel.includes(car.fuel_type));
@@ -241,7 +284,7 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
             const pValue = car.power ? parseInt(car.power) : 0;
             const matchesPowerRange = pValue >= minPower && pValue <= maxPower;
 
-            return matchesQuery && matchesSeries && matchesBody && matchesFuel && matchesDrivetrain && matchesColorGroup && matchesUpholsteryGroup && matchesPrice && matchesPowerRange;
+            return matchesSeries && matchesBody && matchesFuel && matchesDrivetrain && matchesColorGroup && matchesUpholsteryGroup && matchesPrice && matchesPowerRange;
         });
 
         return filtered.sort((a, b) => {

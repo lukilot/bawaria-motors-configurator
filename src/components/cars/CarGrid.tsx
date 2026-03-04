@@ -7,6 +7,31 @@ import { CarCard } from '@/components/cars/CarCard';
 import { SlidersHorizontal, LayoutGrid, List, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SearchFooter } from './SearchFooter';
+import { motion, AnimatePresence } from 'framer-motion';
+
+function Odometer({ value }: { value: number }) {
+    const digits = String(value).split('');
+    return (
+        <span className="flex overflow-hidden h-[1em] leading-none items-center justify-center -mb-1">
+            <AnimatePresence mode="popLayout">
+                {digits.map((digit, i) => (
+                    <motion.span
+                        key={`${digits.length - i}-${digit}`}
+                        initial={{ y: '100%', opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: '-100%', opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className="inline-block"
+                    >
+                        {digit}
+                    </motion.span>
+                ))}
+            </AnimatePresence>
+        </span>
+    );
+}
+
+// Removed global framer variants to prevent staggered gaps
 
 interface DictionaryItem {
     name?: string;
@@ -90,8 +115,8 @@ export function CarGrid({
             {/* SRP Top Bar */}
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-6 border-b border-gray-100 gap-4">
                 <div>
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-widest">
-                        {cars.length} Wyników
+                    <span className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-widest">
+                        <Odometer value={cars.length} /> Wyników
                     </span>
                 </div>
 
@@ -114,24 +139,6 @@ export function CarGrid({
                             <option value="price_desc">Cena: Malejąco</option>
                         </select>
                     </div>
-
-                    {/* Desktop Layout Toggle */}
-                    <div className="hidden md:flex bg-gray-50 p-1 rounded-sm border border-gray-100">
-                        <button
-                            onClick={() => onLayoutChange('grid')}
-                            className={cn("p-1.5 transition-all rounded-sm", layout === 'grid' ? "bg-white text-black shadow-sm" : "text-gray-400 hover:text-gray-600")}
-                            title="Grid View"
-                        >
-                            <LayoutGrid className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={() => onLayoutChange('list')}
-                            className={cn("p-1.5 transition-all rounded-sm", layout === 'list' ? "bg-white text-black shadow-sm" : "text-gray-400 hover:text-gray-600")}
-                            title="List View"
-                        >
-                            <List className="w-4 h-4" />
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -143,32 +150,27 @@ export function CarGrid({
                 </div>
             ) : (
                 <>
-                    {layout === 'grid' ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {cars.slice(0, displayCount).map(car => (
-                                <CarCard
-                                    key={car.vin}
-                                    car={car}
-                                    modelName={dictionaries.model[car.model_code]?.name || car.model_name}
-                                    colorName={dictionaries.color[car.color_code]?.name}
-                                    upholsteryName={dictionaries.upholstery[car.upholstery_code]?.name}
-                                    individualColorName={car.individual_color ? dictionaries.color[car.individual_color]?.name : undefined}
-                                />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-6">
-                            {cars.slice(0, displayCount).map(car => (
+                    <div
+                        className="flex flex-col gap-6"
+                        key={`list-${cars.length}`}
+                    >
+                        {cars.slice(0, displayCount).map((car, idx) => (
+                            <motion.div
+                                key={car.vin}
+                                initial={{ opacity: 0, y: 40 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, margin: "0px" }}
+                                transition={{ type: 'spring', stiffness: 200, damping: 20, delay: (idx % 12) * 0.05 }}
+                            >
                                 <CarRow
-                                    key={car.vin}
                                     car={car}
                                     modelName={dictionaries.model[car.model_code]?.name || car.model_name || `BMW ${car.model_code}`}
                                     dictionaries={dictionaries}
                                     discountedPrice={bulletinPrices?.[car.vin]}
                                 />
-                            ))}
-                        </div>
-                    )}
+                            </motion.div>
+                        ))}
+                    </div>
 
                     {displayCount < cars.length && (
                         <div ref={observerTarget} className="mt-12 text-center py-8">

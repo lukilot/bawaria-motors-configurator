@@ -191,8 +191,8 @@ export function SiteHeader() {
                                         </motion.button>
                                     )}
 
-                                    {/* Desktop: Back Button on Left */}
-                                    {isVdp ? (
+                                    {/* Desktop: Back Button on Left (only on VDP) */}
+                                    {isVdp && (
                                         <div className="hidden lg:flex items-center">
                                             <motion.button
                                                 whileTap={{ scale: 0.9 }}
@@ -208,24 +208,6 @@ export function SiteHeader() {
                                                 <ArrowLeft className="w-5 h-5" />
                                             </motion.button>
                                         </div>
-                                    ) : (
-                                        /* Logo on SRP/Home */
-                                        <Link href="/" className="group flex flex-col items-start translate-y-1 ml-2 lg:ml-0">
-                                            <div className="flex items-baseline">
-                                                <h1 className={cn(
-                                                    "text-xl md:text-2xl font-bold tracking-tighter transition-all duration-500",
-                                                    isScrolled ? "text-gray-900" : (isMSeries && isVdp) ? "text-white" : "text-gray-900"
-                                                )}>
-                                                    lukilot<span className={cn("transition-colors", isScrolled ? "text-gray-400 group-hover:text-blue-600" : (isMSeries && isVdp) ? "text-white/50 group-hover:text-white" : "text-gray-400 group-hover:text-blue-600")}>.work</span>
-                                                </h1>
-                                            </div>
-                                            <motion.span
-                                                animate={{ opacity: isScrolled ? 0 : 1, height: isScrolled ? 0 : 'auto' }}
-                                                className="text-[9px] font-bold tracking-[0.3em] uppercase text-gray-400 block"
-                                            >
-                                                Stock Buffer
-                                            </motion.span>
-                                        </Link>
                                     )}
                                 </motion.div>
                             )}

@@ -283,21 +283,20 @@ export function IntroOverlay() {
                                     </div>
                                 </div>
                             ) : (
-                                <>
-                                    {/* Left Side: Phone + Kontakt */}
-                                    <div className="flex items-center gap-3 text-white">
-                                        <Phone className="w-3 h-3" />
-                                        <span className="text-[10px] uppercase font-bold tracking-[0.15em] leading-none">
-                                            Kontakt
+                                <div className="flex items-center gap-4 text-white">
+                                    {/* Brand Logo in Notch */}
+                                    <div className="flex flex-col items-start pr-4 border-r border-white/20">
+                                        <h1 className="text-[13px] font-bold tracking-tighter leading-none mb-0.5">
+                                            lukilot<span className="text-white/40">.work</span>
+                                        </h1>
+                                        <span className="text-[6px] font-black uppercase tracking-[0.3em] opacity-40">
+                                            Stock Buffer
                                         </span>
                                     </div>
-
-                                    {/* Right Side: Divider + Chevron */}
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-px h-3 bg-white/20" />
-                                        <ChevronDown className="w-3 h-3 text-white/50 group-hover:text-white transition-colors" />
+                                    <div className="flex items-center">
+                                        <Phone className="w-3.5 h-3.5 text-white/80" />
                                     </div>
-                                </>
+                                </div>
                             )}
                         </motion.div>
                     )}

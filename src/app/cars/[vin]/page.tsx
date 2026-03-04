@@ -469,40 +469,27 @@ export default async function CarPage({ params }: PageProps) {
                                                         isMSeries ? "hover:bg-white/5" : ""
                                                     )}
                                                 >
-                                                    {/* Image Composite - BMW Slanted Split Duo-Card */}
-                                                    <div className="relative w-56 h-28 shrink-0 overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
-                                                        {/* Exterior (Left Side) - Fixed layout */}
-                                                        <div
-                                                            className="absolute inset-y-0 left-0 w-[65%] z-10 bg-white"
-                                                            style={{
-                                                                clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)',
-                                                                WebkitClipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 100%)'
-                                                            }}
-                                                        >
+                                                    {/* Image Composite - Side-by-Side Duo Split (User requested) */}
+                                                    <div className="relative w-64 h-32 shrink-0 flex overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
+                                                        {/* Exterior (Left 50%) */}
+                                                        <div className="w-1/2 h-full bg-white relative overflow-hidden">
                                                             {exteriorImg ? (
                                                                 <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                                             ) : (
                                                                 <div className="w-full h-full bg-gray-100" />
                                                             )}
+                                                            {/* Subtle inner vertical divider line */}
+                                                            <div className="absolute right-0 inset-y-0 w-px bg-black/[0.1] z-10" />
                                                         </div>
 
-                                                        {/* Interior (Right Side) - Full visibility */}
-                                                        <div className="absolute inset-y-0 right-0 w-[55%]">
+                                                        {/* Interior (Right 50%) */}
+                                                        <div className="w-1/2 h-full bg-gray-50 relative overflow-hidden">
                                                             {interiorImg ? (
                                                                 <img src={interiorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                                             ) : (
                                                                 <div className="w-full h-full bg-gray-200" />
                                                             )}
                                                         </div>
-
-                                                        {/* Subtle Divider Line */}
-                                                        <div
-                                                            className="absolute inset-y-0 left-[65%] w-px bg-white/40 z-20"
-                                                            style={{
-                                                                transform: 'skewX(-11.5deg) translateX(-20px)',
-                                                                height: '100%'
-                                                            }}
-                                                        />
                                                     </div>
 
                                                     {/* Text Info */}

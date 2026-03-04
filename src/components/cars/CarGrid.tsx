@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { StockCar } from '@/types/stock';
 import { CarRow } from '@/components/cars/CarRow';
 import { CarCard } from '@/components/cars/CarCard';
-import { SlidersHorizontal, LayoutGrid, List, ChevronDown } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SearchFooter } from './SearchFooter';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -98,31 +99,27 @@ export function CarGrid({
 
     return (
         <div className="w-full relative">
-            {/* Mobile Filter Button */}
-            {!isFiltersOpen && (
-                <div className="lg:hidden fixed bottom-8 left-6 right-6 z-[100]">
-                    <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); onOpenFilters?.(); }}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-sm shadow-xl"
-                    >
-                        <SlidersHorizontal className="w-4 h-4" />
-                        Filtry i Sortowanie
-                    </button>
-                </div>
-            )}
-
             {/* SRP Top Bar */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-6 border-b border-gray-100 gap-4">
+            <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-100 gap-4">
                 <div>
                     <span className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-widest">
                         <Odometer value={cars.length} /> Wyników
                     </span>
                 </div>
 
-                <div className="flex items-center gap-6 justify-end w-full md:w-auto">
+                <div className="flex items-center gap-3">
+                    {/* Mobile: Filter pill button */}
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onOpenFilters?.(); }}
+                        className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-[10px] font-bold uppercase tracking-widest text-gray-700 hover:border-gray-900 hover:text-gray-900 transition-colors active:scale-95"
+                    >
+                        <SlidersHorizontal className="w-3.5 h-3.5" />
+                        Filtry
+                    </button>
+
                     {/* Sort Dropdown */}
-                    <div className="relative group mr-4 flex items-center">
+                    <div className="relative group flex items-center">
                         <span className="text-xs font-bold uppercase tracking-widest text-right mr-2 cursor-pointer group-hover:text-gray-600 transition-colors">
                             {sortOrder === 'newest' && 'Najnowsze'}
                             {sortOrder === 'price_asc' && 'Cena: Rosnąco'}

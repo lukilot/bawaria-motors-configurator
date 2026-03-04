@@ -9,6 +9,7 @@ import { BMWIndividualBadge } from './BMWIndividualBadge';
 import { useGarageStore } from '@/store/garageStore';
 import { useCompareStore } from '@/store/compareStore';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getColor } from '@/lib/colors';
 
@@ -198,7 +199,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                     </Link>
 
 
-                    {/* Interior PIP — Desktop: Link to VDP, Mobile: Lightbox trigger */}
+                    {/* Interior PIP — Desktop: Link to VDP, Mobile: Lightbox trigger — bottom-right corner */}
                     {interiorImage && (
                         <>
                             {/* Desktop: hover-expand link to VDP */}
@@ -211,10 +212,10 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                                 </div>
                             </Link>
 
-                            {/* Mobile: tap opens lightbox — bottom left corner */}
+                            {/* Mobile: tap opens lightbox — bottom-RIGHT corner (was bottom-left) */}
                             <button
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsLightboxOpen(true); }}
-                                className="md:hidden absolute bottom-4 left-4 z-40 w-14 h-14 rounded-[24px] overflow-hidden border border-white/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] active:scale-95 transition-transform"
+                                className="md:hidden absolute bottom-4 right-4 z-40 w-14 h-14 rounded-[24px] overflow-hidden border border-white/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] active:scale-95 transition-transform"
                             >
                                 <img src={interiorImage.url} alt="Wnętrze" className="w-full h-full object-cover scale-[1.2]" />
                                 <div className="absolute inset-0 bg-black/15" />
@@ -222,83 +223,84 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                         </>
                     )}
 
-                    {/* Mobile — Action Buttons in Gallery (bottom right corner) */}
-                    <div className="md:hidden absolute bottom-4 right-4 z-40 flex flex-row items-center gap-3">
-                        <button
-                            onClick={toggleGarage}
-                            className={cn(
-                                "flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-md text-[9px] font-bold uppercase tracking-wider transition-all",
-                                saved
-                                    ? "bg-gray-900/90 text-white border border-white/20"
-                                    : "bg-black/50 text-white/70 border border-white/10 active:bg-black/80"
-                            )}
-                        >
-                            <Warehouse className="w-3.5 h-3.5" />
-                            {saved ? 'Zapisany' : 'Zapisz'}
-                        </button>
-                        <button
-                            onClick={toggleCompare}
-                            className={cn(
-                                "flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-md text-[9px] font-bold uppercase tracking-wider transition-all",
-                                compared
-                                    ? "bg-blue-600/90 text-white border border-blue-400/30"
-                                    : "bg-black/50 text-white/70 border border-white/10 active:bg-black/80"
-                            )}
-                        >
-                            <Scale className="w-3.5 h-3.5" />
-                            {compared ? 'Dodany' : 'Porównaj'}
-                        </button>
-                    </div>
+                    {/* Mobile — Action Buttons: Zapisz top-left, Porównaj top-right */}
+                    <button
+                        onClick={toggleGarage}
+                        className={cn(
+                            "md:hidden absolute top-4 left-4 z-40 flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-md text-[9px] font-bold uppercase tracking-wider transition-all",
+                            saved
+                                ? "bg-gray-900/90 text-white border border-white/20"
+                                : "bg-black/50 text-white/70 border border-white/10 active:bg-black/80"
+                        )}
+                    >
+                        <Warehouse className="w-3.5 h-3.5" />
+                        {saved ? 'Zapisany' : 'Zapisz'}
+                    </button>
+                    <button
+                        onClick={toggleCompare}
+                        className={cn(
+                            "md:hidden absolute top-4 right-4 z-40 flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-md text-[9px] font-bold uppercase tracking-wider transition-all",
+                            compared
+                                ? "bg-blue-600/90 text-white border border-blue-400/30"
+                                : "bg-black/50 text-white/70 border border-white/10 active:bg-black/80"
+                        )}
+                    >
+                        <Scale className="w-3.5 h-3.5" />
+                        {compared ? 'Dodany' : 'Porównaj'}
+                    </button>
                 </div>
 
-                {/* Interior Lightbox Overlay (mobile) */}
-                <AnimatePresence>
-                    {isLightboxOpen && interiorImage && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className="fixed inset-0 z-[999] bg-black/95 flex flex-col items-center justify-center p-4"
-                            onClick={() => setIsLightboxOpen(false)}
-                        >
-                            {/* Header label */}
-                            <p className="text-white/40 text-[10px] uppercase tracking-[0.25em] font-bold mb-5">Wnętrze</p>
-
-                            {/* Interior Image */}
-                            <img
-                                src={interiorImage.url}
-                                alt="Wnętrze"
-                                className="max-h-[65dvh] max-w-full w-full object-contain rounded-2xl shadow-2xl"
-                                onClick={(e) => e.stopPropagation()}
-                            />
-
-                            {/* Bottom Action Bar */}
-                            <div
-                                className="flex flex-row items-stretch gap-3 w-full max-w-md mt-6"
-                                onClick={(e) => e.stopPropagation()}
+                {/* Interior Lightbox Portal — rendered in document.body to escape card's will-change-transform stacking context */}
+                {clientMounted && createPortal(
+                    <AnimatePresence>
+                        {isLightboxOpen && interiorImage && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.25 }}
+                                className="fixed inset-0 z-[9999] bg-black/95 flex flex-col items-center justify-center p-4"
+                                onClick={() => setIsLightboxOpen(false)}
                             >
-                                {/* Primary: Detale button */}
-                                <button
-                                    onClick={() => router.push(`/cars/${encodeURIComponent(car.vin)}`)}
-                                    className="flex-1 flex items-center justify-center gap-2 bg-white text-black rounded-2xl py-4 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] transition-transform"
-                                >
-                                    <span>Detale</span>
-                                    <ArrowRight className="w-4 h-4" />
-                                </button>
+                                {/* Header label */}
+                                <p className="text-white/40 text-[10px] uppercase tracking-[0.25em] font-bold mb-5">Wnętrze</p>
 
-                                {/* Secondary: Zamknij button */}
-                                <button
-                                    onClick={() => setIsLightboxOpen(false)}
-                                    className="flex items-center justify-center gap-2 bg-white/10 text-white/80 rounded-2xl px-5 py-4 text-[11px] font-bold uppercase tracking-[0.2em] border border-white/10 active:bg-white/20 active:scale-[0.98] transition-all"
+                                {/* Interior Image */}
+                                <img
+                                    src={interiorImage.url}
+                                    alt="Wnętrze"
+                                    className="max-h-[65dvh] max-w-full w-full object-contain rounded-2xl shadow-2xl"
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+
+                                {/* Bottom Action Bar */}
+                                <div
+                                    className="flex flex-row items-stretch gap-3 w-full max-w-md mt-6"
+                                    onClick={(e) => e.stopPropagation()}
                                 >
-                                    <X className="w-4 h-4" />
-                                    <span>Zamknij</span>
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                    {/* Primary: Detale button */}
+                                    <button
+                                        onClick={() => router.push(`/cars/${encodeURIComponent(car.vin)}`)}
+                                        className="flex-1 flex items-center justify-center gap-2 bg-white text-black rounded-2xl py-4 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] transition-transform"
+                                    >
+                                        <span>Detale</span>
+                                        <ArrowRight className="w-4 h-4" />
+                                    </button>
+
+                                    {/* Secondary: Zamknij button */}
+                                    <button
+                                        onClick={() => setIsLightboxOpen(false)}
+                                        className="flex items-center justify-center gap-2 bg-white/10 text-white/80 rounded-2xl px-5 py-4 text-[11px] font-bold uppercase tracking-[0.2em] border border-white/10 active:bg-white/20 active:scale-[0.98] transition-all"
+                                    >
+                                        <X className="w-4 h-4" />
+                                        <span>Zamknij</span>
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>,
+                    document.body
+                )}
 
                 {/* Right Info Pane */}
                 <Link href={`/cars/${encodeURIComponent(car.vin)}`} className={cn("flex-1 p-5 lg:p-8 flex flex-col justify-between md:justify-end relative overflow-hidden", isSold && "cursor-default pointer-events-none")}>
@@ -332,8 +334,8 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                         </button>
                     </div>
 
-                    {/* Brand Badges Top Right (Mobile visible statically, desktop visible) */}
-                    <div className="absolute top-4 md:top-5 right-4 md:right-5 z-30 flex flex-col items-end gap-1.5 text-[9px] uppercase font-bold tracking-widest text-white">
+                    {/* Brand Badges Top Right (hidden on mobile when lightbox open) */}
+                    <div className={cn("absolute top-4 md:top-5 right-4 md:right-5 z-30 flex flex-col items-end gap-1.5 text-[9px] uppercase font-bold tracking-widest text-white", isLightboxOpen && "hidden")}>
                         {car.available_count && car.available_count > 1 && (
                             <div className={cn("px-2.5 py-1.5 rounded-sm border shadow-sm", isMSeries ? "bg-black/80 border-white/20 text-white backdrop-blur-xl" : "bg-white border-gray-200 text-gray-800 shadow-sm")}>
                                 {car.available_count} dostępne
@@ -342,11 +344,10 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                     </div>
 
                     {/* Transform Container for Title & Price */}
-                    {/* Mobile: Normal flow, no transform. Desktop: Transforms up on hover */}
                     <div className="relative w-full flex flex-col md:justify-end transform md:transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] md:group-hover:-translate-y-[90px] lg:group-hover:-translate-y-[85px] z-10">
                         <div className="flex flex-col xl:flex-row xl:justify-between items-start xl:items-end gap-3 md:gap-5">
                             <div className="flex-1 min-w-0 pr-8 md:pr-0">
-                                <div className="flex items-center gap-3 md:gap-4 mb-2">
+                                <div className={cn("flex items-center gap-3 md:gap-4 mb-2", isLightboxOpen && "invisible")}>
                                     <span className={cn("text-[9px] md:text-[10px] font-mono tracking-widest uppercase opacity-70 group-hover:opacity-100 transition-opacity", isMSeries ? "text-white/60" : "text-gray-500")}>
                                         {car.vin}
                                     </span>

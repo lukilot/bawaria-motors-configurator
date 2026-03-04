@@ -25,15 +25,15 @@ export function CompareToolbar() {
                     className="fixed bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-[560px] pointer-events-none"
                 >
                     <div
-                        className="pointer-events-auto backdrop-blur-2xl text-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/20 p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 overflow-hidden"
+                        className="pointer-events-auto backdrop-blur-2xl text-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/20 p-3 sm:p-4 flex flex-row items-center gap-3 overflow-hidden"
                         style={{ background: 'linear-gradient(135deg, rgba(20,20,20,0.85) 0%, rgba(30,30,30,0.95) 100%)' }}
                     >
                         {/* Shimmer effect */}
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
 
-                        <div className="flex items-center gap-3 sm:gap-4 flex-1 mix-blend-plus-lighter relative z-10">
-                            {/* Scale icon */}
-                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
+                        <div className="flex items-center gap-3 sm:gap-4 flex-1 mix-blend-plus-lighter relative z-10 min-w-0">
+                            {/* Scale icon — hidden on mobile to save space */}
+                            <div className="hidden sm:flex w-10 h-10 rounded-full bg-white/10 items-center justify-center shrink-0 border border-white/10 shadow-inner">
                                 <Scale className="w-5 h-5 text-white/90" />
                             </div>
 
@@ -75,7 +75,7 @@ export function CompareToolbar() {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between sm:justify-start gap-3 relative z-10 shrink-0">
+                        <div className="flex items-center gap-2 sm:gap-3 relative z-10 shrink-0">
                             {/* Clear */}
                             <button
                                 onClick={clearCompare}
@@ -90,13 +90,14 @@ export function CompareToolbar() {
                                 onClick={openModal}
                                 disabled={!canCompare}
                                 className={cn(
-                                    "shrink-0 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap shadow-lg",
+                                    "shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap shadow-lg",
                                     canCompare
                                         ? "bg-white text-black hover:bg-gray-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-white/20"
                                         : "bg-white/10 text-white/30 cursor-not-allowed shadow-none"
                                 )}
                             >
-                                Porównaj ({compareCars.length}/3)
+                                <span className="sm:hidden">Porównaj ({compareCars.length})</span>
+                                <span className="hidden sm:inline">Porównaj ({compareCars.length}/3)</span>
                             </button>
                         </div>
                     </div>

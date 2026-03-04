@@ -162,7 +162,7 @@ export function SiteHeader() {
                                                 router.push(lastSrp || '/cars');
                                             }}
                                             className={cn(
-                                                "flex lg:hidden items-center justify-center w-12 h-12 rounded-full border transition-all shadow-xl absolute top-4 left-6",
+                                                "flex lg:hidden items-center justify-center w-12 h-12 rounded-full border transition-all shadow-xl absolute top-5 left-6",
                                                 isMSeries ? "bg-white text-black border-white" : "bg-black text-white border-black"
                                             )}
                                         >
@@ -176,7 +176,7 @@ export function SiteHeader() {
                                             whileTap={{ scale: 0.9 }}
                                             onClick={toggleGarage}
                                             className={cn(
-                                                "flex lg:hidden items-center justify-center w-12 h-12 rounded-full border transition-all shadow-xl absolute top-4 right-6",
+                                                "flex lg:hidden items-center justify-center w-12 h-12 rounded-full border transition-all shadow-xl absolute top-5 right-6",
                                                 isMSeries ? "bg-white text-black border-white" : "bg-black text-white border-black"
                                             )}
                                         >

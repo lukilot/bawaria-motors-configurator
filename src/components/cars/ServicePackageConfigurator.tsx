@@ -196,19 +196,24 @@ export function ServicePackageConfigurator({
         const isBsi = !isStandard && (pkg.type === 'BSI' || pkg.type === 'BSI_PLUS');
         const isBsiNull = isStandard && (currentSelectionPkg?.type === 'BSI' || currentSelectionPkg?.type === 'BSI_PLUS' || !currentSelection);
 
-        // Disable if it's strictly cheaper than factory (downgrade) and NOT factory itself.
-        // Exceptions for BSI "None" if factory is None.
+        // Downgrade protection removed: allow selecting lower/none packages
         const isCheaper = upgradeCost < 0;
-        const isDisabled = isCheaper && !isStandard; // Allow selecting "None" (isStandard) always for BSI/BRI to see base
+        const isDisabled = false; // Always allow selection for full flexibility
 
         // Content
         let years = 0;
         let km = 0;
+
+        // Special handling for labels (BSI vs BRI)
+        const isBri = !isStandard ? pkg.type === 'BRI' : (currentSelectionPkg?.type === 'BRI' || packages.find(p => p.type === 'BRI' && currentCodes.includes(p.code)));
+
         if (!isStandard && pkg) {
             years = pkg.duration_months / 12;
             km = pkg.mileage_limit / 1000;
         } else {
-            years = 2; km = 0;
+            // Standard values
+            years = 2;
+            km = 0; // unlimited
         }
 
         return (
@@ -230,15 +235,15 @@ export function ServicePackageConfigurator({
             >
                 <div className="flex flex-col flex-1 pointer-events-none">
                     <span className={cn("text-lg font-black leading-none tracking-tight", isSelected ? "" : (isDark ? "text-white" : "text-black"))}>
-                        {isStandard ? 'Brak' : years} <span className="text-[10px] font-bold uppercase tracking-widest ml-0.5 opacity-60">{isStandard ? 'pakietu' : (years >= 2 && years <= 4 ? 'lata' : 'lat')}</span>
+                        {isStandard && !isBri ? 'Brak' : years} <span className="text-[10px] font-bold uppercase tracking-widest ml-0.5 opacity-60">{isStandard && !isBri ? 'pakietu' : (years >= 2 && years <= 4 ? 'lata' : 'lat')}</span>
                     </span>
                     <span className={cn("text-[10px] uppercase font-black tracking-widest mt-2 opacity-50", isSelected ? "" : (isDark ? "text-gray-400" : "text-gray-500"))}>
-                        {isStandard ? 'Standard' : (km > 0 ? `${(pkg!.mileage_limit).toLocaleString('pl-PL')} km` : 'Standard')}
+                        {isStandard ? (isBri ? 'Bez limitu km' : 'Standard') : (km > 0 ? `${(pkg!.mileage_limit).toLocaleString('pl-PL')} km` : 'Standard')}
                     </span>
                 </div>
-                <div className={cn("w-full pt-4 border-t border-dashed pointer-events-none", isSelected ? "border-current/20" : "border-current/10")}>
+                <div className={cn("w-full pt-4 border-t border-tight pointer-events-none", isSelected ? "border-current/20" : "border-current/10")}>
                     <span className={cn("text-[11px] font-black uppercase tracking-widest block", isSelected ? "" : (isDark ? "text-white" : "text-black"))}>
-                        {isStandard && basePrice === 0 ? 'W cenie' : (isDisabled ? 'N/D' : getTilePriceString(pkgPrice, currentSelectionPrice, isSelected))}
+                        {(isStandard && basePrice === 0) || (isCheaper && !isSelected) ? 'W cenie' : getTilePriceString(pkgPrice, currentSelectionPrice, isSelected)}
                     </span>
                 </div>
                 {/* Horizontal Indicator Line */}

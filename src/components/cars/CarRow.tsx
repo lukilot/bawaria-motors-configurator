@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Warehouse, Scale } from 'lucide-react';
+import { ArrowRight, Warehouse, Scale, X } from 'lucide-react';
 import { BMWIndividualBadge } from './BMWIndividualBadge';
 import { useGarageStore } from '@/store/garageStore';
 import { useCompareStore } from '@/store/compareStore';
@@ -42,7 +43,10 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
     const isCarSaved = useGarageStore(state => state.savedCars?.some((c: any) => c.vin === car.vin));
 
     const [clientMounted, setClientMounted] = useState(false);
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     useEffect(() => { setClientMounted(true); }, []);
+
+    const router = useRouter();
 
     const saved = clientMounted && isCarSaved;
     const compared = clientMounted && isCarCompared;
@@ -194,22 +198,113 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                     </Link>
 
 
-                    {/* Premium Interactive PIP Thumbnail - Interior view */}
+                    {/* Interior PIP — Desktop: Link to VDP, Mobile: Lightbox trigger */}
                     {interiorImage && (
-                        <Link href={`/cars/${encodeURIComponent(car.vin)}`} className="absolute bottom-5 right-5 z-40 group/pip w-16 h-16 sm:w-[72px] sm:h-[72px] cursor-pointer block">
-                            {/* By using specific pixel radiuses (rounded-[32px] for 64px, rounded-[36px] for 72px) instead of rounded-full, the border-radius transitions perfectly smoothly to rounded-[24px] without weird snapping mid-animation. */}
-                            <div className="absolute bottom-0 right-0 overflow-hidden w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-[32px] sm:rounded-[36px] border border-white/30 shadow-[0_4px_12px_rgba(0,0,0,0.4)] bg-black/40 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover/pip:w-[280px] sm:group-hover/pip:w-[320px] group-hover/pip:h-[200px] sm:group-hover/pip:h-[220px] group-hover/pip:rounded-[20px] group-hover/pip:shadow-[0_24px_48px_rgba(0,0,0,0.6)] group-hover/pip:border-white/40">
-                                <img src={interiorImage.url} alt="Wnętrze" className="absolute inset-0 w-full h-full object-cover scale-[1.3] group-hover/pip:scale-100 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]" />
-                            </div>
-                        </Link>
+                        <>
+                            {/* Desktop: hover-expand link to VDP */}
+                            <Link
+                                href={`/cars/${encodeURIComponent(car.vin)}`}
+                                className="hidden md:block absolute bottom-5 right-5 z-40 group/pip w-16 h-16 sm:w-[72px] sm:h-[72px] cursor-pointer"
+                            >
+                                <div className="absolute bottom-0 right-0 overflow-hidden w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-[32px] sm:rounded-[36px] border border-white/30 shadow-[0_4px_12px_rgba(0,0,0,0.4)] bg-black/40 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover/pip:w-[280px] sm:group-hover/pip:w-[320px] group-hover/pip:h-[200px] sm:group-hover/pip:h-[220px] group-hover/pip:rounded-[20px] group-hover/pip:shadow-[0_24px_48px_rgba(0,0,0,0.6)] group-hover/pip:border-white/40">
+                                    <img src={interiorImage.url} alt="Wnętrze" className="absolute inset-0 w-full h-full object-cover scale-[1.3] group-hover/pip:scale-100 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]" />
+                                </div>
+                            </Link>
+
+                            {/* Mobile: tap opens lightbox — bottom left corner */}
+                            <button
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsLightboxOpen(true); }}
+                                className="md:hidden absolute bottom-4 left-4 z-40 w-14 h-14 rounded-[24px] overflow-hidden border border-white/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] active:scale-95 transition-transform"
+                            >
+                                <img src={interiorImage.url} alt="Wnętrze" className="w-full h-full object-cover scale-[1.2]" />
+                                <div className="absolute inset-0 bg-black/15" />
+                            </button>
+                        </>
                     )}
+
+                    {/* Mobile — Action Buttons in Gallery (bottom right corner) */}
+                    <div className="md:hidden absolute bottom-4 right-4 z-40 flex flex-row items-center gap-3">
+                        <button
+                            onClick={toggleGarage}
+                            className={cn(
+                                "flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-md text-[9px] font-bold uppercase tracking-wider transition-all",
+                                saved
+                                    ? "bg-gray-900/90 text-white border border-white/20"
+                                    : "bg-black/50 text-white/70 border border-white/10 active:bg-black/80"
+                            )}
+                        >
+                            <Warehouse className="w-3.5 h-3.5" />
+                            {saved ? 'Zapisany' : 'Zapisz'}
+                        </button>
+                        <button
+                            onClick={toggleCompare}
+                            className={cn(
+                                "flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-md text-[9px] font-bold uppercase tracking-wider transition-all",
+                                compared
+                                    ? "bg-blue-600/90 text-white border border-blue-400/30"
+                                    : "bg-black/50 text-white/70 border border-white/10 active:bg-black/80"
+                            )}
+                        >
+                            <Scale className="w-3.5 h-3.5" />
+                            {compared ? 'Dodany' : 'Porównaj'}
+                        </button>
+                    </div>
                 </div>
+
+                {/* Interior Lightbox Overlay (mobile) */}
+                <AnimatePresence>
+                    {isLightboxOpen && interiorImage && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="fixed inset-0 z-[999] bg-black/95 flex flex-col items-center justify-center p-4"
+                            onClick={() => setIsLightboxOpen(false)}
+                        >
+                            {/* Header label */}
+                            <p className="text-white/40 text-[10px] uppercase tracking-[0.25em] font-bold mb-5">Wnętrze</p>
+
+                            {/* Interior Image */}
+                            <img
+                                src={interiorImage.url}
+                                alt="Wnętrze"
+                                className="max-h-[65dvh] max-w-full w-full object-contain rounded-2xl shadow-2xl"
+                                onClick={(e) => e.stopPropagation()}
+                            />
+
+                            {/* Bottom Action Bar */}
+                            <div
+                                className="flex flex-row items-stretch gap-3 w-full max-w-md mt-6"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {/* Primary: Detale button */}
+                                <button
+                                    onClick={() => router.push(`/cars/${encodeURIComponent(car.vin)}`)}
+                                    className="flex-1 flex items-center justify-center gap-2 bg-white text-black rounded-2xl py-4 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] transition-transform"
+                                >
+                                    <span>Detale</span>
+                                    <ArrowRight className="w-4 h-4" />
+                                </button>
+
+                                {/* Secondary: Zamknij button */}
+                                <button
+                                    onClick={() => setIsLightboxOpen(false)}
+                                    className="flex items-center justify-center gap-2 bg-white/10 text-white/80 rounded-2xl px-5 py-4 text-[11px] font-bold uppercase tracking-[0.2em] border border-white/10 active:bg-white/20 active:scale-[0.98] transition-all"
+                                >
+                                    <X className="w-4 h-4" />
+                                    <span>Zamknij</span>
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Right Info Pane */}
                 <Link href={`/cars/${encodeURIComponent(car.vin)}`} className={cn("flex-1 p-5 lg:p-8 flex flex-col justify-between md:justify-end relative overflow-hidden", isSold && "cursor-default pointer-events-none")}>
 
-                    {/* Minimalist Action Buttons (Top Left of Info Pane) */}
-                    <div className="absolute top-5 left-5 lg:top-8 lg:left-8 z-30 flex flex-row items-center gap-5">
+                    {/* Minimalist Action Buttons — Desktop only (hidden on mobile, shown in gallery instead) */}
+                    <div className="hidden md:flex absolute top-5 left-5 lg:top-8 lg:left-8 z-30 flex-row items-center gap-5">
                         <button
                             onClick={toggleGarage}
                             className={cn(
@@ -339,7 +434,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                                     {car.fuel_type || '-'} • {car.power ? `${car.power} KM` : '-'}
                                 </span>
                             </div>
-                            <div className="flex flex-col justify-end items-start md:items-end">
+                            <div className="flex flex-col justify-end items-end">
                                 <div className={cn("flex items-center gap-1.5 transition-colors", isMSeries ? "text-white/40 group-hover/link:text-white" : "text-gray-400 group-hover/link:text-gray-900")}>
                                     <span className="text-[10px] uppercase tracking-widest font-bold">Detale</span>
                                     <ArrowRight className="w-3.5 h-3.5" />

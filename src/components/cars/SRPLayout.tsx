@@ -5,6 +5,7 @@ import { StockCar } from '@/types/stock';
 import { FilterSidebar } from '@/components/cars/FilterSidebar';
 import { CarGrid } from '@/components/cars/CarGrid';
 import { useSearchParams, usePathname } from 'next/navigation';
+import { SlidersHorizontal } from 'lucide-react';
 
 const SEARCH_ALIASES: Record<string, string[]> = {
     'hak': ['towing', 'holowniczy', 'trailer'],
@@ -317,8 +318,20 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
         });
     }, [enrichedCars, searchParams, sortOrder]);
 
+    const activeFilterCount = [
+        ...searchParams.getAll('series'),
+        ...searchParams.getAll('body'),
+        ...searchParams.getAll('fuel'),
+        ...searchParams.getAll('drivetrain'),
+        ...searchParams.getAll('colorGroup'),
+        ...searchParams.getAll('upholsteryGroup'),
+        searchParams.has('q') ? ['q'] : [],
+        searchParams.has('min') || searchParams.has('max') ? ['price'] : [],
+        searchParams.has('pmin') || searchParams.has('pmax') ? ['power'] : [],
+    ].flat().length;
+
     return (
-        <div className="max-w-[1600px] mx-auto px-6 flex flex-col-reverse lg:flex-row gap-12 pt-8">
+        <div className="max-w-[1600px] mx-auto px-6 flex flex-col-reverse lg:flex-row gap-12 pt-8 pb-24 lg:pb-0">
             <FilterSidebar
                 isOpen={isFiltersOpen}
                 onClose={() => setIsFiltersOpen(false)}
@@ -343,6 +356,20 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                     />
                 </Suspense>
             </div>
+
+            {/* Mobile Filter FAB — only visible on mobile/tablet */}
+            <button
+                onClick={() => setIsFiltersOpen(true)}
+                className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-5 py-3.5 rounded-full bg-gray-900 text-white shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-white/10 text-[10px] font-bold uppercase tracking-[0.2em] transition-all active:scale-95"
+            >
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>Filtruj</span>
+                {activeFilterCount > 0 && (
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-white text-black text-[9px] font-bold ml-0.5">
+                        {activeFilterCount}
+                    </span>
+                )}
+            </button>
         </div>
     );
 }

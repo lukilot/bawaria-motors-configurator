@@ -25,7 +25,7 @@ export function CompareToolbar() {
                     className="fixed bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-[560px] pointer-events-none"
                 >
                     <div
-                        className="pointer-events-auto backdrop-blur-2xl text-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/20 p-3 sm:p-4 flex items-center justify-between gap-3 sm:gap-4 overflow-hidden"
+                        className="pointer-events-auto backdrop-blur-2xl text-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/20 p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 overflow-hidden"
                         style={{ background: 'linear-gradient(135deg, rgba(20,20,20,0.85) 0%, rgba(30,30,30,0.95) 100%)' }}
                     >
                         {/* Shimmer effect */}
@@ -62,11 +62,12 @@ export function CompareToolbar() {
                                     ))}
                                 </AnimatePresence>
 
+                                {/* Empty slots — hidden on mobile so they don't take up space */}
                                 {Array.from({ length: 3 - compareCars.length }).map((_, i) => (
                                     <motion.div
                                         layout
                                         key={`empty-${i}`}
-                                        className="w-12 h-10 border border-white/10 border-dashed rounded-lg shrink-0 flex items-center justify-center bg-white/5"
+                                        className="hidden sm:flex w-12 h-10 border border-white/10 border-dashed rounded-lg shrink-0 items-center justify-center bg-white/5"
                                     >
                                         <span className="text-white/20 text-sm font-light">+</span>
                                     </motion.div>
@@ -74,7 +75,7 @@ export function CompareToolbar() {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 sm:gap-4 relative z-10 shrink-0">
+                        <div className="flex items-center justify-between sm:justify-start gap-3 relative z-10 shrink-0">
                             {/* Clear */}
                             <button
                                 onClick={clearCompare}

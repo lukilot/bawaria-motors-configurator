@@ -184,14 +184,21 @@ export function ServicePackageConfigurator({
         const pkgPrice = price;
         const upgradeCost = pkgPrice - basePrice;
 
-        const isCheaper = upgradeCost < 0;
-        const isDisabled = isCheaper;
-
         const isSelected = currentSelection === code;
 
         // Calculate current selection price for diff
         const currentSelectionPkg = packages.find(p => p.code === currentSelection);
         const currentSelectionPrice = currentSelectionPkg ? (prices[currentSelectionPkg.id] || 0) : 0;
+
+        // BSI Special: If it's BSI and factory is null, any pkg is an upgrade. 
+        // If it's BRI, factory is usually 2y, so anything < 2y is a downgrade.
+        const isBsi = !isStandard && (pkg.type === 'BSI' || pkg.type === 'BSI_PLUS');
+        const isBsiNull = isStandard && (currentSelectionPkg?.type === 'BSI' || currentSelectionPkg?.type === 'BSI_PLUS' || !currentSelection);
+
+        // Disable if it's strictly cheaper than factory (downgrade) and NOT factory itself.
+        // Exceptions for BSI "None" if factory is None.
+        const isCheaper = upgradeCost < 0;
+        const isDisabled = isCheaper && !isStandard; // Allow selecting "None" (isStandard) always for BSI/BRI to see base
 
         // Content
         let years = 0;
@@ -222,15 +229,15 @@ export function ServicePackageConfigurator({
             >
                 <div className="flex flex-col flex-1 pointer-events-none">
                     <span className={cn("text-lg font-black leading-none tracking-tight", isSelected ? "" : (isDark ? "text-white" : "text-black"))}>
-                        {years} <span className="text-[10px] font-bold uppercase tracking-widest ml-0.5 opacity-60">{(years >= 2 && years <= 4) ? 'lata' : 'lat'}</span>
+                        {isStandard ? 'Brak' : years} <span className="text-[10px] font-bold uppercase tracking-widest ml-0.5 opacity-60">{isStandard ? 'pakietu' : (years >= 2 && years <= 4 ? 'lata' : 'lat')}</span>
                     </span>
                     <span className={cn("text-[10px] uppercase font-black tracking-widest mt-2 opacity-50", isSelected ? "" : (isDark ? "text-gray-400" : "text-gray-500"))}>
-                        {km > 0 ? `${(pkg!.mileage_limit).toLocaleString('pl-PL')} km` : 'Standard'}
+                        {isStandard ? 'Standard' : (km > 0 ? `${(pkg!.mileage_limit).toLocaleString('pl-PL')} km` : 'Standard')}
                     </span>
                 </div>
                 <div className={cn("w-full pt-4 border-t border-dashed pointer-events-none", isSelected ? "border-current/20" : "border-current/10")}>
                     <span className={cn("text-[11px] font-black uppercase tracking-widest block", isSelected ? "" : (isDark ? "text-white" : "text-black"))}>
-                        {isDisabled ? 'N/D' : getTilePriceString(pkgPrice, currentSelectionPrice, isSelected)}
+                        {isStandard && basePrice === 0 ? 'W cenie' : (isDisabled ? 'N/D' : getTilePriceString(pkgPrice, currentSelectionPrice, isSelected))}
                     </span>
                 </div>
                 {/* Horizontal Indicator Line */}
@@ -333,6 +340,8 @@ export function ServicePackageConfigurator({
                             <div className={cn("h-px flex-1", isDark ? "bg-white/10" : "bg-black/5")} />
                         </div>
                         <div className="flex flex-wrap gap-4 justify-start">
+                            {/* Allow deselection/standard for BSI if base is also 0/null */}
+                            {!baseBsi && renderCompactTile(null, selectedBsi, undefined, baseBsiPrice, (c) => { setSelectedBsi(c); })}
                             {bsiPackages.map(pkg => renderCompactTile(pkg, selectedBsi, baseBsi?.code, baseBsiPrice, (c) => { setSelectedBsi(c); }))}
                         </div>
                     </div>
@@ -358,10 +367,10 @@ export function ServicePackageConfigurator({
 const Modal = ({ isOpen, onClose, title, children, isDark }: { isOpen: boolean; onClose: () => void; title: string; children: React.ReactNode; isDark: boolean }) => {
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
+        <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
             <div className={cn(
-                "relative shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-[2.5rem] border transition-all duration-700 animate-in fade-in zoom-in slide-in-from-bottom-5",
+                "relative my-auto shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden rounded-[2.5rem] border transition-all duration-700 animate-in fade-in zoom-in slide-in-from-bottom-5",
                 isDark ? "bg-gray-900/90 border-white/10 backdrop-blur-xl" : "bg-white/95 border-black/[0.03] backdrop-blur-xl"
             )}>
                 <div className={cn(

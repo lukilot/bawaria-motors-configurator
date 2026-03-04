@@ -191,70 +191,22 @@ export function SiteHeader() {
                                         </motion.button>
                                     )}
 
-                                    {/* Desktop: Back Button + VIN Selector on Left */}
+                                    {/* Desktop: Back Button on Left */}
                                     {isVdp && (
-                                        <div className="hidden lg:flex items-center gap-6">
-                                            <button
+                                        <div className="hidden lg:flex items-center">
+                                            <motion.button
+                                                whileTap={{ scale: 0.9 }}
                                                 onClick={() => {
                                                     const lastSrp = sessionStorage.getItem('bawaria_last_srp');
                                                     router.push(lastSrp || '/cars');
                                                 }}
                                                 className={cn(
-                                                    "flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors",
-                                                    isScrolled ? "text-gray-900" : isMSeries ? "text-white" : "text-gray-900"
+                                                    "flex items-center justify-center w-12 h-12 rounded-full border transition-all shadow-xl",
+                                                    isMSeries ? "bg-white text-black border-white" : "bg-black text-white border-black"
                                                 )}
                                             >
-                                                <ArrowLeft className="w-4 h-4" />
-                                                Wróć do listy
-                                            </button>
-
-                                            <div className="w-px h-6 bg-current opacity-10" />
-
-                                            {currentCar && (
-                                                <div className={cn(
-                                                    "flex items-center gap-3 px-4 py-2 rounded-full border transition-colors duration-500",
-                                                    isScrolled
-                                                        ? "bg-black/5 border-black/5"
-                                                        : isMSeries
-                                                            ? "bg-white/5 border-white/10"
-                                                            : "bg-black/5 border-black/5"
-                                                )}>
-                                                    {totalAvailable > 1 ? (
-                                                        <div className="flex items-center gap-2">
-                                                            <span className={cn(
-                                                                "text-[10px] font-bold uppercase tracking-wider",
-                                                                isScrolled ? "text-gray-900" : isMSeries ? "text-white" : "text-gray-900"
-                                                            )}>{totalAvailable} szt.</span>
-                                                            <div className={cn("w-px h-3 mx-1", isScrolled ? "bg-black/10" : isMSeries ? "bg-white/20" : "bg-black/10")} />
-                                                            <select
-                                                                value={currentCar.vin}
-                                                                onChange={(e) => router.push(`/cars/${e.target.value}`)}
-                                                                className={cn(
-                                                                    "text-[10px] font-mono bg-transparent border-none outline-none cursor-pointer transition-colors",
-                                                                    isScrolled
-                                                                        ? "text-gray-900 hover:text-blue-600"
-                                                                        : isMSeries
-                                                                            ? "text-white/80 hover:text-white"
-                                                                            : "text-gray-900 hover:text-blue-600"
-                                                                )}
-                                                            >
-                                                                <option value={currentCar.vin}>{currentCar.vin} (Obecny)</option>
-                                                                {siblings.filter(s => s.vin !== currentCar.vin).map(s => (
-                                                                    <option key={s.vin} value={s.vin} className="text-black">
-                                                                        {s.vin} {s.status_code > 190 ? '✅' : '⏳'}
-                                                                    </option>
-                                                                ))}
-                                                            </select>
-                                                            <ChevronDown className={cn("w-3 h-3", isScrolled ? "text-gray-400" : isMSeries ? "text-white/40" : "text-gray-400")} />
-                                                        </div>
-                                                    ) : (
-                                                        <span className={cn(
-                                                            "text-[10px] font-mono tracking-wide",
-                                                            isScrolled ? "text-gray-500" : isMSeries ? "text-white/60" : "text-gray-900"
-                                                        )}>{currentCar.vin}</span>
-                                                    )}
-                                                </div>
-                                            )}
+                                                <ArrowLeft className="w-5 h-5" />
+                                            </motion.button>
                                         </div>
                                     )}
                                 </motion.div>

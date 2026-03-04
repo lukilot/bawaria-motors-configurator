@@ -56,12 +56,6 @@ export function MobileStickyFooter({ car: propCar, isDark: propIsDark, bulletinD
                         )}>
                             {car.model_name || `BMW ${car.model_code}`}
                         </span>
-                        <div className="flex items-center gap-1 opacity-50">
-                            {car.status_code > 190 && <span className="w-1 h-1 rounded-full bg-green-500" />}
-                            <span className="text-[7px] font-black uppercase tracking-widest truncate">
-                                {car.status_code > 190 ? 'Dostępny od ręki' : 'W ofercie'}
-                            </span>
-                        </div>
                     </div>
 
                     <div className="flex flex-col">

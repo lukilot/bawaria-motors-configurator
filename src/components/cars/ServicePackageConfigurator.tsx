@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ServicePackage, getServicePackages, getServicePrices } from '@/lib/service-packages';
 import { cn } from '@/lib/utils';
 import { Shield, Wrench, X, Loader2 } from 'lucide-react';
@@ -363,35 +364,62 @@ export function ServicePackageConfigurator({
     );
 }
 
-// Helper: Modal Wrapper
+// Helper: Modal Wrapper - Truly Centered via Portal
 const Modal = ({ isOpen, onClose, title, children, isDark }: { isOpen: boolean; onClose: () => void; title: string; children: React.ReactNode; isDark: boolean }) => {
-    if (!isOpen) return null;
-    return (
-        <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 overflow-y-auto">
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
+
+    if (!isOpen || !mounted) return null;
+
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            {/* Background Backdrop with improved blur for that Glass-on-Glass feel */}
+            <div
+                className="fixed inset-0 bg-black/80 backdrop-blur-xl transition-all duration-500 animate-in fade-in"
+                onClick={onClose}
+            />
+
+            {/* Centered Modal Container - Escape all parent containers */}
             <div className={cn(
-                "relative my-auto shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden rounded-[2.5rem] border transition-all duration-700 animate-in fade-in zoom-in slide-in-from-bottom-5",
-                isDark ? "bg-gray-900/90 border-white/10 backdrop-blur-xl" : "bg-white/95 border-black/[0.03] backdrop-blur-xl"
+                "relative my-auto shadow-[0_35px_100px_-15px_rgba(0,0,0,0.6)] w-full max-w-4xl max-h-[85dvh] flex flex-col overflow-hidden rounded-[2.5rem] border transition-all duration-700 animate-in fade-in zoom-in slide-in-from-bottom-5",
+                isDark ? "bg-[#111111]/95 border-white/10" : "bg-white/95 border-black/[0.03]"
             )}>
+                {/* Header - Fixed height */}
                 <div className={cn(
                     "flex justify-between items-center px-10 py-8 border-b shrink-0",
                     isDark ? "border-white/10 bg-white/5" : "border-black/[0.03] bg-black/[0.01]"
                 )}>
-                    <h3 className={cn("text-sm font-black uppercase tracking-[0.3em]", isDark ? "text-white" : "text-black")}>{title}</h3>
+                    <h3 className={cn("text-base font-black uppercase tracking-[0.4em]", isDark ? "text-white" : "text-black")}>{title}</h3>
                     <button
                         onClick={onClose}
                         className={cn(
-                            "w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-90",
+                            "w-12 h-12 flex items-center justify-center rounded-full transition-all active:scale-90",
                             isDark ? "bg-white/10 hover:bg-white/20 text-white" : "bg-black/5 hover:bg-black/10 text-black"
                         )}
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-6 h-6" />
                     </button>
                 </div>
-                <div className="p-10 overflow-y-auto w-full custom-scrollbar">
-                    {children}
+
+                {/* Content Area - Scrollable */}
+                <div className="p-10 overflow-y-auto w-full custom-scrollbar flex-1 overscroll-contain">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200 fill-mode-both">
+                        {children}
+                    </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };

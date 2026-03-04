@@ -332,18 +332,18 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
 
     return (
         <>
-            {/* Mobile Sticky Filter Bar — always visible on mobile, below site header */}
-            <div className="lg:hidden sticky top-16 z-[99] bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-2.5">
+            {/* Mobile Sticky Filter Bar — Floating Pill centered under header */}
+            <div className="lg:hidden sticky top-24 z-[100] px-4 flex justify-center pointer-events-none">
                 <button
                     onClick={() => setIsFiltersOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-600 hover:border-gray-400 hover:text-gray-900 transition-all active:scale-95 bg-white shadow-sm"
+                    className="pointer-events-auto flex items-center gap-3 px-6 py-3 rounded-full border border-gray-100/50 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-900 bg-white/95 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] ring-1 ring-black/5 hover:scale-[1.02] active:scale-95 transition-all"
                 >
-                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <SlidersHorizontal className="w-4 h-4" />
                     <span>Filtry</span>
                     {activeFilterCount > 0 && (
-                        <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-gray-900 text-white text-[8px] font-bold">
+                        <div className="flex items-center justify-center min-w-[20px] h-[20px] px-1 rounded-full bg-gray-900 text-white text-[9px] font-bold ml-1">
                             {activeFilterCount}
-                        </span>
+                        </div>
                     )}
                 </button>
             </div>

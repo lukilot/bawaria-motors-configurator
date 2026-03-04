@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, X, RotateCcw, SprayCan } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { ChevronDown, ChevronUp, X, RotateCcw, SprayCan, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Slider } from '@/components/ui/slider';
@@ -110,6 +111,17 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
     const toggleSection = (id: string) => {
         setExpandedSections(prev => ({ ...prev, [id]: !prev[id] }));
     };
+
+    // Body scroll lock on mobile
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (isOpen && window.innerWidth < 1024) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [isOpen]);
 
     const formatPrice = (price: number) =>
         new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(price);
@@ -230,33 +242,49 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
         searchParams.has('pmin') ||
         searchParams.has('pmax');
 
-    return (
+    const content = (
         <>
             {/* Sidebar Content — fullscreen on mobile, sticky sidebar on desktop */}
             <aside className={cn(
-                "fixed lg:sticky top-0 lg:top-24 left-0 h-full lg:h-[calc(100vh-8rem)] w-full lg:w-[280px] bg-white lg:bg-transparent z-[200] lg:z-0 hidden lg:block overflow-y-auto lg:px-0 lg:py-0 px-0 py-0 lg:shadow-none transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] scrollbar-hide",
+                "fixed lg:sticky top-0 lg:top-24 left-0 h-full lg:h-[calc(100vh-8rem)] w-full lg:w-[280px] bg-white lg:bg-transparent z-[500] lg:z-0 hidden lg:block overflow-y-auto lg:px-0 lg:py-0 px-0 py-0 lg:shadow-none transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] scrollbar-hide",
                 isOpen ? "translate-x-0 !flex flex-col" : "-translate-x-full lg:translate-x-0 lg:!block"
             )}>
-                {/* Mobile Header */}
-                <div className="lg:hidden flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0 bg-white">
+                {/* Mobile Header (Sticky) */}
+                <div className="lg:hidden flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0 bg-white z-10">
                     <div>
-                        <h2 className="text-[11px] font-bold uppercase tracking-[0.25em] text-gray-900">Filtry</h2>
+                        <h2 className="text-[12px] font-bold uppercase tracking-[0.25em] text-gray-900 mb-1">Filtrowanie</h2>
                         {hasActiveFilters && (
-                            <button onClick={clearFilters} className="text-[9px] font-bold uppercase tracking-widest text-[#E40424] flex items-center gap-1 mt-0.5">
-                                <RotateCcw className="w-2.5 h-2.5" /> Resetuj wszystkie
+                            <button onClick={clearFilters} className="text-[9px] font-bold uppercase tracking-widest text-red-600 flex items-center gap-1.5 active:scale-95 transition-transform">
+                                <RotateCcw className="w-3 h-3" /> Resetuj filtry
                             </button>
                         )}
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 border border-gray-100 shadow-sm active:scale-90 transition-all"
                     >
-                        <X className="w-4 h-4" />
+                        <X className="w-5 h-5 text-gray-900" />
                     </button>
                 </div>
 
                 {/* Scrollable content area */}
                 <div className="flex-1 overflow-y-auto px-6 py-6 lg:px-0 lg:py-8">
+                    {/* Search prominent for mobile */}
+                    <div className="lg:hidden relative mb-10">
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400">
+                            <Search className="w-4 h-4" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Szukaj modelu, opcji, wyposażenia..."
+                            className="w-full pl-7 py-4 bg-transparent border-b border-gray-100 focus:outline-none focus:border-black transition-colors text-[13px] font-semibold text-gray-900 tracking-wide placeholder:text-gray-300 placeholder:font-normal"
+                            value={search}
+                            onChange={(e) => {
+                                isTypingRef.current = true;
+                                setSearch(e.target.value);
+                            }}
+                        />
+                    </div>
 
                     {/* Active Filters & Reset */}
                     {hasActiveFilters && (
@@ -423,8 +451,8 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
                     </div>
 
                     <div className="space-y-4">
-                        {/* Text Search */}
-                        <div className="relative mb-6">
+                        {/* Text Search (Desktop only) */}
+                        <div className="hidden lg:block relative mb-6">
                             <input
                                 type="text"
                                 placeholder="Szukaj modelu, kodów, opcji..."
@@ -618,4 +646,10 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
             </aside>
         </>
     );
+
+    if (typeof document !== 'undefined' && isOpen && window.innerWidth < 1024) {
+        return createPortal(content, document.body);
+    }
+
+    return content;
 }

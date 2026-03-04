@@ -363,7 +363,7 @@ export function ServicePackageConfigurator({
                                 </div>
                                 <h5 className={cn("text-[11px] font-black uppercase tracking-[0.2em]", isDark ? "text-purple-400" : "text-purple-600")}>Service Inclusive Plus</h5>
                             </div>
-                            <p className={cn("text-[10px] font-black uppercase tracking-widest mb-3", isDark ? "text-purple-300" : "text-purple-900")}>Wszystko z pakietu BSI PLUS:</p>
+                            <p className={cn("text-[10px] font-black uppercase tracking-widest mb-3", isDark ? "text-purple-300" : "text-purple-900")}>Wszystko z pakietu BSI oraz dodatkowo:</p>
                             <ul className={cn("text-[10px] font-bold uppercase tracking-widest leading-loose", isDark ? "text-purple-100/60" : "text-purple-900/60")}>
                                 <li>• Klocki i tarcze hamulcowe (przód/tył)</li>
                                 <li>• Sprzęgło (w razie zużycia)</li>

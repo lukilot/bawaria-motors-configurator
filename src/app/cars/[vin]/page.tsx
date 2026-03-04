@@ -308,16 +308,6 @@ export default async function CarPage({ params }: PageProps) {
 
                 {/* LEFT: Gallery + Specs + Options */}
                 <div className="lg:col-span-8">
-                    {/* Back Button - Layout Integrated */}
-                    <div className="hidden lg:block mb-8">
-                        <BackButton
-                            label="Wróć do listy"
-                            className={cn(
-                                "flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity",
-                                isMSeries ? "text-white" : "text-black"
-                            )}
-                        />
-                    </div>
                     {/* Merge unique images */}
                     <CarGallery
                         modelName={modelName}
@@ -480,25 +470,29 @@ export default async function CarPage({ params }: PageProps) {
                                                     )}
                                                 >
                                                     {/* Image Composite - BMW OS X Inspired Trapezoids */}
-                                                    <div className="relative w-28 h-20 shrink-0">
+                                                    <div className="relative w-32 h-24 shrink-0">
                                                         {/* Interior (Back) */}
                                                         <div
-                                                            className="absolute bottom-0 right-0 w-[75%] h-[85%] overflow-hidden bg-gray-100 shadow-sm border border-white/10"
+                                                            className="absolute bottom-0 right-0 w-[80%] h-[90%] overflow-hidden bg-gray-100 shadow-sm border border-white/10"
                                                             style={{
                                                                 clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
-                                                                transform: 'translateX(5px)'
+                                                                WebkitClipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
+                                                                transform: 'translateX(10px)'
                                                             }}
                                                         >
                                                             {interiorImg ? (
-                                                                <img src={interiorImg} alt="" className="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all opacity-60 group-hover:opacity-100" />
+                                                                <img src={interiorImg} alt="" className="w-full h-full object-cover transition-all group-hover:scale-110" />
                                                             ) : (
                                                                 <div className="w-full h-full bg-gray-200" />
                                                             )}
                                                         </div>
                                                         {/* Exterior (Front) */}
                                                         <div
-                                                            className="absolute top-0 left-0 w-[75%] h-[85%] overflow-hidden bg-white shadow-xl border border-white/20 z-10"
-                                                            style={{ clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)' }}
+                                                            className="absolute top-0 left-0 w-[80%] h-[90%] overflow-hidden bg-white shadow-xl border border-white/20 z-10"
+                                                            style={{
+                                                                clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)',
+                                                                WebkitClipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)'
+                                                            }}
                                                         >
                                                             {exteriorImg ? (
                                                                 <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />

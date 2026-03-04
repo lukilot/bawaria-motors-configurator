@@ -210,7 +210,7 @@ export function ServicePackageConfigurator({
                 role="button"
                 tabIndex={isDisabled ? -1 : 0}
                 className={cn(
-                    "relative group flex flex-col justify-between p-1.5 rounded-sm border transition-all text-center h-20 w-[calc(25%-0.4rem)] shrink-0 grow-0 select-none outline-none focus:ring-2 focus:ring-offset-1 focus:ring-black",
+                    "relative group flex flex-col justify-between p-2 rounded-lg border transition-all text-center h-24 w-[calc(25%-0.4rem)] shrink-0 grow-0 select-none outline-none focus:ring-2 focus:ring-offset-1 focus:ring-black",
                     isSelected
                         ? "bg-black text-white border-black shadow-lg z-10"
                         : isDisabled
@@ -231,7 +231,7 @@ export function ServicePackageConfigurator({
                         {isDisabled ? '' : getTilePriceString(pkgPrice, currentSelectionPrice, isSelected)}
                     </span>
                 </div>
-                <div className={cn("absolute top-0 left-0 w-full h-0.5 rounded-t-sm",
+                <div className={cn("absolute top-0 left-0 w-full h-0.5 rounded-t-lg",
                     isStandard ? "bg-gray-400" : (pkg?.type === 'BRI' ? "bg-orange-500" : pkg?.plus ? "bg-purple-500" : "bg-blue-500")
                 )} />
 
@@ -240,17 +240,17 @@ export function ServicePackageConfigurator({
     };
 
     return (
-        <div className={cn("grid grid-cols-2 gap-3", isDark ? "mt-0" : "mt-6 pt-6 border-t border-gray-100")}>
+        <div className={cn("grid grid-cols-2 gap-3", isDark ? "mt-0" : "mt-0 pt-0")}>
             {/* BRI Summary Tile */}
             <button
                 onClick={() => setIsBriModalOpen(true)}
                 className={cn(
-                    "group flex flex-col xl:flex-row items-center xl:items-start gap-2 p-2 rounded-sm border transition-all w-full text-left hover:shadow-sm",
+                    "group flex flex-col xl:flex-row items-center xl:items-start gap-4 p-4 rounded-2xl border transition-all w-full text-left hover:shadow-sm",
                     isDark ? "bg-[#1a1a1a] border-gray-800 hover:border-gray-600" : "bg-white border-gray-100 hover:border-black"
                 )}
             >
                 <div className={cn(
-                    "w-10 h-10 shrink-0 rounded-sm flex items-center justify-center border group-hover:border-opacity-100",
+                    "w-12 h-12 shrink-0 rounded-xl flex items-center justify-center border group-hover:border-opacity-100",
                     isDark ? "bg-orange-950/20 border-orange-900/30 group-hover:border-orange-700/50" : "bg-orange-50 border-orange-100 group-hover:border-orange-200"
                 )}>
                     <Shield className="w-5 h-5 text-orange-500" />
@@ -271,12 +271,12 @@ export function ServicePackageConfigurator({
             <button
                 onClick={() => setIsBsiModalOpen(true)}
                 className={cn(
-                    "group flex flex-col xl:flex-row items-center xl:items-start gap-2 p-2 rounded-sm border transition-all w-full text-left hover:shadow-sm",
+                    "group flex flex-col xl:flex-row items-center xl:items-start gap-4 p-4 rounded-2xl border transition-all w-full text-left hover:shadow-sm",
                     isDark ? "bg-[#1a1a1a] border-gray-800 hover:border-gray-600" : "bg-white border-gray-100 hover:border-black"
                 )}
             >
                 <div className={cn(
-                    "w-10 h-10 shrink-0 rounded-sm flex items-center justify-center border group-hover:border-opacity-100",
+                    "w-12 h-12 shrink-0 rounded-xl flex items-center justify-center border group-hover:border-opacity-100",
                     isDark ? "bg-blue-950/20 border-blue-900/30 group-hover:border-blue-700/50" : "bg-blue-50 border-blue-100 group-hover:border-blue-200"
                 )}>
                     <Wrench className="w-5 h-5 text-blue-500" />

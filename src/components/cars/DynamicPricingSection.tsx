@@ -41,7 +41,7 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
         <div className="space-y-10">
             {/* Service Configurator */}
             <div className={cn(
-                "rounded-2xl border transition-all duration-500",
+                "p-8 rounded-3xl border transition-all duration-500",
                 isDark ? "bg-white/5 border-white/10" : "bg-gray-50 border-gray-100"
             )}>
                 <ServicePackageConfigurator

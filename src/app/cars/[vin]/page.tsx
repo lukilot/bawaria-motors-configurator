@@ -285,6 +285,7 @@ export default async function CarPage({ params }: PageProps) {
                                             const vUpholstery = dictionaries.upholstery[v.upholstery_code || '']?.name || v.upholstery_code;
                                             const exteriorImg = v.images?.[0]?.url;
                                             const interiorImg = v.images && v.images.length > 0 ? v.images[v.images.length - 1]?.url : undefined;
+                                            const isSoldVariant = (v.order_status || '').includes('Sprzedany');
 
                                             return (
                                                 <Link
@@ -292,8 +293,11 @@ export default async function CarPage({ params }: PageProps) {
                                                     replace
                                                     href={`/cars/${v.vin}`}
                                                     className={cn(
-                                                        "group flex flex-col gap-4 p-4 rounded-3xl border transition-all hover:shadow-2xl hover:scale-[1.01]",
-                                                        isMSeries ? "bg-white/5 border-white/10 hover:bg-white/10" : "bg-white border-black/[0.03] hover:border-black/10"
+                                                        "group flex flex-col gap-4 p-4 rounded-3xl border transition-all",
+                                                        isMSeries ? "bg-white/5 border-white/10" : "bg-white border-black/[0.03]",
+                                                        isSoldVariant
+                                                            ? "opacity-60 grayscale-[0.5] pointer-events-none cursor-default"
+                                                            : (isMSeries ? "hover:bg-white/10 hover:shadow-2xl hover:scale-[1.01]" : "hover:border-black/10 hover:shadow-2xl hover:scale-[1.01]")
                                                     )}
                                                 >
                                                     {/* Image Composite - Side-by-Side Duo Split */}
@@ -316,6 +320,16 @@ export default async function CarPage({ params }: PageProps) {
                                                                 <div className="w-full h-full bg-gray-200" />
                                                             )}
                                                         </div>
+
+                                                        {isSoldVariant && (
+                                                            <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                                                                <div className="bg-black/60 backdrop-blur-md border border-white/20 px-3 py-1 rounded-sm shadow-lg">
+                                                                    <span className="text-white text-[9px] font-bold uppercase tracking-wider text-center drop-shadow-md">
+                                                                        Sprzedany
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
 
                                                     {/* Text Info */}

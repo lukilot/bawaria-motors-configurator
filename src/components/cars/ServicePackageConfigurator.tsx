@@ -196,9 +196,9 @@ export function ServicePackageConfigurator({
         const isBsi = !isStandard && (pkg.type === 'BSI' || pkg.type === 'BSI_PLUS');
         const isBsiNull = isStandard && (currentSelectionPkg?.type === 'BSI' || currentSelectionPkg?.type === 'BSI_PLUS' || !currentSelection);
 
-        // Downgrade protection removed: allow selecting lower/none packages
+        // Downgrade protection re-enabled: disable if strictly cheaper than factory
         const isCheaper = upgradeCost < 0;
-        const isDisabled = false; // Always allow selection for full flexibility
+        const isDisabled = isCheaper && !isSelected;
 
         // Content
         let years = 0;
@@ -227,7 +227,7 @@ export function ServicePackageConfigurator({
                     isSelected
                         ? (isDark ? "bg-white text-black border-white shadow-2xl z-10" : "bg-black text-white border-black shadow-2xl z-10")
                         : isDisabled
-                            ? "bg-black/5 border-white/5 opacity-20 cursor-not-allowed"
+                            ? "bg-black/5 border-white/5 opacity-40 cursor-not-allowed grayscale scale-[0.98]"
                             : (isDark
                                 ? "bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/10 cursor-pointer"
                                 : "bg-white border-black/[0.05] hover:border-black/20 hover:bg-black/[0.02] cursor-pointer")
@@ -243,7 +243,7 @@ export function ServicePackageConfigurator({
                 </div>
                 <div className={cn("w-full pt-4 border-t border-tight pointer-events-none", isSelected ? "border-current/20" : "border-current/10")}>
                     <span className={cn("text-[11px] font-black uppercase tracking-widest block", isSelected ? "" : (isDark ? "text-white" : "text-black"))}>
-                        {(isStandard && basePrice === 0) || (isCheaper && !isSelected) ? 'W cenie' : getTilePriceString(pkgPrice, currentSelectionPrice, isSelected)}
+                        {isSelected ? 'W cenie' : (isDisabled ? '' : getTilePriceString(pkgPrice, currentSelectionPrice, isSelected))}
                     </span>
                 </div>
                 {/* Horizontal Indicator Line */}

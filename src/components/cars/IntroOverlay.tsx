@@ -261,8 +261,8 @@ export function IntroOverlay() {
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3, delay: 0.1 }}
                             className={cn(
-                                "flex items-center gap-4 px-6 py-3 min-w-[180px] sm:min-w-[200px] justify-between text-nowrap",
-                                isVdp && "px-4 sm:px-6"
+                                "flex items-center gap-4 px-4 py-3 min-w-0 justify-between text-nowrap",
+                                isVdp && "px-4"
                             )}
                         >
                             {isVdp && currentCar ? (
@@ -278,9 +278,8 @@ export function IntroOverlay() {
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center">
                                         <Phone className="w-3.5 h-3.5 text-white/80" />
-                                        <span className="text-[9px] uppercase font-black tracking-widest">Kontakt</span>
                                     </div>
                                 </div>
                             ) : (

@@ -14,7 +14,9 @@ import {
     LayoutDashboard,
     Library,
     Coins,
-    Tag
+    Tag,
+    Car,
+    Search
 } from 'lucide-react';
 import { useGarageStore } from '@/store/garageStore';
 import { useVdpStore } from '@/store/vdpStore';
@@ -33,7 +35,9 @@ export function SiteHeader() {
     const isVdp = pathname.startsWith('/cars/');
     const isAdmin = pathname.startsWith('/admin');
     const isMSeries = currentCar?.series?.includes('Seria M') || currentCar?.model_code?.startsWith('M');
-    const totalAvailable = siblings.length;
+    const totalAvailable = (siblings?.length || 0) + 1; // current + siblings
+
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -62,7 +66,10 @@ export function SiteHeader() {
                             : "py-6 md:py-8 bg-transparent border-b border-transparent"
             )}
         >
-            <div className="max-w-[1800px] mx-auto flex items-center justify-between">
+            <div className={cn(
+                "max-w-[1600px] mx-auto px-6 flex items-center justify-between",
+                isVdp ? "" : "h-16"
+            )}>
                 {isAdmin ? (
                     <>
                         {/* Admin Left: Logo & Exit */}
@@ -141,100 +148,129 @@ export function SiteHeader() {
                     </>
                 ) : (
                     <>
-                        {/* Left Area: Logo or Back Button */}
-                        <div className="flex items-center gap-4">
-                            {/* VDP Back Button (Mobile Only) */}
-                            {isVdp && (
-                                <motion.button
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => {
-                                        const lastSrp = sessionStorage.getItem('bawaria_last_srp');
-                                        router.push(lastSrp || '/cars');
-                                    }}
-                                    className={cn(
-                                        "flex lg:hidden items-center justify-center w-10 h-10 rounded-full border transition-all shadow-sm",
-                                        isMSeries ? "bg-white text-black border-white" : "bg-black text-white border-black"
-                                    )}
+                        <AnimatePresence>
+                            {!isSearchOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    className="flex items-center gap-4"
                                 >
-                                    <ArrowLeft className="w-5 h-5" />
-                                </motion.button>
-                            )}
-
-                            <AnimatePresence mode="wait">
-                                {isVdp ? null : (
-                                    <motion.div
-                                        key="logo"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                    >
-                                        <Link href="/" className="group flex flex-col items-start translate-y-2">
-                                            <div className="flex items-baseline">
-                                                <h1 className={cn(
-                                                    "text-xl md:text-2xl font-bold tracking-tighter transition-all duration-500",
-                                                    isScrolled ? "text-gray-900" : isMSeries ? "text-white" : "text-gray-900"
-                                                )}>
-                                                    lukilot<span className={cn("transition-colors", isScrolled ? "text-gray-400 group-hover:text-blue-600" : isMSeries ? "text-white/50 group-hover:text-white" : "text-gray-400 group-hover:text-blue-600")}>.work</span>
-                                                </h1>
-                                            </div>
-                                            <motion.span
-                                                animate={{ opacity: isScrolled ? 0 : 1, height: isScrolled ? 0 : 'auto' }}
-                                                className="text-[9px] font-bold tracking-[0.3em] uppercase text-gray-400 block"
-                                            >
-                                                Stock Buffer
-                                            </motion.span>
-                                        </Link>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-
-                            {/* VDP VIN Selector Integrated (Desktop) */}
-                            {isVdp && currentCar && (
-                                <div className={cn(
-                                    "hidden lg:flex items-center gap-3 px-4 py-2 rounded-full border transition-colors duration-500",
-                                    isScrolled
-                                        ? "bg-black/5 border-black/5"
-                                        : isMSeries
-                                            ? "bg-white/5 border-white/10"
-                                            : "bg-black/5 border-black/5"
-                                )}>
-                                    {totalAvailable > 1 ? (
-                                        <div className="flex items-center gap-2">
-                                            <span className={cn(
-                                                "text-[10px] font-bold uppercase tracking-wider",
-                                                isScrolled ? "text-gray-900" : isMSeries ? "text-white" : "text-gray-900"
-                                            )}>{totalAvailable} szt.</span>
-                                            <div className={cn("w-px h-3 mx-1", isScrolled ? "bg-black/10" : isMSeries ? "bg-white/20" : "bg-black/10")} />
-                                            <select
-                                                value={currentCar.vin}
-                                                onChange={(e) => router.push(`/cars/${e.target.value}`)}
-                                                className={cn(
-                                                    "text-[10px] font-mono bg-transparent border-none outline-none cursor-pointer transition-colors",
-                                                    isScrolled
-                                                        ? "text-gray-900 hover:text-blue-600"
-                                                        : isMSeries
-                                                            ? "text-white/80 hover:text-white"
-                                                            : "text-gray-900 hover:text-blue-600"
-                                                )}
-                                            >
-                                                <option value={currentCar.vin}>{currentCar.vin} (Obecny)</option>
-                                                {siblings.filter(s => s.vin !== currentCar.vin).map(s => (
-                                                    <option key={s.vin} value={s.vin} className="text-black">
-                                                        {s.vin} {s.status_code > 190 ? '✅' : '⏳'}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            <ChevronDown className={cn("w-3 h-3", isScrolled ? "text-gray-400" : isMSeries ? "text-white/40" : "text-gray-400")} />
-                                        </div>
-                                    ) : (
-                                        <span className={cn(
-                                            "text-[10px] font-mono tracking-wide",
-                                            isScrolled ? "text-gray-500" : isMSeries ? "text-white/60" : "text-gray-900"
-                                        )}>{currentCar.vin}</span>
+                                    {/* VDP Back Button (Mobile Only) - Floating Style */}
+                                    {isVdp && (
+                                        <motion.button
+                                            whileTap={{ scale: 0.9 }}
+                                            onClick={() => {
+                                                const lastSrp = sessionStorage.getItem('bawaria_last_srp');
+                                                router.push(lastSrp || '/cars');
+                                            }}
+                                            className={cn(
+                                                "flex lg:hidden items-center justify-center w-12 h-12 rounded-full border transition-all shadow-xl absolute top-4 left-6",
+                                                isMSeries ? "bg-white text-black border-white" : "bg-black text-white border-black"
+                                            )}
+                                        >
+                                            <ArrowLeft className="w-5 h-5" />
+                                        </motion.button>
                                     )}
-                                </div>
+
+                                    {/* Garage Toggle Button (Mobile Only) - Floating Style */}
+                                    {isVdp && (
+                                        <motion.button
+                                            whileTap={{ scale: 0.9 }}
+                                            onClick={() => router.push('/garage')}
+                                            className={cn(
+                                                "flex lg:hidden items-center justify-center w-12 h-12 rounded-full border transition-all shadow-xl absolute top-4 right-6",
+                                                isMSeries ? "bg-white text-black border-white" : "bg-black text-white border-black"
+                                            )}
+                                        >
+                                            <div className="relative">
+                                                <Car className="w-5 h-5" />
+                                                {count > 0 && (
+                                                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-blue-600 text-[9px] font-black text-white flex items-center justify-center border-2 border-white">
+                                                        {count}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </motion.button>
+                                    )}
+                                </motion.div>
                             )}
-                        </div>
+                        </AnimatePresence>
+
+                        <AnimatePresence mode="wait">
+                            {isVdp ? null : (
+                                <motion.div
+                                    key="logo"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                >
+                                    <Link href="/" className="group flex flex-col items-start translate-y-2">
+                                        <div className="flex items-baseline">
+                                            <h1 className={cn(
+                                                "text-xl md:text-2xl font-bold tracking-tighter transition-all duration-500",
+                                                isScrolled ? "text-gray-900" : isMSeries ? "text-white" : "text-gray-900"
+                                            )}>
+                                                lukilot<span className={cn("transition-colors", isScrolled ? "text-gray-400 group-hover:text-blue-600" : isMSeries ? "text-white/50 group-hover:text-white" : "text-gray-400 group-hover:text-blue-600")}>.work</span>
+                                            </h1>
+                                        </div>
+                                        <motion.span
+                                            animate={{ opacity: isScrolled ? 0 : 1, height: isScrolled ? 0 : 'auto' }}
+                                            className="text-[9px] font-bold tracking-[0.3em] uppercase text-gray-400 block"
+                                        >
+                                            Stock Buffer
+                                        </motion.span>
+                                    </Link>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* VDP VIN Selector Integrated (Desktop) */}
+                        {isVdp && currentCar && (
+                            <div className={cn(
+                                "hidden lg:flex items-center gap-3 px-4 py-2 rounded-full border transition-colors duration-500",
+                                isScrolled
+                                    ? "bg-black/5 border-black/5"
+                                    : isMSeries
+                                        ? "bg-white/5 border-white/10"
+                                        : "bg-black/5 border-black/5"
+                            )}>
+                                {totalAvailable > 1 ? (
+                                    <div className="flex items-center gap-2">
+                                        <span className={cn(
+                                            "text-[10px] font-bold uppercase tracking-wider",
+                                            isScrolled ? "text-gray-900" : isMSeries ? "text-white" : "text-gray-900"
+                                        )}>{totalAvailable} szt.</span>
+                                        <div className={cn("w-px h-3 mx-1", isScrolled ? "bg-black/10" : isMSeries ? "bg-white/20" : "bg-black/10")} />
+                                        <select
+                                            value={currentCar.vin}
+                                            onChange={(e) => router.push(`/cars/${e.target.value}`)}
+                                            className={cn(
+                                                "text-[10px] font-mono bg-transparent border-none outline-none cursor-pointer transition-colors",
+                                                isScrolled
+                                                    ? "text-gray-900 hover:text-blue-600"
+                                                    : isMSeries
+                                                        ? "text-white/80 hover:text-white"
+                                                        : "text-gray-900 hover:text-blue-600"
+                                            )}
+                                        >
+                                            <option value={currentCar.vin}>{currentCar.vin} (Obecny)</option>
+                                            {siblings.filter(s => s.vin !== currentCar.vin).map(s => (
+                                                <option key={s.vin} value={s.vin} className="text-black">
+                                                    {s.vin} {s.status_code > 190 ? '✅' : '⏳'}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className={cn("w-3 h-3", isScrolled ? "text-gray-400" : isMSeries ? "text-white/40" : "text-gray-400")} />
+                                    </div>
+                                ) : (
+                                    <span className={cn(
+                                        "text-[10px] font-mono tracking-wide",
+                                        isScrolled ? "text-gray-500" : isMSeries ? "text-white/60" : "text-gray-900"
+                                    )}>{currentCar.vin}</span>
+                                )}
+                            </div>
+                        )}
 
                         {/* Right Actions */}
                         <div className="flex items-center gap-3 md:gap-4">

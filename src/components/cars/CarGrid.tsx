@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { StockCar } from '@/types/stock';
 import { CarRow } from '@/components/cars/CarRow';
 import { CarCard } from '@/components/cars/CarCard';
-import { SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SearchFooter } from './SearchFooter';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -108,16 +108,6 @@ export function CarGrid({
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* Mobile: Filter pill button */}
-                    <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); onOpenFilters?.(); }}
-                        className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-[10px] font-bold uppercase tracking-widest text-gray-700 hover:border-gray-900 hover:text-gray-900 transition-colors active:scale-95"
-                    >
-                        <SlidersHorizontal className="w-3.5 h-3.5" />
-                        Filtry
-                    </button>
-
                     {/* Sort Dropdown */}
                     <div className="relative group flex items-center">
                         <span className="text-xs font-bold uppercase tracking-widest text-right mr-2 cursor-pointer group-hover:text-gray-600 transition-colors">

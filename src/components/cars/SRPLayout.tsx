@@ -5,6 +5,7 @@ import { StockCar } from '@/types/stock';
 import { FilterSidebar } from '@/components/cars/FilterSidebar';
 import { CarGrid } from '@/components/cars/CarGrid';
 import { useSearchParams, usePathname } from 'next/navigation';
+import { SlidersHorizontal } from 'lucide-react';
 
 const SEARCH_ALIASES: Record<string, string[]> = {
     'hak': ['towing', 'holowniczy', 'trailer'],
@@ -317,32 +318,62 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
         });
     }, [enrichedCars, searchParams, sortOrder]);
 
-    return (
-        <div className="max-w-[1600px] mx-auto px-6 flex flex-col-reverse lg:flex-row gap-12 pt-8">
-            <FilterSidebar
-                isOpen={isFiltersOpen}
-                onClose={() => setIsFiltersOpen(false)}
-                options={filterOptions}
-            />
+    const activeFilterCount = [
+        ...searchParams.getAll('series'),
+        ...searchParams.getAll('body'),
+        ...searchParams.getAll('fuel'),
+        ...searchParams.getAll('drivetrain'),
+        ...searchParams.getAll('colorGroup'),
+        ...searchParams.getAll('upholsteryGroup'),
+        searchParams.has('q') ? ['q'] : [],
+        searchParams.has('min') || searchParams.has('max') ? ['price'] : [],
+        searchParams.has('pmin') || searchParams.has('pmax') ? ['power'] : [],
+    ].flat().length;
 
-            <div className="flex-1" ref={gridRef}>
-                <Suspense fallback={<div className="animate-pulse bg-gray-100 h-96 rounded-sm" />}>
-                    <CarGrid
-                        cars={filteredCars}
-                        totalCount={cars.length}
-                        onOpenFilters={() => setIsFiltersOpen(true)}
-                        isFiltersOpen={isFiltersOpen}
-                        dictionaries={dictionaries}
-                        sortOrder={sortOrder}
-                        onSortChange={setSortOrder}
-                        bulletinPrices={bulletinPrices}
-                        layout={layout}
-                        onLayoutChange={setLayout}
-                        displayCount={displayCount}
-                        onDisplayCountChange={setDisplayCount}
-                    />
-                </Suspense>
+    return (
+        <>
+            {/* Mobile Sticky Filter Bar — always visible on mobile, below site header */}
+            <div className="lg:hidden sticky top-16 z-[99] bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-2.5">
+                <button
+                    onClick={() => setIsFiltersOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-600 hover:border-gray-400 hover:text-gray-900 transition-all active:scale-95 bg-white shadow-sm"
+                >
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <span>Filtry</span>
+                    {activeFilterCount > 0 && (
+                        <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-gray-900 text-white text-[8px] font-bold">
+                            {activeFilterCount}
+                        </span>
+                    )}
+                </button>
             </div>
-        </div>
+
+            <div className="max-w-[1600px] mx-auto px-6 flex flex-col-reverse lg:flex-row gap-12 pt-8">
+                <FilterSidebar
+                    isOpen={isFiltersOpen}
+                    onClose={() => setIsFiltersOpen(false)}
+                    options={filterOptions}
+                />
+
+                <div className="flex-1" ref={gridRef}>
+                    <Suspense fallback={<div className="animate-pulse bg-gray-100 h-96 rounded-sm" />}>
+                        <CarGrid
+                            cars={filteredCars}
+                            totalCount={cars.length}
+                            onOpenFilters={() => setIsFiltersOpen(true)}
+                            isFiltersOpen={isFiltersOpen}
+                            dictionaries={dictionaries}
+                            sortOrder={sortOrder}
+                            onSortChange={setSortOrder}
+                            bulletinPrices={bulletinPrices}
+                            layout={layout}
+                            onLayoutChange={setLayout}
+                            displayCount={displayCount}
+                            onDisplayCountChange={setDisplayCount}
+                        />
+                    </Suspense>
+                </div>
+            </div>
+        </>
     );
 }

@@ -232,380 +232,387 @@ export function FilterSidebar({ isOpen, onClose, options }: FilterSidebarProps) 
 
     return (
         <>
-            {/* Mobile Overlay */}
-            {isOpen && (
-                <div
-                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
-                    onClick={onClose}
-                />
-            )}
-
-            {/* Sidebar Content */}
+            {/* Sidebar Content — fullscreen on mobile, sticky sidebar on desktop */}
             <aside className={cn(
-                "fixed lg:sticky top-0 lg:top-24 left-0 h-full lg:h-[calc(100vh-8rem)] w-[320px] bg-white lg:bg-transparent z-50 lg:z-0 hidden lg:block overflow-y-auto px-6 py-8 shadow-[1px_0_40px_rgba(0,0,0,0.03)] lg:shadow-none transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] scrollbar-hide",
-                isOpen ? "translate-x-0 !block" : "-translate-x-full lg:translate-x-0"
+                "fixed lg:sticky top-0 lg:top-24 left-0 h-full lg:h-[calc(100vh-8rem)] w-full lg:w-[280px] bg-white lg:bg-transparent z-[200] lg:z-0 hidden lg:block overflow-y-auto lg:px-0 lg:py-0 px-0 py-0 lg:shadow-none transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] scrollbar-hide",
+                isOpen ? "translate-x-0 !flex flex-col" : "-translate-x-full lg:translate-x-0 lg:!block"
             )}>
-                <div className="flex items-center justify-between lg:hidden mb-10">
-                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-900">Filtry</h2>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                        <X className="w-5 h-5" />
+                {/* Mobile Header */}
+                <div className="lg:hidden flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0 bg-white">
+                    <div>
+                        <h2 className="text-[11px] font-bold uppercase tracking-[0.25em] text-gray-900">Filtry</h2>
+                        {hasActiveFilters && (
+                            <button onClick={clearFilters} className="text-[9px] font-bold uppercase tracking-widest text-[#E40424] flex items-center gap-1 mt-0.5">
+                                <RotateCcw className="w-2.5 h-2.5" /> Resetuj wszystkie
+                            </button>
+                        )}
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                    >
+                        <X className="w-4 h-4" />
                     </button>
                 </div>
 
-                {/* Active Filters & Reset */}
-                {hasActiveFilters && (
-                    <div className="mb-10 space-y-5">
-                        <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Aktywne filtry</span>
-                            <button
-                                onClick={clearFilters}
-                                className="text-[9px] font-bold uppercase tracking-widest text-[#E40424] hover:text-[#b3031c] flex items-center gap-1.5 transition-colors"
-                            >
-                                <RotateCcw className="w-3 h-3" />
-                                Reset
-                            </button>
-                        </div>
+                {/* Scrollable content area */}
+                <div className="flex-1 overflow-y-auto px-6 py-6 lg:px-0 lg:py-8">
 
-                        <div className="flex flex-wrap gap-2">
-                            {/* Text Search Terms */}
-                            {activeSearchTerms.map((term, i) => (
+                    {/* Active Filters & Reset */}
+                    {hasActiveFilters && (
+                        <div className="mb-10 space-y-5">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Aktywne filtry</span>
                                 <button
-                                    key={`q-${term}-${i}`}
-                                    onClick={() => removeSearchTerm(term)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 border border-gray-900 hover:bg-black text-white rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group shadow-sm"
+                                    onClick={clearFilters}
+                                    className="text-[9px] font-bold uppercase tracking-widest text-[#E40424] hover:text-[#b3031c] flex items-center gap-1.5 transition-colors"
                                 >
-                                    <span className="opacity-70 font-normal pr-1 border-r border-white/20">Tag</span>
-                                    {term}
-                                    <X className="w-3 h-3 text-white/50 group-hover:text-white" />
+                                    <RotateCcw className="w-3 h-3" />
+                                    Reset
                                 </button>
-                            ))}
+                            </div>
 
-                            {/* Series */}
-                            {activeSeries.map(s => (
-                                <button
-                                    key={`s-${s}`}
-                                    onClick={() => toggleFilter('series', s)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                >
-                                    {s}
-                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                </button>
-                            ))}
+                            <div className="flex flex-wrap gap-2">
+                                {/* Text Search Terms */}
+                                {activeSearchTerms.map((term, i) => (
+                                    <button
+                                        key={`q-${term}-${i}`}
+                                        onClick={() => removeSearchTerm(term)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 border border-gray-900 hover:bg-black text-white rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group shadow-sm"
+                                    >
+                                        <span className="opacity-70 font-normal pr-1 border-r border-white/20">Tag</span>
+                                        {term}
+                                        <X className="w-3 h-3 text-white/50 group-hover:text-white" />
+                                    </button>
+                                ))}
 
-                            {/* Body */}
-                            {activeBody.map(b => (
-                                <button
-                                    key={`b-${b}`}
-                                    onClick={() => toggleFilter('body', b)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                >
-                                    {b}
-                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                </button>
-                            ))}
-
-                            {/* Color */}
-                            {activeColorGroup.map(c => (
-                                <button
-                                    key={`c-${c}`}
-                                    onClick={() => toggleFilter('colorGroup', c)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                    title="Kolor nadwozia"
-                                >
-                                    <div className="flex items-center gap-1 opacity-50 border-r border-gray-200 pr-1.5 mr-0.5">
-                                        <SprayCan className="w-3 h-3" />
-                                    </div>
-                                    <div className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: getColor(c) }} />
-                                    {c}
-                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                </button>
-                            ))}
-
-                            {/* Upholstery */}
-                            {activeUpholsteryGroup.map(u => (
-                                <button
-                                    key={`u-${u}`}
-                                    onClick={() => toggleFilter('upholsteryGroup', u)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                    title="Tapicerka"
-                                >
-                                    <div className="flex items-center gap-1 opacity-50 border-r border-gray-200 pr-1.5 mr-0.5">
-                                        <svg
-                                            width="12"
-                                            height="12"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            className="w-3 h-3"
-                                        >
-                                            {/* Car Seat Front View */}
-                                            <path d="M8 2h8a2 2 0 0 1 2 2v3h-12v-3a2 2 0 0 1 2-2z" />
-                                            <path d="M5 9h14a2 2 0 0 1 2 2v7a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3v-7a2 2 0 0 1 2-2z" />
-                                        </svg>
-                                    </div>
-                                    <div className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: getColor(u) }} />
-                                    {u}
-                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                </button>
-                            ))}
-
-                            {/* Fuel */}
-                            {activeFuel.map(f => (
-                                <button
-                                    key={`f-${f}`}
-                                    onClick={() => toggleFilter('fuel', f)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                >
-                                    {f}
-                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                </button>
-                            ))}
-
-                            {/* Drivetrain */}
-                            {activeDrivetrain.map(d => (
-                                <button
-                                    key={`d-${d}`}
-                                    onClick={() => toggleFilter('drivetrain', d)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                >
-                                    {d}
-                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                </button>
-                            ))}
-
-                            {/* Price Range (Min/Max) */}
-                            {(activeMin > safeMinPrice || activeMax < safeMaxPrice) && (
-                                <button
-                                    onClick={() => {
-                                        const params = new URLSearchParams(searchParams.toString());
-                                        params.delete('min');
-                                        params.delete('max');
-                                        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-                                    }}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                >
-                                    Cena
-                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                </button>
-                            )}
-
-                            {/* Power Range (Min/Max) */}
-                            {(pmin > 120 || pmax < safeMaxPower) && (
-                                <button
-                                    onClick={() => {
-                                        const params = new URLSearchParams(searchParams.toString());
-                                        params.delete('pmin');
-                                        params.delete('pmax');
-                                        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-                                    }}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
-                                >
-                                    Moc
-                                    <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Filter Controls Header - Configuration Text */}
-                <div className="flex items-center justify-between mb-6">
-                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Pojazd & Opcje</span>
-                </div>
-
-                <div className="space-y-4">
-                    {/* Text Search */}
-                    <div className="relative mb-6">
-                        <input
-                            type="text"
-                            placeholder="Szukaj modelu, kodów, opcji..."
-                            className="w-full px-0 py-3 bg-transparent border-b border-gray-200 focus:outline-none focus:border-black transition-colors text-[11px] font-semibold text-gray-900 tracking-wider placeholder:text-gray-300 placeholder:font-normal"
-                            value={search}
-                            onChange={(e) => {
-                                isTypingRef.current = true;
-                                setSearch(e.target.value);
-                            }}
-                        />
-                    </div>
-
-                    <div className="space-y-1">
-                        {/* Series Filter */}
-                        <Section id="series" title="Seria" expanded={expandedSections.series} onToggle={toggleSection}>
-                            <div className="grid grid-cols-2 gap-2">
-                                {options.series.map(s => (
-                                    <FilterPill
-                                        key={s}
-                                        label={s}
-                                        active={activeSeries.includes(s)}
+                                {/* Series */}
+                                {activeSeries.map(s => (
+                                    <button
+                                        key={`s-${s}`}
                                         onClick={() => toggleFilter('series', s)}
-                                        isMSeries={s.includes('Seria M')}
-                                    />
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                    >
+                                        {s}
+                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                    </button>
                                 ))}
-                            </div>
-                        </Section>
 
-                        {/* Body Type Filter - PILLS */}
-                        <Section id="body" title="Nadwozie" expanded={expandedSections.body} onToggle={toggleSection}>
-                            <div className="grid grid-cols-2 gap-2">
-                                {options.bodyTypes.map(b => (
-                                    <FilterPill
-                                        key={b}
-                                        label={b}
-                                        active={activeBody.includes(b)}
+                                {/* Body */}
+                                {activeBody.map(b => (
+                                    <button
+                                        key={`b-${b}`}
                                         onClick={() => toggleFilter('body', b)}
-                                    />
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                    >
+                                        {b}
+                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                    </button>
                                 ))}
-                            </div>
-                        </Section>
 
-                        {/* Color Group Filter - VISUAL */}
-                        {options.colorGroups && options.colorGroups.length > 0 && (
-                            <Section id="colorGroup" title="Kolor" expanded={expandedSections.colorGroup} onToggle={toggleSection}>
-                                <div className="grid grid-cols-4 gap-3 px-1 py-1">
-                                    {options.colorGroups.map(c => (
-                                        <div key={c} className="flex flex-col items-center gap-1.5">
-                                            <button
-                                                onClick={() => toggleFilter('colorGroup', c)}
-                                                className={cn(
-                                                    "w-8 h-8 rounded-full shadow-sm border transaction-all duration-200 relative",
-                                                    activeColorGroup.includes(c) ? "ring-2 ring-blue-600 ring-offset-2 border-transparent" : "border-gray-200 hover:border-gray-400"
-                                                )}
-                                                style={{ backgroundColor: getColor(c) }}
-                                                title={c}
-                                            >
-                                                {/* Checkmark for active state */}
-                                                {activeColorGroup.includes(c) && (
-                                                    <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-md">
-                                                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                                                    </span>
-                                                )}
-                                            </button>
-                                            <span className="text-[9px] uppercase tracking-wider text-gray-500 text-center leading-tight truncate w-full">{c}</span>
+                                {/* Color */}
+                                {activeColorGroup.map(c => (
+                                    <button
+                                        key={`c-${c}`}
+                                        onClick={() => toggleFilter('colorGroup', c)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                        title="Kolor nadwozia"
+                                    >
+                                        <div className="flex items-center gap-1 opacity-50 border-r border-gray-200 pr-1.5 mr-0.5">
+                                            <SprayCan className="w-3 h-3" />
                                         </div>
-                                    ))}
-                                </div>
-                            </Section>
-                        )}
+                                        <div className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: getColor(c) }} />
+                                        {c}
+                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                    </button>
+                                ))}
 
-                        {/* Upholstery Group Filter - VISUAL/PILLS */}
-                        {options.upholsteryGroups && options.upholsteryGroups.length > 0 && (
-                            <Section id="upholsteryGroup" title="Tapicerka" expanded={expandedSections.upholsteryGroup} onToggle={toggleSection}>
-                                <div className="grid grid-cols-4 gap-3 px-1 py-1">
-                                    {options.upholsteryGroups.map(c => (
-                                        <div key={c} className="flex flex-col items-center gap-1.5">
-                                            <button
-                                                onClick={() => toggleFilter('upholsteryGroup', c)}
-                                                className={cn(
-                                                    "w-8 h-8 rounded-full shadow-sm border transaction-all duration-200 relative",
-                                                    activeUpholsteryGroup.includes(c) ? "ring-2 ring-blue-600 ring-offset-2 border-transparent" : "border-gray-200 hover:border-gray-400"
-                                                )}
-                                                style={{ backgroundColor: getColor(c) }}
-                                                title={c}
+                                {/* Upholstery */}
+                                {activeUpholsteryGroup.map(u => (
+                                    <button
+                                        key={`u-${u}`}
+                                        onClick={() => toggleFilter('upholsteryGroup', u)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                        title="Tapicerka"
+                                    >
+                                        <div className="flex items-center gap-1 opacity-50 border-r border-gray-200 pr-1.5 mr-0.5">
+                                            <svg
+                                                width="12"
+                                                height="12"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                className="w-3 h-3"
                                             >
-                                                {/* Checkmark for active state */}
-                                                {activeUpholsteryGroup.includes(c) && (
-                                                    <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-md">
-                                                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                                                    </span>
-                                                )}
-                                            </button>
-                                            <span className="text-[9px] uppercase tracking-wider text-gray-500 text-center leading-tight truncate w-full">{c}</span>
+                                                {/* Car Seat Front View */}
+                                                <path d="M8 2h8a2 2 0 0 1 2 2v3h-12v-3a2 2 0 0 1 2-2z" />
+                                                <path d="M5 9h14a2 2 0 0 1 2 2v7a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3v-7a2 2 0 0 1 2-2z" />
+                                            </svg>
                                         </div>
-                                    ))}
-                                </div>
-                            </Section>
-                        )}
+                                        <div className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: getColor(u) }} />
+                                        {u}
+                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                    </button>
+                                ))}
 
-                        {/* Fuel Type Filter - PILLS */}
-                        <Section id="fuel" title="Paliwo" expanded={expandedSections.fuel} onToggle={toggleSection}>
-                            <div className="grid grid-cols-2 gap-2">
-                                {options.fuelTypes.map(f => (
-                                    <FilterPill
-                                        key={f}
-                                        label={f}
-                                        active={activeFuel.includes(f)}
+                                {/* Fuel */}
+                                {activeFuel.map(f => (
+                                    <button
+                                        key={`f-${f}`}
                                         onClick={() => toggleFilter('fuel', f)}
-                                    />
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                    >
+                                        {f}
+                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                    </button>
                                 ))}
-                            </div>
-                        </Section>
 
-                        {/* Drivetrain Filter - PILLS */}
-                        <Section id="drivetrain" title="Napęd" expanded={expandedSections.drivetrain} onToggle={toggleSection}>
-                            <div className="grid grid-cols-2 gap-2">
-                                {options.drivetrains.map(d => (
-                                    <FilterPill
-                                        key={d}
-                                        label={d}
-                                        active={activeDrivetrain.includes(d)}
+                                {/* Drivetrain */}
+                                {activeDrivetrain.map(d => (
+                                    <button
+                                        key={`d-${d}`}
                                         onClick={() => toggleFilter('drivetrain', d)}
-                                    />
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                    >
+                                        {d}
+                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                    </button>
                                 ))}
-                            </div>
-                        </Section>
 
-                        {/* Power Filter */}
-                        <Section id="power" title="Moc" expanded={expandedSections.power} onToggle={toggleSection}>
-                            <div className="space-y-6 px-1 pt-2">
-                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-900 font-mono">
-                                    <span>{pmin} KM</span>
-                                    <span>{pmax} KM</span>
-                                </div>
-
-                                <div className="px-1">
-                                    <Slider
-                                        defaultValue={[120, safeMaxPower]}
-                                        value={[pmin, pmax]}
-                                        min={120}
-                                        max={safeMaxPower}
-                                        step={10}
-                                        minStepsBetweenThumbs={1}
-                                        onValueChange={([min, max]) => {
-                                            isTypingRef.current = true;
-                                            setPmin(min);
-                                            setPmax(max);
+                                {/* Price Range (Min/Max) */}
+                                {(activeMin > safeMinPrice || activeMax < safeMaxPrice) && (
+                                    <button
+                                        onClick={() => {
+                                            const params = new URLSearchParams(searchParams.toString());
+                                            params.delete('min');
+                                            params.delete('max');
+                                            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
                                         }}
-                                    />
-                                </div>
-                            </div>
-                        </Section>
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                    >
+                                        Cena
+                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                    </button>
+                                )}
 
-                        {/* Price Range Slider */}
-                        <Section id="price" title="Cena Max" expanded={expandedSections.price} onToggle={toggleSection}>
-                            <div className="space-y-6 px-1 pt-2">
-                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-900 font-mono">
-                                    <span>{formatPrice(activeMin)}</span>
-                                    <span>{formatPrice(activeMax)}</span>
-                                </div>
-
-                                <div className="px-1">
-                                    <Slider
-                                        defaultValue={[sliderMax]}
-                                        value={[sliderMax]}
-                                        min={sliderMin}
-                                        max={safeMaxPrice}
-                                        step={5000}
-                                        onValueChange={([val]) => {
-                                            isTypingRef.current = true;
-                                            setSliderMax(val);
+                                {/* Power Range (Min/Max) */}
+                                {(pmin > 120 || pmax < safeMaxPower) && (
+                                    <button
+                                        onClick={() => {
+                                            const params = new URLSearchParams(searchParams.toString());
+                                            params.delete('pmin');
+                                            params.delete('pmax');
+                                            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
                                         }}
-                                    />
-                                </div>
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-[8px] text-[9px] font-bold uppercase tracking-wider transition-colors group"
+                                    >
+                                        Moc
+                                        <X className="w-3 h-3 text-gray-300 group-hover:text-gray-900" />
+                                    </button>
+                                )}
                             </div>
-                        </Section>
+                        </div>
+                    )}
+
+                    {/* Filter Controls Header - Configuration Text */}
+                    <div className="flex items-center justify-between mb-6">
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Pojazd & Opcje</span>
                     </div>
-                </div>
 
-                {/* Apply Button (Mobile only) */}
-                <div className="mt-12 lg:hidden">
+                    <div className="space-y-4">
+                        {/* Text Search */}
+                        <div className="relative mb-6">
+                            <input
+                                type="text"
+                                placeholder="Szukaj modelu, kodów, opcji..."
+                                className="w-full px-0 py-3 bg-transparent border-b border-gray-200 focus:outline-none focus:border-black transition-colors text-[11px] font-semibold text-gray-900 tracking-wider placeholder:text-gray-300 placeholder:font-normal"
+                                value={search}
+                                onChange={(e) => {
+                                    isTypingRef.current = true;
+                                    setSearch(e.target.value);
+                                }}
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            {/* Series Filter */}
+                            <Section id="series" title="Seria" expanded={expandedSections.series} onToggle={toggleSection}>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {options.series.map(s => (
+                                        <FilterPill
+                                            key={s}
+                                            label={s}
+                                            active={activeSeries.includes(s)}
+                                            onClick={() => toggleFilter('series', s)}
+                                            isMSeries={s.includes('Seria M')}
+                                        />
+                                    ))}
+                                </div>
+                            </Section>
+
+                            {/* Body Type Filter - PILLS */}
+                            <Section id="body" title="Nadwozie" expanded={expandedSections.body} onToggle={toggleSection}>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {options.bodyTypes.map(b => (
+                                        <FilterPill
+                                            key={b}
+                                            label={b}
+                                            active={activeBody.includes(b)}
+                                            onClick={() => toggleFilter('body', b)}
+                                        />
+                                    ))}
+                                </div>
+                            </Section>
+
+                            {/* Color Group Filter - VISUAL */}
+                            {options.colorGroups && options.colorGroups.length > 0 && (
+                                <Section id="colorGroup" title="Kolor" expanded={expandedSections.colorGroup} onToggle={toggleSection}>
+                                    <div className="grid grid-cols-4 gap-3 px-1 py-1">
+                                        {options.colorGroups.map(c => (
+                                            <div key={c} className="flex flex-col items-center gap-1.5">
+                                                <button
+                                                    onClick={() => toggleFilter('colorGroup', c)}
+                                                    className={cn(
+                                                        "w-8 h-8 rounded-full shadow-sm border transaction-all duration-200 relative",
+                                                        activeColorGroup.includes(c) ? "ring-2 ring-blue-600 ring-offset-2 border-transparent" : "border-gray-200 hover:border-gray-400"
+                                                    )}
+                                                    style={{ backgroundColor: getColor(c) }}
+                                                    title={c}
+                                                >
+                                                    {/* Checkmark for active state */}
+                                                    {activeColorGroup.includes(c) && (
+                                                        <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-md">
+                                                            <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                                        </span>
+                                                    )}
+                                                </button>
+                                                <span className="text-[9px] uppercase tracking-wider text-gray-500 text-center leading-tight truncate w-full">{c}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Section>
+                            )}
+
+                            {/* Upholstery Group Filter - VISUAL/PILLS */}
+                            {options.upholsteryGroups && options.upholsteryGroups.length > 0 && (
+                                <Section id="upholsteryGroup" title="Tapicerka" expanded={expandedSections.upholsteryGroup} onToggle={toggleSection}>
+                                    <div className="grid grid-cols-4 gap-3 px-1 py-1">
+                                        {options.upholsteryGroups.map(c => (
+                                            <div key={c} className="flex flex-col items-center gap-1.5">
+                                                <button
+                                                    onClick={() => toggleFilter('upholsteryGroup', c)}
+                                                    className={cn(
+                                                        "w-8 h-8 rounded-full shadow-sm border transaction-all duration-200 relative",
+                                                        activeUpholsteryGroup.includes(c) ? "ring-2 ring-blue-600 ring-offset-2 border-transparent" : "border-gray-200 hover:border-gray-400"
+                                                    )}
+                                                    style={{ backgroundColor: getColor(c) }}
+                                                    title={c}
+                                                >
+                                                    {/* Checkmark for active state */}
+                                                    {activeUpholsteryGroup.includes(c) && (
+                                                        <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-md">
+                                                            <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                                        </span>
+                                                    )}
+                                                </button>
+                                                <span className="text-[9px] uppercase tracking-wider text-gray-500 text-center leading-tight truncate w-full">{c}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Section>
+                            )}
+
+                            {/* Fuel Type Filter - PILLS */}
+                            <Section id="fuel" title="Paliwo" expanded={expandedSections.fuel} onToggle={toggleSection}>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {options.fuelTypes.map(f => (
+                                        <FilterPill
+                                            key={f}
+                                            label={f}
+                                            active={activeFuel.includes(f)}
+                                            onClick={() => toggleFilter('fuel', f)}
+                                        />
+                                    ))}
+                                </div>
+                            </Section>
+
+                            {/* Drivetrain Filter - PILLS */}
+                            <Section id="drivetrain" title="Napęd" expanded={expandedSections.drivetrain} onToggle={toggleSection}>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {options.drivetrains.map(d => (
+                                        <FilterPill
+                                            key={d}
+                                            label={d}
+                                            active={activeDrivetrain.includes(d)}
+                                            onClick={() => toggleFilter('drivetrain', d)}
+                                        />
+                                    ))}
+                                </div>
+                            </Section>
+
+                            {/* Power Filter */}
+                            <Section id="power" title="Moc" expanded={expandedSections.power} onToggle={toggleSection}>
+                                <div className="space-y-6 px-1 pt-2">
+                                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-900 font-mono">
+                                        <span>{pmin} KM</span>
+                                        <span>{pmax} KM</span>
+                                    </div>
+
+                                    <div className="px-1">
+                                        <Slider
+                                            defaultValue={[120, safeMaxPower]}
+                                            value={[pmin, pmax]}
+                                            min={120}
+                                            max={safeMaxPower}
+                                            step={10}
+                                            minStepsBetweenThumbs={1}
+                                            onValueChange={([min, max]) => {
+                                                isTypingRef.current = true;
+                                                setPmin(min);
+                                                setPmax(max);
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </Section>
+
+                            {/* Price Range Slider */}
+                            <Section id="price" title="Cena Max" expanded={expandedSections.price} onToggle={toggleSection}>
+                                <div className="space-y-6 px-1 pt-2">
+                                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-900 font-mono">
+                                        <span>{formatPrice(activeMin)}</span>
+                                        <span>{formatPrice(activeMax)}</span>
+                                    </div>
+
+                                    <div className="px-1">
+                                        <Slider
+                                            defaultValue={[sliderMax]}
+                                            value={[sliderMax]}
+                                            min={sliderMin}
+                                            max={safeMaxPrice}
+                                            step={5000}
+                                            onValueChange={([val]) => {
+                                                isTypingRef.current = true;
+                                                setSliderMax(val);
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </Section>
+                        </div>
+                    </div>
+                </div>{/* end scrollable content */}
+
+                {/* Apply Button (Mobile) — sticky at bottom */}
+                <div className="lg:hidden shrink-0 px-6 py-4 border-t border-gray-100 bg-white">
                     <button
                         onClick={onClose}
-                        className="w-full bg-black text-white py-4 uppercase text-xs font-bold tracking-[0.2em] shadow-xl hover:bg-gray-900 active:scale-[0.98] transition-all"
+                        className="w-full bg-black text-white py-4 rounded-xl uppercase text-[11px] font-bold tracking-[0.2em] shadow-md hover:bg-gray-900 active:scale-[0.98] transition-all"
                     >
-                        Pokaż Wyniki
+                        Pokaż wyniki
                     </button>
                 </div>
             </aside>

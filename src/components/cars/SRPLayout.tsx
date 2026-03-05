@@ -279,13 +279,26 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                 ].join(' ');
 
                 // ALL terms must match. Each term can match itself OR any of its aliases.
+                // Use word-boundary regex so "20" matches "20d"/"20i" but NOT "2025" or "200hp".
+                const termMatchesIn = (term: string, text: string): boolean => {
+                    try {
+                        // \b = word boundary, (?!\d) = not followed by another digit
+                        // This makes "20" match "20d", "20i" but not "2025"
+                        const re = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\d)`, 'i');
+                        return re.test(text);
+                    } catch {
+                        return text.includes(term);
+                    }
+                };
+
                 const allMatch = searchTerms.every(term => {
                     const aliases = (SEARCH_ALIASES[term] || []).map(normalize);
                     const candidates = [term, ...aliases];
-                    return candidates.some(c => combined.includes(c));
+                    return candidates.some(c => termMatchesIn(c, combined));
                 });
 
                 if (!allMatch) return false;
+
 
             }
 

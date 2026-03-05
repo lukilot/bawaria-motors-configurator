@@ -18,14 +18,16 @@ export function IntroOverlay() {
 
     const isMSeries = currentCar?.series?.includes('Seria M') || currentCar?.model_code?.startsWith('M');
 
-    if (isAdmin) return null;
+    // All hooks must be called unconditionally BEFORE any early returns
     const [isMinimized, setIsMinimized] = useState(false);
-    const [showNumber, setShowNumber] = useState(false); // For desktop contact pill toggle
+    const [showNumber, setShowNumber] = useState(false);
     const [settings, setSettings] = useState({
         intro_media_url: '',
         intro_media_url_mobile: '',
-        intro_contact_phone: '+48 508 020 612' // Default fallback with spaces logic
+        intro_contact_phone: '+48 508 020 612'
     });
+
+    if (isAdmin) return null;
 
     useEffect(() => {
         // Load settings

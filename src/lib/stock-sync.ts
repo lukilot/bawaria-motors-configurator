@@ -33,6 +33,31 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
         }
     }
 
+    // 0b. Fetch ALL existing product_groups to preserve their images + manual_price
+    // Key: model_code|color_code|upholstery_code → { images, manual_price, id }
+    const { data: existingGroups } = await supabase
+        .from('product_groups')
+        .select('id, model_code, color_code, upholstery_code, images, manual_price, signature');
+
+    // Build a lookup map for preserving photos: exact match first, then by model+color
+    const existingGroupMap = new Map<string, { images: string[] | null; manual_price: number | null; id: string }>();
+    const existingGroupByModelColor = new Map<string, { images: string[] | null; manual_price: number | null; id: string }>();
+
+    existingGroups?.forEach((g: any) => {
+        // Exact key: model + color + upholstery
+        const exactKey = `${g.model_code}|${g.color_code}|${g.upholstery_code}`;
+        if ((g.images && g.images.length > 0) || g.manual_price) {
+            existingGroupMap.set(exactKey, { images: g.images, manual_price: g.manual_price, id: g.id });
+        }
+        // Fallback key: model + color only (for when upholstery code changes)
+        const looseyKey = `${g.model_code}|${g.color_code}`;
+        if ((g.images && g.images.length > 0) || g.manual_price) {
+            if (!existingGroupByModelColor.has(looseyKey)) {
+                existingGroupByModelColor.set(looseyKey, { images: g.images, manual_price: g.manual_price, id: g.id });
+            }
+        }
+    });
+
     // 1. Prepare Product Groups
     const signatures = new Set<string>();
     const groupsToUpsert: any[] = [];
@@ -49,6 +74,12 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
 
         if (!signatures.has(sig)) {
             signatures.add(sig);
+
+            // Look up existing group data to preserve images + manual_price
+            const exactKey = `${car.model_code}|${car.color_code}|${car.upholstery_code}`;
+            const looseKey = `${car.model_code}|${car.color_code}`;
+            const existing = existingGroupMap.get(exactKey) || existingGroupByModelColor.get(looseKey);
+
             groupsToUpsert.push({
                 signature: sig,
                 model_code: car.model_code,
@@ -56,7 +87,10 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
                 upholstery_code: car.upholstery_code,
                 option_codes: car.option_codes,
                 production_year: car.production_date ? new Date(car.production_date).getFullYear() : new Date().getFullYear(),
-                updated_at: new Date().toISOString()
+                updated_at: new Date().toISOString(),
+                // Preserve images and prices from existing group with same visual config
+                ...(existing?.images && existing.images.length > 0 ? { images: existing.images } : {}),
+                ...(existing?.manual_price ? { manual_price: existing.manual_price } : {}),
             });
         }
     });
@@ -98,7 +132,7 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
             visibility: car.visibility,
             production_date: car.production_date ? new Date(car.production_date).toISOString() : null,
             last_synced_at: new Date().toISOString(),
-            source: source // Add source field here
+            source: source
         };
 
         if (car.list_price > 0) {
@@ -108,9 +142,7 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
         return row;
     });
 
-    // Deduplicate by VIN — if the same VIN appears multiple times in the file,
-    // keep only the last occurrence to avoid "ON CONFLICT DO UPDATE cannot affect
-    // row a second time" error from Supabase.
+    // Deduplicate by VIN
     const deduped = [...new Map(dbRows.map(r => [r.vin, r])).values()];
 
     const { error, count } = await supabase

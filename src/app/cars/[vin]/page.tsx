@@ -17,6 +17,8 @@ import { CarActionButtons } from '@/components/cars/CarActionButtons';
 import { VdpStoreInit } from '@/components/cars/VdpStoreInit';
 import { ServicePackageConfiguratorSection } from '@/components/cars/ServicePackageConfiguratorSection';
 import { VinSelector } from '@/components/cars/VinSelector';
+import { FadeInUp } from '@/components/animations/FadeInUp';
+import { PerformanceBar } from '@/components/cars/PerformanceBar';
 
 export const revalidate = 60;
 
@@ -227,132 +229,150 @@ export default async function CarPage({ params }: PageProps) {
                             </div>
 
                             {/* Technical Specs */}
-                            <div className="space-y-px">
-                                <div className="flex items-center gap-3 mb-10">
-                                    <h3 className="text-[11px] text-gray-400 uppercase tracking-[0.4em] font-bold">Specyfikacja</h3>
-                                    <div className="h-px flex-1 bg-current opacity-10" />
+                            <FadeInUp yOffset={30}>
+                                <div className="space-y-px">
+                                    <div className="flex items-center gap-3 mb-10">
+                                        <h3 className="text-[11px] text-gray-400 uppercase tracking-[0.4em] font-bold">Specyfikacja</h3>
+                                        <div className="h-px flex-1 bg-current opacity-10" />
+                                    </div>
+                                    <SpecsAccordion title="Osiągi i Napęd" className={theme.border} titleClassName={theme.accordionTitle}>
+                                        <div className={cn("py-4 text-sm", isMSeries ? "text-gray-400" : "text-gray-600")}>
+                                            <PerformanceBar
+                                                label="Moc silnika"
+                                                value={`${enrichedCar.power} KM`}
+                                                numericValue={parseInt(enrichedCar.power) || 200}
+                                                maxValue={700}
+                                                isDark={isMSeries}
+                                                isElectric={isElectric && !isMSeries}
+                                                delay={0.1}
+                                            />
+                                            <PerformanceBar
+                                                label="Przyspieszenie 0-100 km/h"
+                                                value={`${enrichedCar.acceleration} s`}
+                                                numericValue={10 - (parseFloat(enrichedCar.acceleration) || 5)}
+                                                maxValue={10}
+                                                isDark={isMSeries}
+                                                isElectric={isElectric && !isMSeries}
+                                                delay={0.2}
+                                            />
+                                            <div className={cn("flex justify-between py-4 mt-2 border-t", isMSeries ? "border-white/5" : "border-gray-50")}>
+                                                <span className="text-xs font-medium">Pojemność bagażnika</span>
+                                                <span className={cn("font-medium", theme.accentText)}>{enrichedCar.trunk_capacity} l</span>
+                                            </div>
+                                        </div>
+                                    </SpecsAccordion>
+                                    <SpecsAccordion title="Kolor i Tapicerka" className={theme.border} titleClassName={theme.accordionTitle}>
+                                        <div className={cn("py-4 text-sm space-y-4", isMSeries ? "text-gray-400" : "text-gray-600")}>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] uppercase font-black tracking-widest opacity-40">Kolor</span>
+                                                <span className="font-bold uppercase text-[11px]">{colorName}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] uppercase font-black tracking-widest opacity-40">Tapicerka</span>
+                                                <span className="font-bold uppercase text-[11px]">{upholsteryName}</span>
+                                            </div>
+                                        </div>
+                                    </SpecsAccordion>
                                 </div>
-                                <SpecsAccordion title="Osiągi i Napęd" className={theme.border} titleClassName={theme.accordionTitle}>
-                                    <div className={cn("py-4 text-sm space-y-2", isMSeries ? "text-gray-400" : "text-gray-600")}>
-                                        <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-white/5" : "border-gray-50")}>
-                                            <span>Moc</span>
-                                            <span className={cn("font-medium", theme.accentText)}>{enrichedCar.power} KM</span>
-                                        </div>
-                                        <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-white/5" : "border-gray-50")}>
-                                            <span>Przyspieszenie 0-100 km/h</span>
-                                            <span className={cn("font-medium", theme.accentText)}>{enrichedCar.acceleration} s</span>
-                                        </div>
-                                        <div className={cn("flex justify-between py-2 border-b", isMSeries ? "border-white/5" : "border-gray-50")}>
-                                            <span>Pojemność bagażnika</span>
-                                            <span className={cn("font-medium", theme.accentText)}>{enrichedCar.trunk_capacity} l</span>
-                                        </div>
-                                    </div>
-                                </SpecsAccordion>
-                                <SpecsAccordion title="Kolor i Tapicerka" className={theme.border} titleClassName={theme.accordionTitle}>
-                                    <div className={cn("py-4 text-sm space-y-4", isMSeries ? "text-gray-400" : "text-gray-600")}>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-[9px] uppercase font-black tracking-widest opacity-40">Kolor</span>
-                                            <span className="font-bold uppercase text-[11px]">{colorName}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-[9px] uppercase font-black tracking-widest opacity-40">Tapicerka</span>
-                                            <span className="font-bold uppercase text-[11px]">{upholsteryName}</span>
-                                        </div>
-                                    </div>
-                                </SpecsAccordion>
-                            </div>
+                            </FadeInUp>
 
                             {/* Service Packages */}
-                            <ServicePackageConfiguratorSection
-                                car={car}
-                                seriesCode={enrichedCar.body_group || ''}
-                                isDark={isMSeries}
-                                fuelType={enrichedCar.fuel_type}
-                            />
+                            <FadeInUp yOffset={40} delay={0.1}>
+                                <ServicePackageConfiguratorSection
+                                    car={car}
+                                    seriesCode={enrichedCar.body_group || ''}
+                                    isDark={isMSeries}
+                                    fuelType={enrichedCar.fuel_type}
+                                />
+                            </FadeInUp>
 
                             {/* Color Variants */}
                             {variants.length > 0 && (
-                                <div className="space-y-10">
-                                    <div className="flex items-center gap-3">
-                                        <h3 className="text-[11px] text-gray-400 uppercase tracking-[0.4em] font-bold">Inna kolorystyka</h3>
-                                        <div className="h-px flex-1 bg-current opacity-10" />
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {variants.map(v => {
-                                            const vColor = v.color_code === '490'
-                                                ? (dictionaries.color[v.individual_color || '']?.name || v.individual_color || 'BMW Individual')
-                                                : (dictionaries.color[v.color_code || '']?.name || v.color_code);
-                                            const vUpholstery = dictionaries.upholstery[v.upholstery_code || '']?.name || v.upholstery_code;
-                                            const exteriorImg = v.images?.[0]?.url;
-                                            const interiorImg = v.images && v.images.length > 0 ? v.images[v.images.length - 1]?.url : undefined;
-                                            const isSoldVariant = (v.order_status || '').includes('Sprzedany');
+                                <FadeInUp yOffset={40} delay={0.2}>
+                                    <div className="space-y-10">
+                                        <div className="flex items-center gap-3">
+                                            <h3 className="text-[11px] text-gray-400 uppercase tracking-[0.4em] font-bold">Inna kolorystyka</h3>
+                                            <div className="h-px flex-1 bg-current opacity-10" />
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {variants.map(v => {
+                                                const vColor = v.color_code === '490'
+                                                    ? (dictionaries.color[v.individual_color || '']?.name || v.individual_color || 'BMW Individual')
+                                                    : (dictionaries.color[v.color_code || '']?.name || v.color_code);
+                                                const vUpholstery = dictionaries.upholstery[v.upholstery_code || '']?.name || v.upholstery_code;
+                                                const exteriorImg = v.images?.[0]?.url;
+                                                const interiorImg = v.images && v.images.length > 0 ? v.images[v.images.length - 1]?.url : undefined;
+                                                const isSoldVariant = (v.order_status || '').includes('Sprzedany');
 
-                                            return (
-                                                <Link
-                                                    key={v.vin}
-                                                    replace
-                                                    href={`/cars/${v.vin}`}
-                                                    className={cn(
-                                                        "group flex flex-col gap-4 p-4 rounded-3xl border transition-all",
-                                                        isMSeries ? "bg-white/5 border-white/10" : "bg-white border-black/[0.03]",
-                                                        isSoldVariant
-                                                            ? "opacity-60 grayscale-[0.5] pointer-events-none cursor-default"
-                                                            : (isMSeries ? "hover:bg-white/10 hover:shadow-2xl hover:scale-[1.01]" : "hover:border-black/10 hover:shadow-2xl hover:scale-[1.01]")
-                                                    )}
-                                                >
-                                                    {/* Image Composite - Side-by-Side Duo Split */}
-                                                    <div className="relative aspect-[21/9] w-full shrink-0 flex overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
-                                                        {/* Exterior (Left 50%) */}
-                                                        <div className="w-1/2 h-full bg-white relative overflow-hidden">
-                                                            {exteriorImg ? (
-                                                                <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                            ) : (
-                                                                <div className="w-full h-full bg-gray-100" />
-                                                            )}
-                                                            <div className="absolute right-0 inset-y-0 w-px bg-black/[0.1] z-10" />
-                                                        </div>
-
-                                                        {/* Interior (Right 50%) */}
-                                                        <div className="w-1/2 h-full bg-gray-50 relative overflow-hidden">
-                                                            {interiorImg ? (
-                                                                <img src={interiorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                            ) : (
-                                                                <div className="w-full h-full bg-gray-200" />
-                                                            )}
-                                                        </div>
-
-                                                        {isSoldVariant && (
-                                                            <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                                                                <div className="bg-black/60 backdrop-blur-md border border-white/20 px-3 py-1 rounded-sm shadow-lg">
-                                                                    <span className="text-white text-[9px] font-bold uppercase tracking-wider text-center drop-shadow-md">
-                                                                        Sprzedany
-                                                                    </span>
-                                                                </div>
-                                                            </div>
+                                                return (
+                                                    <Link
+                                                        key={v.vin}
+                                                        replace
+                                                        href={`/cars/${v.vin}`}
+                                                        className={cn(
+                                                            "group flex flex-col gap-4 p-4 rounded-3xl border transition-all",
+                                                            isMSeries ? "bg-white/5 border-white/10" : "bg-white border-black/[0.03]",
+                                                            isSoldVariant
+                                                                ? "opacity-60 grayscale-[0.5] pointer-events-none cursor-default"
+                                                                : (isMSeries ? "hover:bg-white/10 hover:shadow-2xl hover:scale-[1.01]" : "hover:border-black/10 hover:shadow-2xl hover:scale-[1.01]")
                                                         )}
-                                                    </div>
+                                                    >
+                                                        {/* Image Composite - Side-by-Side Duo Split */}
+                                                        <div className="relative aspect-[21/9] w-full shrink-0 flex overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
+                                                            {/* Exterior (Left 50%) */}
+                                                            <div className="w-1/2 h-full bg-white relative overflow-hidden">
+                                                                {exteriorImg ? (
+                                                                    <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                                ) : (
+                                                                    <div className="w-full h-full bg-gray-100" />
+                                                                )}
+                                                                <div className="absolute right-0 inset-y-0 w-px bg-black/[0.1] z-10" />
+                                                            </div>
 
-                                                    {/* Text Info */}
-                                                    <div className="flex flex-col min-w-0">
-                                                        <span className={cn(
-                                                            "text-[10px] font-black uppercase tracking-[0.1em] truncate mb-0.5",
-                                                            isMSeries ? "text-gray-100" : "text-gray-900"
-                                                        )}>
-                                                            {vColor}
-                                                        </span>
-                                                        <span className="text-[9px] text-gray-400 uppercase font-bold tracking-widest truncate">
-                                                            {vUpholstery}
-                                                        </span>
-                                                    </div>
-                                                </Link>
-                                            );
-                                        })}
+                                                            {/* Interior (Right 50%) */}
+                                                            <div className="w-1/2 h-full bg-gray-50 relative overflow-hidden">
+                                                                {interiorImg ? (
+                                                                    <img src={interiorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                                ) : (
+                                                                    <div className="w-full h-full bg-gray-200" />
+                                                                )}
+                                                            </div>
+
+                                                            {isSoldVariant && (
+                                                                <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                                                                    <div className="bg-black/60 backdrop-blur-md border border-white/20 px-3 py-1 rounded-sm shadow-lg">
+                                                                        <span className="text-white text-[9px] font-bold uppercase tracking-wider text-center drop-shadow-md">
+                                                                            Sprzedany
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Text Info */}
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className={cn(
+                                                                "text-[10px] font-black uppercase tracking-[0.1em] truncate mb-0.5",
+                                                                isMSeries ? "text-gray-100" : "text-gray-900"
+                                                            )}>
+                                                                {vColor}
+                                                            </span>
+                                                            <span className="text-[9px] text-gray-400 uppercase font-bold tracking-widest truncate">
+                                                                {vUpholstery}
+                                                            </span>
+                                                        </div>
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
+                                </FadeInUp>
                             )}
 
                             {/* Options List */}
-                            <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} isElectric={isElectric && !isMSeries} />
+                            <FadeInUp yOffset={40} delay={0.3}>
+                                <OptionsList optionGroups={optionGroups} optionCodesCount={car.option_codes.length} isDark={isMSeries} isElectric={isElectric && !isMSeries} />
+                            </FadeInUp>
                         </div>
 
                         {/* RIGHT: Sticky Summary Section (Desktop Only) */}

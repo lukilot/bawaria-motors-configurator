@@ -390,7 +390,15 @@ import { cn } from '@/lib/utils';
 
 function GarageFloatingButton() {
     const { savedCars, toggleGarage } = useGarageStore();
-    const count = savedCars.length;
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return null;
+
+    const count = savedCars?.length || 0;
 
     return (
         <motion.button

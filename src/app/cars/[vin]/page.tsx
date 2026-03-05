@@ -194,7 +194,7 @@ export default async function CarPage({ params }: PageProps) {
     const showReady = !showSold && !showReserved && effectiveIsReady;
 
     const isMSeries = (enrichedCar.series || '').includes('Seria M') || enrichedCar.model_code?.startsWith('M');
-    const isElectric = car.fuel_type === 'Elektryczny' || car.fuel_type === 'Electric';
+    const isElectric = enrichedCar.fuel_type === 'Elektryczny' || enrichedCar.fuel_type === 'Electric' || enrichedCar.fuel_type === 'BEV' || (car.fuel_type || '').includes('Elektryczny');
 
     const theme = {
         bg: isMSeries ? 'bg-[#0a0a0a]' : 'bg-white',

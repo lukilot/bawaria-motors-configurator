@@ -23,7 +23,7 @@ export function PerformanceBar({ label, value, numericValue, maxValue, isDark, i
     let fillGradient = "bg-gray-900";
     if (isDark) {
         fillGradient = "bg-gradient-to-r from-[#53A0DE] via-[#02256E] to-[#E40424]";
-    } else if (isElectric && !isDark) {
+    } else if (isElectric) {
         fillGradient = "bg-gradient-to-r from-[#0653B6] to-[#2E95D3]";
     }
 

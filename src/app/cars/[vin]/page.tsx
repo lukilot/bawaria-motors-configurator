@@ -143,7 +143,9 @@ export default async function CarPage({ params }: PageProps) {
     const variants = await getCarVariants(car);
     const modelDict = dictionaries.model[car.model_code] || {};
     const modelName = modelDict.name || car.model_name || `BMW ${car.model_code}`;
-    const colorName = dictionaries.color[car.color_code]?.name || car.color_code;
+    const colorName = car.color_code === '490'
+        ? (dictionaries.color[car.individual_color || '']?.name || car.individual_color || 'BMW Individual')
+        : (dictionaries.color[car.color_code]?.name || car.color_code);
     const upholsteryName = dictionaries.upholstery[car.upholstery_code]?.name || car.upholstery_code;
     const staticAttrs = getModelAttributes(car.model_code);
 
@@ -265,7 +267,15 @@ export default async function CarPage({ params }: PageProps) {
                                         <div className={cn("py-4 text-sm space-y-4", isMSeries ? "text-gray-400" : "text-gray-600")}>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-[9px] uppercase font-black tracking-widest opacity-40">Kolor</span>
-                                                <span className="font-bold uppercase text-[11px]">{colorName}</span>
+                                                {car.color_code === '490' ? (
+                                                    <BMWIndividualBadge
+                                                        compact
+                                                        className={cn("text-[11px] font-bold uppercase", isMSeries ? "text-white" : "text-gray-900")}
+                                                        colorName={colorName}
+                                                    />
+                                                ) : (
+                                                    <span className={cn("font-bold uppercase text-[11px]", theme.accentText)}>{colorName}</span>
+                                                )}
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-[9px] uppercase font-black tracking-widest opacity-40">Tapicerka</span>

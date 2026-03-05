@@ -227,11 +227,9 @@ export function SiteHeader() {
                                         ? "opacity-0 pointer-events-none translate-x-4"
                                         : count > 0
                                             ? "border-black bg-black text-white hover:bg-gray-800"
-                                            : isScrolled
-                                                ? "border-black/5 bg-black/5 text-gray-900 hover:bg-black hover:text-white"
-                                                : isMSeries
-                                                    ? "border-white/20 bg-white/10 text-white hover:bg-white hover:text-black"
-                                                    : "border-black/10 bg-white/10 text-gray-900 hover:bg-black hover:text-white"
+                                            : isMSeries
+                                                ? "border-white/20 bg-white/10 text-white hover:bg-white hover:text-black"
+                                                : "border-black/20 bg-white text-gray-900 shadow-sm hover:bg-black hover:text-white hover:border-black"
                                 )}
                             >
                                 <div className="flex items-center gap-2.5">

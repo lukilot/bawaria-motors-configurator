@@ -16,7 +16,7 @@ export function VinSelector({ currentVin, siblings, isDark }: VinSelectorProps) 
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const totalAvailable = siblings.length + 1;
+    const totalAvailable = siblings.length; // siblings already includes the current car
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -33,7 +33,7 @@ export function VinSelector({ currentVin, siblings, isDark }: VinSelectorProps) 
         };
     }, [isOpen]);
 
-    if (totalAvailable <= 1) {
+    if (totalAvailable <= 1) { // Only 1 = no choice to make
         return (
             <div className="flex flex-col gap-1.5">
                 <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40">Numer VIN</span>

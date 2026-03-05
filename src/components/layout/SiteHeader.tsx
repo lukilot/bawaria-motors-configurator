@@ -219,33 +219,34 @@ export function SiteHeader() {
 
                         <div className="hidden lg:flex items-center gap-3 md:gap-4">
                             {/* Garage Trigger (Hidden on Mobile VDP to avoid collision) */}
-                            <button
-                                onClick={toggleGarage}
-                                className={cn(
-                                    "relative flex items-center gap-2.5 px-4 py-2.5 rounded-full transition-all duration-500 text-[10px] font-bold uppercase tracking-[0.15em] border group/btn",
-                                    isGarageOpen
-                                        ? "opacity-0 pointer-events-none translate-x-4" // Prominent Close state
-                                        : count > 0
-                                            ? "border-black bg-black text-white hover:bg-gray-800"
-                                            : isScrolled
-                                                ? "border-black/5 bg-black/5 text-gray-900 hover:bg-black hover:text-white"
-                                                : isMSeries
-                                                    ? "border-white/20 bg-white/10 text-white hover:bg-white hover:text-black"
-                                                    : "border-black/10 bg-white/10 text-gray-900 hover:bg-black hover:text-white"
-                                )}
-                            >
-                                <div className="flex items-center gap-2.5">
-                                    <Warehouse className="w-3.5 h-3.5 transition-transform duration-500 group-hover/btn:scale-110" />
-                                    <span className="hidden sm:inline">Garaż</span>
-                                </div>
+                            {!pathname.endsWith('/cars') && (
+                                <button
+                                    onClick={toggleGarage}
+                                    className={cn(
+                                        "relative flex items-center gap-2.5 px-4 py-2.5 rounded-full transition-all duration-500 text-[10px] font-bold uppercase tracking-[0.15em] border group/btn",
+                                        isGarageOpen
+                                            ? "opacity-0 pointer-events-none translate-x-4" // Prominent Close state
+                                            : count > 0
+                                                ? "border-black bg-black text-white hover:bg-gray-800"
+                                                : isScrolled
+                                                    ? "border-black/5 bg-black/5 text-gray-900 hover:bg-black hover:text-white"
+                                                    : isMSeries
+                                                        ? "border-white/20 bg-white/10 text-white hover:bg-white hover:text-black"
+                                                        : "border-black/10 bg-white/10 text-gray-900 hover:bg-black hover:text-white"
+                                    )}
+                                >
+                                    <div className="flex items-center gap-2.5">
+                                        <Warehouse className="w-3.5 h-3.5 transition-transform duration-500 group-hover/btn:scale-110" />
+                                        <span className="hidden sm:inline">Garaż</span>
+                                    </div>
 
-                                {count > 0 && (
-                                    <span className="bg-white text-black text-[9px] min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full font-bold leading-none shadow-sm ml-1">
-                                        {count}
-                                    </span>
-                                )}
-                            </button>
-
+                                    {count > 0 && (
+                                        <span className="bg-white text-black text-[9px] min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full font-bold leading-none shadow-sm ml-1">
+                                            {count}
+                                        </span>
+                                    )}
+                                </button>
+                            )}
                         </div>
                     </>
                 )}

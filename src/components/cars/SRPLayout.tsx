@@ -356,7 +356,7 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                     resultsCount={filteredCars.length}
                 />
 
-                <div className="flex-1" ref={gridRef}>
+                <div className="flex-1 relative" ref={gridRef}>
                     <Suspense fallback={<div className="animate-pulse bg-gray-100 h-96 rounded-sm" />}>
                         <CarGrid
                             cars={filteredCars}
@@ -375,6 +375,43 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                     </Suspense>
                 </div>
             </div>
+
+            {/* Floating Garage Button for SRP (Persistent Bottom Right / Top Right depending on layout) */}
+            <GarageFloatingButton />
         </>
+    );
+}
+
+// Extract to sub-component to prevent full SRP re-renders on garage count change
+import { useGarageStore } from '@/store/garageStore';
+import { Warehouse } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+
+function GarageFloatingButton() {
+    const { savedCars, toggleGarage } = useGarageStore();
+    const count = savedCars.length;
+
+    return (
+        <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={toggleGarage}
+            className={cn(
+                "fixed bottom-8 right-6 lg:bottom-12 lg:right-12 z-[100] flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.15)] border transition-all cursor-pointer",
+                count > 0 ? "bg-black text-white border-black ring-2 ring-black/10" : "bg-white text-black border-black/10 hover:bg-gray-50 ring-1 ring-black/5"
+            )}
+        >
+            <div className="relative">
+                <Warehouse className="w-6 h-6" />
+                {count > 0 && (
+                    <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-blue-600 text-[10px] font-black text-white flex items-center justify-center border-2 border-black">
+                        {count}
+                    </span>
+                )}
+            </div>
+        </motion.button>
     );
 }

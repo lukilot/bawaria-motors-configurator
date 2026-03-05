@@ -5,10 +5,7 @@ import { StockCar } from '@/types/stock';
 import { FilterSidebar } from '@/components/cars/FilterSidebar';
 import { CarGrid } from '@/components/cars/CarGrid';
 import { useSearchParams, usePathname } from 'next/navigation';
-import { SlidersHorizontal, Warehouse } from 'lucide-react';
-import { useGarageStore } from '@/store/garageStore';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { SlidersHorizontal } from 'lucide-react';
 
 const SEARCH_ALIASES: Record<string, string[]> = {
     'hak': ['towing', 'holowniczy', 'trailer'],
@@ -380,52 +377,6 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                     </Suspense>
                 </div>
             </div>
-
-            {/* Floating Garage Button for SRP (Persistent Bottom Right / Top Right depending on layout) */}
-            <GarageFloatingButton />
         </>
-    );
-}
-
-// Extract to sub-component to prevent full SRP re-renders on garage count change
-
-function GarageFloatingButton() {
-    const { savedCars, toggleGarage } = useGarageStore();
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    if (!mounted) return null;
-
-    const count = savedCars?.length || 0;
-
-    return (
-        <button
-            onClick={toggleGarage}
-            className={cn(
-                "flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.15)] border transition-all cursor-pointer hover:scale-105 active:scale-95 duration-200",
-                count > 0 ? "bg-black text-white border-black ring-2 ring-black/10" : "bg-white text-black border-black/10 hover:bg-gray-50 ring-1 ring-black/5"
-            )}
-            style={{
-                position: 'fixed',
-                bottom: '2rem',
-                right: '1.5rem',
-                zIndex: 2147483647,
-                pointerEvents: 'auto',
-                display: 'flex'
-            }}
-            aria-label="Otwórz garaż"
-        >
-            <div className="relative">
-                <Warehouse className="w-6 h-6" />
-                {count > 0 && (
-                    <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-blue-600 text-[10px] font-black text-white flex items-center justify-center border-2 border-black">
-                        {count}
-                    </span>
-                )}
-            </div>
-        </button>
     );
 }

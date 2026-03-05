@@ -8,6 +8,7 @@ import { CompareModal } from '@/components/cars/CompareModal';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { IntroOverlay } from '@/components/cars/IntroOverlay';
 import { MobileStickyFooter } from '@/components/cars/MobileStickyFooter';
+import { SRPGarageButton } from '@/components/layout/SRPGarageButton';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -47,6 +48,7 @@ export default function RootLayout({
         <SiteHeader />
         {children}
         <MobileStickyFooter />
+        <SRPGarageButton />
         <GarageDrawer />
         <CompareToolbar />
         <CompareModal />

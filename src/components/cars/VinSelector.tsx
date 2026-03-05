@@ -145,7 +145,7 @@ export function VinSelector({ currentVin, siblings, isDark }: VinSelectorProps) 
                                             {isReady ? (
                                                 <CheckCircle2 className="w-4 h-4 text-green-500" />
                                             ) : (
-                                                <Clock className={cn("w-4 h-4", isDark ? "text-amber-500" : "text-amber-600")} />
+                                                <Clock className={cn("w-4 h-4", isDark ? "text-yellow-400" : "text-yellow-500")} />
                                             )}
                                         </div>
                                     </button>

@@ -255,12 +255,14 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                 const rawOptions = car.option_codes || [];
                 const carOptionsStr = rawOptions.map((optCode: string) => {
                     const entry = dictionaries.option[optCode];
-                    // entry can be a plain object OR an array (when body_groups exist)
+                    // Tylko pełne nazwy opcji do wyszukiwania, pomijamy surowe kody alfanumeryczne, które tworzyły fałszywe powiązania
                     const optName: string = Array.isArray(entry)
                         ? (entry[0]?.name || '')
                         : (entry?.name || '');
-                    return `${optCode.toLowerCase()} ${normalize(optName)}`;
+                    return normalize(optName);
                 }).join(' ');
+
+                // Explicitly add common fields into a logical string
                 const colorName = normalize((dictionaries.color[car.color_code]?.name as string) || '');
                 const individualColorName = car.individual_color
                     ? normalize((dictionaries.color[car.individual_color]?.name as string) || car.individual_color)
@@ -403,9 +405,17 @@ function GarageFloatingButton() {
         <button
             onClick={toggleGarage}
             className={cn(
-                "fixed bottom-8 right-6 lg:bottom-12 lg:right-12 z-[100] flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.15)] border transition-all cursor-pointer hover:scale-105 active:scale-95 duration-200",
+                "flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.15)] border transition-all cursor-pointer hover:scale-105 active:scale-95 duration-200",
                 count > 0 ? "bg-black text-white border-black ring-2 ring-black/10" : "bg-white text-black border-black/10 hover:bg-gray-50 ring-1 ring-black/5"
             )}
+            style={{
+                position: 'fixed',
+                bottom: '2rem',
+                right: '1.5rem',
+                zIndex: 2147483647,
+                pointerEvents: 'auto',
+                display: 'flex'
+            }}
             aria-label="Otwórz garaż"
         >
             <div className="relative">

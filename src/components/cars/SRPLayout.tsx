@@ -278,26 +278,38 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                     individualColorName
                 ].join(' ');
 
-                // ALL terms must match. Each term can match itself OR any of its aliases.
-                // Use word-boundary regex so "20" matches "20d"/"20i" but NOT "2025" or "200hp".
-                const termMatchesIn = (term: string, text: string): boolean => {
+                // Two-phase matching:
+                // Phase 1: Check if term is a PREFIX of any space-separated token in model_name.
+                //   "20" matches "20d", "20i", and standalone "20" (new BMW naming from 2025).
+                //   This avoids false positives from option descriptions like "felgi 20 cali".
+                // Phase 2: If not found in model tokens, fall back to word-boundary search
+                //   in the full combined string (for series, drivetrain, color, options, etc.)
+                const modelNameTokens = normalize(car.model_name || '').split(/\s+/);
+
+                const termMatchesModel = (term: string): boolean =>
+                    modelNameTokens.some(token => token.startsWith(term) && token.length > 0);
+
+                const termMatchesCombined = (term: string): boolean => {
                     try {
-                        // \b = word boundary, (?!\d) = not followed by another digit
-                        // This makes "20" match "20d", "20i" but not "2025"
-                        const re = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\d)`, 'i');
-                        return re.test(text);
+                        const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        // Word boundary + not followed by digit (prevents "20" → "2025")
+                        return new RegExp(`\\b${escaped}(?!\\d)`, 'i').test(combined);
                     } catch {
-                        return text.includes(term);
+                        return combined.includes(term);
                     }
                 };
 
                 const allMatch = searchTerms.every(term => {
                     const aliases = (SEARCH_ALIASES[term] || []).map(normalize);
                     const candidates = [term, ...aliases];
-                    return candidates.some(c => termMatchesIn(c, combined));
+                    // First: model_name token prefix match
+                    if (candidates.some(c => termMatchesModel(c))) return true;
+                    // Fallback: word-boundary match in full combined string
+                    return candidates.some(c => termMatchesCombined(c));
                 });
 
                 if (!allMatch) return false;
+
 
 
             }

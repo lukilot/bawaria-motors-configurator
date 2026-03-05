@@ -5,7 +5,10 @@ import { StockCar } from '@/types/stock';
 import { FilterSidebar } from '@/components/cars/FilterSidebar';
 import { CarGrid } from '@/components/cars/CarGrid';
 import { useSearchParams, usePathname } from 'next/navigation';
-import { SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, Warehouse } from 'lucide-react';
+import { useGarageStore } from '@/store/garageStore';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 const SEARCH_ALIASES: Record<string, string[]> = {
     'hak': ['towing', 'holowniczy', 'trailer'],
@@ -383,10 +386,6 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
 }
 
 // Extract to sub-component to prevent full SRP re-renders on garage count change
-import { useGarageStore } from '@/store/garageStore';
-import { Warehouse } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 
 function GarageFloatingButton() {
     const { savedCars, toggleGarage } = useGarageStore();
@@ -401,16 +400,13 @@ function GarageFloatingButton() {
     const count = savedCars?.length || 0;
 
     return (
-        <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+        <button
             onClick={toggleGarage}
             className={cn(
-                "fixed bottom-8 right-6 lg:bottom-12 lg:right-12 z-[100] flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.15)] border transition-all cursor-pointer",
+                "fixed bottom-8 right-6 lg:bottom-12 lg:right-12 z-[100] flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.15)] border transition-all cursor-pointer hover:scale-105 active:scale-95 duration-200",
                 count > 0 ? "bg-black text-white border-black ring-2 ring-black/10" : "bg-white text-black border-black/10 hover:bg-gray-50 ring-1 ring-black/5"
             )}
+            aria-label="Otwórz garaż"
         >
             <div className="relative">
                 <Warehouse className="w-6 h-6" />
@@ -420,6 +416,6 @@ function GarageFloatingButton() {
                     </span>
                 )}
             </div>
-        </motion.button>
+        </button>
     );
 }

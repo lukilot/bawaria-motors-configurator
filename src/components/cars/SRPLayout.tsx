@@ -264,7 +264,19 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                 const individualColorName = car.individual_color
                     ? normalize((dictionaries.color[car.individual_color]?.name as string) || car.individual_color)
                     : '';
-                const combined = `${(car.vin || '').toLowerCase()} ${normalize(car.model_name || '')} ${carOptionsStr} ${colorName} ${individualColorName}`;
+                // Include model_code directly so "X3" matches model code "31EU" style names AND model_name
+                // Include series ("Seria 3"), drivetrain ("xDrive"), fuel for broad but accurate matching
+                const combined = [
+                    car.vin || '',
+                    normalize(car.model_name || ''),
+                    normalize(car.model_code || ''),       // e.g. "31EU"
+                    normalize((car as any).series || ''),  // e.g. "Seria X3"
+                    normalize(car.drivetrain || ''),       // e.g. "xDrive"
+                    normalize(car.fuel_type || ''),        // e.g. "Elektryczny"
+                    carOptionsStr,
+                    colorName,
+                    individualColorName
+                ].join(' ');
 
                 // ALL terms must match. Each term can match itself OR any of its aliases.
                 const allMatch = searchTerms.every(term => {
@@ -274,6 +286,7 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                 });
 
                 if (!allMatch) return false;
+
             }
 
             const carPrice = car.special_price || car.list_price;

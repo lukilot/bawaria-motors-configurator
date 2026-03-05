@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import { Warehouse } from 'lucide-react';
 import { useGarageStore } from '@/store/garageStore';
 import { cn } from '@/lib/utils';
 
 /**
- * Floating garage button shown only on /cars (SRP) routes.
- * Lives in root layout to avoid hydration mismatches inside SRPLayout.
+ * Floating garage button shown only on /cars (SRP) route.
+ * Uses createPortal to render directly into document.body,
+ * bypassing any CSS stacking context issues in the layout.
  */
 export function SRPGarageButton() {
     const { savedCars, toggleGarage } = useGarageStore();
@@ -26,13 +28,13 @@ export function SRPGarageButton() {
 
     const count = savedCars?.length || 0;
 
-    return (
+    const button = (
         <button
             onClick={toggleGarage}
             aria-label="Otwórz garaż"
             className={cn(
                 "flex items-center justify-center w-14 h-14 rounded-full border transition-all duration-200 cursor-pointer",
-                "shadow-[0_8px_32px_rgba(0,0,0,0.15)]",
+                "shadow-[0_8px_32px_rgba(0,0,0,0.2)]",
                 "hover:scale-105 active:scale-95",
                 count > 0
                     ? "bg-black text-white border-black"
@@ -42,7 +44,7 @@ export function SRPGarageButton() {
                 position: 'fixed',
                 bottom: '2rem',
                 right: '1.5rem',
-                zIndex: 999,
+                zIndex: 99999,
             }}
         >
             <div className="relative">
@@ -55,4 +57,7 @@ export function SRPGarageButton() {
             </div>
         </button>
     );
+
+    // Portal renders directly into body, escaping all CSS stacking contexts
+    return createPortal(button, document.body);
 }

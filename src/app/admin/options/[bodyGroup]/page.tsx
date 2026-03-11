@@ -24,12 +24,17 @@ const CATEGORY_FILTERS = [
     { label: 'Wszystkie', value: null },
     { label: 'Lakier', value: 'paint' },
     { label: 'Tapicerka', value: 'upholstery' },
+    { label: 'Pakiety', value: 'package' },
     { label: 'Wyposażenie', value: 'equipment' },
 ];
 
-function getCategory(code: string, category?: string): 'paint' | 'upholstery' | 'equipment' {
-    if (code.startsWith('P0') || code.startsWith('P1')) return 'paint';
-    if (category?.toLowerCase().includes('tapic') || code.startsWith('PIU')) return 'upholstery';
+function getCategory(code: string, dsCategory?: string): 'paint' | 'upholstery' | 'equipment' | 'package' {
+    if (dsCategory === 'paint' || dsCategory === 'upholstery' || dsCategory === 'package' || dsCategory === 'equipment') {
+        return dsCategory;
+    }
+    if (code.startsWith('P0') || code.startsWith('P1') || code.startsWith('PIC')) return 'paint';
+    if (dsCategory?.toLowerCase().includes('tapic') || code.startsWith('PIU') || code.match(/^[FKZ][A-Z0-9]{4}$/)) return 'upholstery';
+    if (code.startsWith('PIP') || code.startsWith('P0C')) return 'package';
     return 'equipment';
 }
 
@@ -94,6 +99,7 @@ export default function BodyGroupOptionsPage() {
     const categoryCounts = {
         paint: options.filter(o => getCategory(o.code, o.data?.category) === 'paint').length,
         upholstery: options.filter(o => getCategory(o.code, o.data?.category) === 'upholstery').length,
+        package: options.filter(o => getCategory(o.code, o.data?.category) === 'package').length,
         equipment: options.filter(o => getCategory(o.code, o.data?.category) === 'equipment').length,
     };
 
@@ -145,6 +151,7 @@ export default function BodyGroupOptionsPage() {
                                         <span className="ml-1.5 text-gray-400">
                                             {f.value === 'paint' ? categoryCounts.paint :
                                              f.value === 'upholstery' ? categoryCounts.upholstery :
+                                             f.value === 'package' ? categoryCounts.package :
                                              categoryCounts.equipment}
                                         </span>
                                     )}
@@ -200,10 +207,11 @@ export default function BodyGroupOptionsPage() {
                                             <div className={cn(
                                                 "absolute top-1.5 left-1.5 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded",
                                                 cat === 'paint' ? "bg-amber-50 text-amber-600" :
-                                                cat === 'upholstery' ? "bg-purple-50 text-purple-600" :
+                                                cat === 'upholstery' ? "bg-rose-50 text-rose-600" :
+                                                cat === 'package' ? "bg-purple-50 text-purple-600" :
                                                 "bg-blue-50 text-blue-600"
                                             )}>
-                                                {cat === 'paint' ? 'L' : cat === 'upholstery' ? 'T' : 'W'}
+                                                {cat === 'paint' ? 'L' : cat === 'upholstery' ? 'T' : cat === 'package' ? 'P' : 'W'}
                                             </div>
                                         </div>
 

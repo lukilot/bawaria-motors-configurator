@@ -48,18 +48,19 @@ function parseOptionGroups(codes: string[], optionDict: Record<string, any> = {}
                 const variation = entry.variations.find((v: any) =>
                     v.body_groups && v.body_groups.includes(bodyGroup)
                 );
-                if (variation && variation.image) return { ...entry, image: variation.image };
+                if (variation && (variation.image || variation.image_url)) return { ...entry, image: variation.image || variation.image_url };
             }
-            return entry;
+            return { ...entry, image: entry.image || entry.image_url };
         }
         if (bodyGroup) {
             const match = entry.find((data: any) =>
                 data.body_groups && Array.isArray(data.body_groups) && data.body_groups.includes(bodyGroup)
             );
-            if (match) return match;
+            if (match) return { ...match, image: match.image || match.image_url };
         }
         const generic = entry.find((data: any) => !data.body_groups || data.body_groups.length === 0);
-        return generic || entry[0];
+        const finalEntry = generic || entry[0];
+        return { ...finalEntry, image: finalEntry?.image || finalEntry?.image_url };
     };
 
     codes.forEach(raw => {

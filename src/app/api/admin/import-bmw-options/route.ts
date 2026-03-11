@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         const page = await browser.newPage();
 
         let optionImages: Record<string, string> = {};   // code -> COSY URL
+        let optionNames: Record<string, string> = {};    // code -> fallback name
         let marketingTexts: Record<string, { name: string; salesText?: string; category?: string }> = {};
 
         page.on('response', async (response: any) => {
@@ -56,6 +57,10 @@ export async function POST(request: NextRequest) {
                         const imgUrl = data?.imageGroups?.[0]?.images?.[0]?.viewImage;
                         if (imgUrl && !optionImages[code]) {
                             optionImages[code] = imgUrl;
+                        }
+                        const name = data?.salesText || data?.title;
+                        if (name && !optionNames[code]) {
+                            optionNames[code] = name;
                         }
                     }
                 }
@@ -100,10 +105,21 @@ export async function POST(request: NextRequest) {
                 const compressed = await fetchAndCompress(cosyUrl);
                 const imageUrl = await uploadToSupabase(compressed, bodyGroup, code);
 
-                // Detect category type from code prefix
-                let type: 'option' | 'color' | 'upholstery' = 'option';
-                if (code.startsWith('P0') || code.startsWith('PIC')) type = 'color';
-                else if (code.startsWith('PIU') || code.startsWith('S04') || code.match(/tapic/i)) type = 'upholstery';
+                // Detect exact category type from code prefix
+                let categoryType: 'paint' | 'upholstery' | 'package' | 'equipment' = 'equipment';
+                
+                if (code.startsWith('P0') || code.startsWith('P1') || code.startsWith('PIC')) {
+                    categoryType = 'paint';
+                } else if (code.startsWith('PIU') || code.startsWith('S04')) {
+                    categoryType = 'upholstery';
+                } else if (code.match(/^[FKZ][A-Z0-9]{4}$/)) {
+                    // Tapicerka usually has 5 letter codes like FBLAT, KGNL
+                    categoryType = 'upholstery';
+                } else if (code.startsWith('PIP') || code.startsWith('P0C')) {
+                    categoryType = 'package';
+                }
+
+                const finalName = textData?.name || optionNames[code] || code;
 
                 // Fetch existing entry
                 const { data: existing } = await supabase
@@ -125,6 +141,8 @@ export async function POST(request: NextRequest) {
                         .update({
                             data: {
                                 ...existing.data,
+                                name: finalName,
+                                category: categoryType,
                                 body_groups: updatedBodyGroups,
                                 image_url: existing.data?.image_url || imageUrl,
                             },
@@ -139,8 +157,8 @@ export async function POST(request: NextRequest) {
                             type: 'option',
                             code,
                             data: {
-                                name: textData?.name || code,
-                                category: textData?.category || null,
+                                name: finalName,
+                                category: categoryType,
                                 body_groups: [bodyGroup],
                                 image_url: imageUrl,
                             },

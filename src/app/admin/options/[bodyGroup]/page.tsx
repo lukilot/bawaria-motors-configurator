@@ -414,15 +414,15 @@ export default function BodyGroupOptionsPage() {
                         </div>
                     )}
                 </div>
-
-                {showImport && (
-                    <BMWOptionsImportModal
-                        bodyGroup={bodyGroup}
-                        onClose={() => setShowImport(false)}
-                        onSuccess={fetchOptions}
-                    />
-                )}
             </main>
+
+            {showImport && (
+                <BMWOptionsImportModal
+                    bodyGroup={bodyGroup}
+                    onClose={() => setShowImport(false)}
+                    onSuccess={fetchOptions}
+                />
+            )}
         </AdminAuth>
     );
 }

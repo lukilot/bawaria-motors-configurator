@@ -1,0 +1,6 @@
+
+    loadTag('link', {
+      name: 'msapplication-TileImage',
+      href: `${window.__conGlobal.basePath}/assets/bmw/images/manifest/icon-144x144.png`,
+    });
+  

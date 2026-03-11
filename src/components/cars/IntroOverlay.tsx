@@ -27,8 +27,6 @@ export function IntroOverlay() {
         intro_contact_phone: '+48 508 020 612'
     });
 
-    if (isAdmin) return null;
-
     useEffect(() => {
         // Load settings
         const loadSettings = async () => {
@@ -50,7 +48,9 @@ export function IntroOverlay() {
         return () => {
             document.body.style.overflow = '';
         };
-    }, []);
+    }, [isHome]);
+
+    if (isAdmin) return null;
 
     const handleMinimize = () => {
         setIsMinimized(true);

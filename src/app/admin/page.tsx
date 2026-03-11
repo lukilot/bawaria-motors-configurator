@@ -9,6 +9,7 @@ import { PackagesManager } from '@/components/admin/PackagesManager';
 import { BulletinManager } from '@/components/admin/BulletinManager';
 import { SettingsEditor } from '@/components/admin/SettingsEditor';
 import { AdminAuth } from '@/components/admin/AdminAuth';
+import { SyncLogs } from '@/components/admin/SyncLogs';
 import { useAdminStore } from '@/store/adminStore';
 import { cn } from '@/lib/utils';
 
@@ -28,10 +29,15 @@ export default function AdminPage() {
                             </div>
                             <div className="my-12 h-px bg-gray-100" />
                             <AdminCarList refreshTrigger={refreshTrigger} />
+
                         </div>
                     ) : currentView === 'dictionaries' ? (
                         <div className="animate-in fade-in duration-500">
                             <DictionaryManager />
+                        </div>
+                    ) : currentView === 'syncLogs' ? (
+                        <div className="animate-in fade-in duration-500">
+                            <SyncLogs />
                         </div>
                     ) : currentView === 'pricing' ? (
                         <div className="animate-in fade-in duration-500">

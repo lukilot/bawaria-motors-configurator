@@ -27,8 +27,8 @@ function parseOptionString(optString: string): string[] {
     // improved regex: matches "CODE ( ... )" as one token OR standalone "CODE"
     // But be careful: "337 ( 1G6 )" -> "337 ( 1G6 )"
 
-    // Normalize spaces first
-    const norm = optString.trim().replace(/\s+/g, ' ');
+    // Normalize separators: replace commas and semicolons with spaces
+    let norm = optString.trim().replace(/[,;]/g, ' ').replace(/\s+/g, ' ');
 
     const result: string[] = [];
     let current = '';
@@ -219,6 +219,20 @@ export const parseStockFile = async (fileBuffer: ArrayBuffer): Promise<ImportRes
                 return; // REJECT OTHERS
             }
 
+            const rawDate = getVal('prod_date');
+            let prodDate: string | undefined;
+            if (typeof rawDate === 'number') {
+                const date = new Date(Math.floor((rawDate - 25569) * 86400 * 1000));
+                prodDate = date.toISOString().split('T')[0];
+            } else if (typeof rawDate === 'string' && rawDate.length > 0) {
+                if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(rawDate)) {
+                    const [d, m, y] = rawDate.split('.');
+                    prodDate = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+                } else {
+                    prodDate = rawDate; // Fallback to raw string
+                }
+            }
+
             // --- MAPPING ---
             const car: StockCar = {
                 vin,
@@ -235,7 +249,7 @@ export const parseStockFile = async (fileBuffer: ArrayBuffer): Promise<ImportRes
                 list_price: 0, // No price in this format
                 currency: 'PLN',
                 visibility: visibility,
-                production_date: getVal('prod_date') ? String(getVal('prod_date')) : undefined,
+                production_date: prodDate,
                 ...extractAttributes(String(getVal('model_name') || ''))
             };
 
@@ -330,11 +344,7 @@ export const parseBMWPLStock = async (fileBuffer: ArrayBuffer): Promise<ImportRe
     const sheetName = wb.SheetNames[0];
     const ws = wb.Sheets[sheetName];
 
-    // Read as array of arrays (ignoring headers for mapping, using indices)
-    // Starting from row 1 (index 1) assuming row 0 is header?
-    // User gave columns (A, C etc). Usually there is a header.
-    // Let's assume row 0 is header and data starts at 1.
-    const rows = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1 });
+    const jsonArrays = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1 });
 
     const result: ImportResult = {
         processed: 0,
@@ -345,143 +355,101 @@ export const parseBMWPLStock = async (fileBuffer: ArrayBuffer): Promise<ImportRe
         cars: []
     };
 
-    // Find header row/start index? 
-    // Let's assume standard Excel list where data starts at row 1 (0-based index)
-    // We can try to validate if row 0 has "VIN" in Col C or check row 1.
-    // If user says "VIN - column C", it's likely fixed structure.
+    if (jsonArrays.length < 1) return result;
 
-    let startIndex = 1;
-    // Simple heuristic: look for a row where Col C looks like a VIN (17 chars)
-    // Or just start at 1.
+    // Strict indices from user: A=0, C=2, G=6, N=13, O=14
+    const COL_STATUS = 0;
+    const COL_VIN = 2;
+    const COL_MODEL_NAME = 4;
+    const COL_MODEL_CODE = 6;
+    const COL_PROD_DATE = 7;
+    const COL_COLOR = 8;
+    const COL_UPHOLSTERY = 9;
+    const COL_OPTIONS = 10;
+    const COL_DEALER = 13;
+    const COL_TAKEN = 14;
 
-    rows.forEach((row, rowIndex) => {
-        if (rowIndex < startIndex) return; // Skip potential header
+    const firstRowVin = String(jsonArrays[0]?.[COL_VIN] || '').toUpperCase();
+    const dataStartRow = firstRowVin.includes('VIN') ? 1 : 0;
 
+    jsonArrays.slice(dataStartRow).forEach((row, rowIndex) => {
         try {
-            const getVal = (idx: number) => {
-                const val = row[idx];
-                return val !== undefined && val !== null ? String(val).trim() : '';
-            };
+            if (!row || !Array.isArray(row)) return;
 
-            // VIN - Col C (Index 2)
-            const vin = getVal(2);
-            if (!vin || vin.length < 10) return; // Basic validation
+            const vin = String(row[COL_VIN] || '').trim();
+            if (!vin || vin.length < 7) return;
 
-            // Order Status - Col A (Index 0)
-            let rawStatus = parseInt(getVal(0) || '0');
-
-            // Dealer Name - Col N (Index 13)
-            // Filter: Must contain "BMW PL"
-            const dealerName = getVal(13).toUpperCase();
-            if (!dealerName.includes('BMW PL')) {
-                return; // Skip other dealers
+            // Dealer check
+            const dealer = String(row[COL_DEALER] || '').toUpperCase().trim();
+            const isBmwPl = ['BMW PL', 'BMW POLSKA', 'BMW POLAND', 'NSC'].some(term => dealer.includes(term));
+            if (dealer.length > 0 && !isBmwPl) {
+                result.skipped_type++;
+                return;
             }
 
-            // Status Sprzedaży - Col O (Index 14)
-            const salesStatus = getVal(14).toUpperCase();
-            // Rules: TAK or PRZEJĘTE -> Sold (500)
-            // NIE -> Available (use rawStatus)
-            let order_status = salesStatus;
-
-            if (['TAK', 'PRZEJĘTE', 'PRZEJETE'].some(s => salesStatus.includes(s))) {
-                rawStatus = 500;
-                order_status = 'Sprzedany';
-            } else if (salesStatus.includes('NIE')) {
-                order_status = 'Dostępny'; // or keep rawStatus text?
+            // Status check
+            const rawStatusVal = row[COL_STATUS];
+            let status = 0;
+            if (typeof rawStatusVal === 'number') {
+                status = rawStatusVal;
+            } else if (typeof rawStatusVal === 'string') {
+                status = parseInt(rawStatusVal.replace(/\D/g, '') || '0');
             }
 
-            // Processing Type - User: "Always SH or ST"
-            // Default to SH as public stock
-            const processing_type = 'SH';
+            // Taken check (Column O)
+            const takenVal = String(row[COL_TAKEN] || '').toUpperCase().trim();
+            const isActuallyTaken = takenVal.length > 0 && !takenVal.includes('NIE');
+            if (isActuallyTaken) {
+                status = 500;
+            }
 
-            // Filter out internal/low status if standard rules apply?
-            // "if there is TAK... same as SPRZEDANY"
-            // Standard parseStockFile rejects status < 152. 
-            // Should we do the same? 
-            // If it's BMW PL stock available for dealers, usually they are 112, 150...
-            // Let's keep the filter "status < 152 REJECT" unless it is 500 (Sold).
-            if (rawStatus < 152 && rawStatus !== 500) {
+            if (status < 152 && status !== 500) {
                 result.skipped_status++;
                 return;
             }
 
-            // Model Code - Col G (Index 6)
-            const modelCode = getVal(6);
+            const modelCode = String(row[COL_MODEL_CODE] || '').trim();
+            const modelName = String(row[COL_MODEL_NAME] || '').trim();
 
-            // Body Group - Custom Mapping for BMW PL or Fallback to Col E
-            let bodyGroup = CHASSIS_MAPPING[modelCode] || getVal(4);
-
-            if (!CHASSIS_MAPPING[modelCode] && bodyGroup.length > 3) {
-                bodyGroup = bodyGroup.substring(0, 3);
-            }
-
-            // Color - Col I (Index 8)
-            const colorCode = getVal(8);
-
-            // Upholstery - Col J (Index 9)
-            const upholsteryCode = getVal(9);
-
-            // Options - Col K (Index 10)
-            const optionsString = getVal(10);
-            const optionCodes = parseOptionString(optionsString); // Reuse existing helper
-
-            // Production Date - Col H (Index 7)
-            const prodDateRaw = row[7]; // Get raw value (number or string)
+            const rawDate = row[COL_PROD_DATE];
             let prodDate: string | undefined;
-
-            if (typeof prodDateRaw === 'number') {
-                // Excel Serial Date
-                // Approx conversion: (value - 25569) * 86400 * 1000
-                // Or using SSF if available, but simple math works for >= 1900
-                const utc_days = Math.floor(prodDateRaw - 25569);
-                const utc_value = utc_days * 86400;
-                const date_info = new Date(utc_value * 1000);
-                // Adjust for timezone offset if needed, but usually just getting YYYY-MM-DD is fine
-                prodDate = date_info.toISOString().split('T')[0];
-            } else if (typeof prodDateRaw === 'string') {
-                const cleanDate = prodDateRaw.trim();
-                // Handle DD.MM.YYYY
-                if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(cleanDate)) {
-                    const [d, m, y] = cleanDate.split('.');
+            if (typeof rawDate === 'number') {
+                const date = new Date(Math.floor((rawDate - 25569) * 86400 * 1000));
+                prodDate = date.toISOString().split('T')[0];
+            } else if (typeof rawDate === 'string' && rawDate.length > 0) {
+                if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(rawDate)) {
+                    const [d, m, y] = rawDate.split('.');
                     prodDate = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-                } else {
-                    // Try standard parse
-                    const d = new Date(cleanDate);
-                    if (!isNaN(d.getTime())) {
-                        prodDate = d.toISOString().split('T')[0];
-                    }
                 }
             }
 
-            // Model Description - User requested to use Column E (Index 4)
-            // Previously used for Body Group (first 3 chars), but now full string is Model Name
-            const modelName = getVal(4);
-
             const car: StockCar = {
                 vin,
-                status_code: rawStatus,
-                order_status: order_status,
-                processing_type,
-                reservation_details: '', // User said ignore
+                status_code: status,
+                order_status: status === 500 ? 'Sprzedany / Przejęty' : 'Dostępny',
+                processing_type: 'SH',
                 model_code: modelCode,
                 model_name: modelName,
-                body_group: bodyGroup,
-                color_code: colorCode,
-                upholstery_code: upholsteryCode,
-                option_codes: optionCodes,
+                body_group: CHASSIS_MAPPING[modelCode] || '',
+                color_code: String(row[COL_COLOR] || '').trim(),
+                upholstery_code: String(row[COL_UPHOLSTERY] || '').trim(),
+                option_codes: parseOptionString(String(row[COL_OPTIONS] || '')),
                 list_price: 0,
                 currency: 'PLN',
-                visibility: 'PUBLIC', // BMW PL stock is additional available source
-                production_date: prodDate, // Can be undefined, which is allowed by type but handled safely in sync
-                fuel_type: undefined, // Unknown without description
-                drivetrain: undefined // Unknown without description
+                visibility: status === 500 ? 'HIDDEN' : 'PUBLIC',
+                production_date: prodDate,
+                ...extractAttributes(modelName)
             };
+
+            // Individual Color (490) processing removed as per user feedback.
+            // Stock list only contains '490' code, not the name.
+            // Names are managed in Admin UI and preserved by syncStockToSupabase.
 
             result.cars.push(car);
             result.processed++;
 
         } catch (e: any) {
-            result.errors.push(`Row ${rowIndex + 1}: ${e.message}`);
+            result.errors.push(`Row ${rowIndex + dataStartRow + 1}: ${e.message}`);
         }
     });
 

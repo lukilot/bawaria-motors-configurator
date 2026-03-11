@@ -63,6 +63,16 @@ export function BulletinManager() {
         setLoading(false);
     };
 
+    useEffect(() => {
+        useAdminStore.getState().setHeaderAction({
+            label: 'Dodaj Biuletyn',
+            icon: Plus,
+            primary: true,
+            onClick: () => { setEditingBulletin(null); setIsModalOpen(true); }
+        });
+        return () => useAdminStore.getState().setHeaderAction(null);
+    }, []);
+
     const loadModelDictionary = async () => {
         try {
             const resp = await fetch('/api/admin/bulletins?dict=model');
@@ -169,13 +179,6 @@ export function BulletinManager() {
                     <h1 className="text-2xl font-bold text-gray-900">Warunki Sprzedaży</h1>
                     <p className="text-gray-500 text-sm">Zarządzaj biuletynami rabatowymi. Rabaty automatycznie naliczane na SRP i VDP.</p>
                 </div>
-                <button
-                    onClick={() => { setEditingBulletin(null); setIsModalOpen(true); }}
-                    className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-sm hover:bg-gray-800 transition-colors"
-                >
-                    <Plus className="w-4 h-4" />
-                    Dodaj Biuletyn
-                </button>
             </div>
 
             {error && (

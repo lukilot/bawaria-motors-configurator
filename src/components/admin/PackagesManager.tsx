@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { ServicePackage, getAllServicePrices, upsertServicePrice } from '@/lib/service-packages';
 import { Loader2, Plus, Edit, Save, Trash2, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAdminStore } from '@/store/adminStore';
 
 export function PackagesManager() {
     const [packages, setPackages] = useState<ServicePackage[]>([]);
@@ -16,10 +17,22 @@ export function PackagesManager() {
 
     // Filter states
     const [activeTab, setActiveTab] = useState<'BRI' | 'BSI' | 'BSI_PLUS'>('BRI');
+    
+    const { setHeaderAction } = useAdminStore();
 
     useEffect(() => {
         loadData();
     }, []);
+
+    useEffect(() => {
+        setHeaderAction({
+            label: 'Dodaj Pakiet',
+            icon: Plus,
+            primary: true,
+            onClick: () => { setEditingPkg(null); setIsModalOpen(true); }
+        });
+        return () => setHeaderAction(null);
+    }, [setHeaderAction]);
 
     const loadData = async () => {
         setLoading(true);
@@ -64,13 +77,6 @@ export function PackagesManager() {
                     <h1 className="text-2xl font-bold text-gray-900">Zarządzanie Pakietami Serwisowymi</h1>
                     <p className="text-gray-500 text-sm">Edytuj pakiety BRI / BSI oraz ich ceny dla poszczególnych serii.</p>
                 </div>
-                <button
-                    onClick={() => { setEditingPkg(null); setIsModalOpen(true); }}
-                    className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-sm hover:bg-gray-800 transition-colors"
-                >
-                    <Plus className="w-4 h-4" />
-                    Dodaj Pakiet
-                </button>
             </div>
 
             {/* Tabs */}

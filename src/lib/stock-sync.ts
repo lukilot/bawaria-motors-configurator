@@ -4,8 +4,16 @@ import { StockCar } from '@/types/stock';
 function generateProductSignature(car: StockCar): string {
     const rawOptions = (car.option_codes || []).map(c => c.trim().toUpperCase()).sort().join('|');
     const individualColor = car.individual_color?.trim().toUpperCase() || '';
-    const content = `${car.model_code}|${car.color_code}|${individualColor}|${car.upholstery_code}|${rawOptions}|${car.production_date ? new Date(car.production_date).getFullYear() : '0'}`;
-    // Simple hash for signature, ensuring Individual colors get their own unique group
+
+    // Historical signature format: Model | Color | IndividualColor | Upholstery | Options | Year
+    // CRITICAL: For 490 (BMW Individual Paint) cars, we MUST NOT group them together automatically.
+    // Even if two 490 cars have identical options and upholstery, they might be painted completely different custom colors.
+    // To enforce this isolation, whenever a car has a '490' color code, we inject its VIN into the signature.
+    // This forces 490 cars into entirely isolated product groups mapping 1-to-1 to the VIN.
+    const isIndividual = car.color_code === '490';
+    const colorSegment = isIndividual ? `490|${car.vin}` : `${car.color_code}|${individualColor}`;
+
+    const content = `${car.model_code}|${colorSegment}|${car.upholstery_code}|${rawOptions}|${car.production_date ? new Date(car.production_date).getFullYear() : '0'}`;
     return content;
 }
 
@@ -19,53 +27,59 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
 
     // Batch fetch incoming VINs to prevent HeadersOverflowError (URI too long)
     const BATCH_SIZE = 500;
+    const existingCarsInfo = new Map<string, any>();
+
     for (let i = 0; i < incomingVins.length; i += BATCH_SIZE) {
         const chunk = incomingVins.slice(i, i + BATCH_SIZE);
         const { data: chunkCars, error } = await supabase
             .from('stock_units')
-            .select('vin, individual_color')
+            .select('vin, individual_color, option_codes, product_group_id')
             .in('vin', chunk);
 
         if (!error && chunkCars) {
             chunkCars.forEach(c => {
                 if (c.individual_color) existingColors.set(c.vin, c.individual_color);
+                existingCarsInfo.set(c.vin, c);
             });
         }
     }
 
     // 0b. Fetch ALL existing product_groups to preserve their images + manual_price
-    // Key: model_code|color_code|upholstery_code → { images, manual_price, id }
-    const { data: existingGroups } = await supabase
-        .from('product_groups')
-        .select('id, model_code, color_code, upholstery_code, images, manual_price, signature');
+    // Key: model_code|color_code|upholstery_code -> { images, manual_price, id }
+    const allGroups: any[] = [];
+    let page = 0;
+    const PAGE_SIZE = 1000;
+    while (true) {
+        const { data } = await supabase
+            .from('product_groups')
+            .select('id, model_code, color_code, upholstery_code, images, manual_price, signature')
+            .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+        if (data) allGroups.push(...data);
+        if (!data || data.length < PAGE_SIZE) break;
+        page++;
+    }
+    const existingGroups = allGroups;
 
-    // Build a lookup map for preserving photos: exact match first, then by model+color
+    // Build lookup maps for groups
     const existingGroupMap = new Map<string, { images: string[] | null; manual_price: number | null; id: string }>();
-    const existingGroupByModelColor = new Map<string, { images: string[] | null; manual_price: number | null; id: string }>();
+    const groupIdToGroupMap = new Map<string, { images: string[] | null; manual_price: number | null; signature: string }>();
 
     existingGroups?.forEach((g: any) => {
-        // Exact key: model + color + upholstery
-        const exactKey = `${g.model_code}|${g.color_code}|${g.upholstery_code}`;
         if ((g.images && g.images.length > 0) || g.manual_price) {
-            existingGroupMap.set(exactKey, { images: g.images, manual_price: g.manual_price, id: g.id });
+            existingGroupMap.set(g.signature, { images: g.images, manual_price: g.manual_price, id: g.id });
         }
-        // Fallback key: model + color only (for when upholstery code changes)
-        const looseyKey = `${g.model_code}|${g.color_code}`;
-        if ((g.images && g.images.length > 0) || g.manual_price) {
-            if (!existingGroupByModelColor.has(looseyKey)) {
-                existingGroupByModelColor.set(looseyKey, { images: g.images, manual_price: g.manual_price, id: g.id });
-            }
-        }
+        groupIdToGroupMap.set(g.id, { images: g.images, manual_price: g.manual_price, signature: g.signature });
     });
 
-    // 1. Prepare Product Groups
     const signatures = new Set<string>();
     const groupsToUpsert: any[] = [];
     const carSignatures = new Map<string, string>(); // VIN -> Signature
 
     cars.forEach(car => {
-        // Inject preserved individual color if it exists
-        if (!car.individual_color && existingColors.has(car.vin)) {
+        // Inject preserved individual color if it exists in DB. 
+        // Excel often contains '490' but not the name. Manual overrides must be protected
+        // to prevent the signature from changing and losing photo links.
+        if (existingColors.has(car.vin)) {
             car.individual_color = existingColors.get(car.vin);
         }
 
@@ -75,10 +89,10 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
         if (!signatures.has(sig)) {
             signatures.add(sig);
 
-            // Look up existing group data to preserve images + manual_price
-            const exactKey = `${car.model_code}|${car.color_code}|${car.upholstery_code}`;
-            const looseKey = `${car.model_code}|${car.color_code}`;
-            const existing = existingGroupMap.get(exactKey) || existingGroupByModelColor.get(looseKey);
+            const existing = existingGroupMap.get(sig);
+
+            // ONLY use images if this exact signature already had them. No rescuing.
+            const finalImages = existing?.images;
 
             groupsToUpsert.push({
                 signature: sig,
@@ -88,8 +102,8 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
                 option_codes: car.option_codes,
                 production_year: car.production_date ? new Date(car.production_date).getFullYear() : new Date().getFullYear(),
                 updated_at: new Date().toISOString(),
-                // Preserve images and prices from existing group with same visual config
-                ...(existing?.images && existing.images.length > 0 ? { images: existing.images } : {}),
+                // Preserve or Rescue images
+                ...(finalImages && finalImages.length > 0 ? { images: finalImages } : {}),
                 ...(existing?.manual_price ? { manual_price: existing.manual_price } : {}),
             });
         }
@@ -142,7 +156,6 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
         return row;
     });
 
-    // Deduplicate by VIN
     const deduped = [...new Map(dbRows.map(r => [r.vin, r])).values()];
 
     const { error, count } = await supabase
@@ -155,6 +168,42 @@ export const syncStockToSupabase = async (cars: StockCar[], source: string = 'Ba
 
     if (error) {
         throw new Error(error.message);
+    }
+
+    // 4. Record Option Changes to sync_logs
+    const logsToInsert: any[] = [];
+    deduped.forEach(car => {
+        const oldCar = existingCarsInfo.get(car.vin);
+        if (oldCar && oldCar.option_codes) {
+            // Compare old vs new
+            const oldOpts = new Set<string>(oldCar.option_codes);
+            const newOpts = new Set<string>(car.option_codes || []);
+
+            const added = (car.option_codes || []).filter((c: string) => !oldOpts.has(c));
+            const removed = (oldCar.option_codes || []).filter((c: string) => !newOpts.has(c));
+
+            if (added.length > 0 || removed.length > 0) {
+                logsToInsert.push({
+                    vin: car.vin,
+                    model_code: car.model_code,
+                    model_name: car.model_name,
+                    color_code: car.color_code,
+                    upholstery_code: car.upholstery_code,
+                    added_options: added,
+                    removed_options: removed,
+                    resolved: false
+                });
+            }
+        }
+    });
+
+    if (logsToInsert.length > 0) {
+        // Silently execute insert to not break sync if the table doesn't exist yet
+        try {
+            await supabase.from('sync_logs').insert(logsToInsert);
+        } catch (e) {
+            console.error('Failed to write sync logs (does the table exist?)', e);
+        }
     }
 
     return { success: true, count };

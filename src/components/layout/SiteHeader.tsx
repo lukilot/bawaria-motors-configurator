@@ -16,7 +16,9 @@ import {
     Coins,
     Tag,
     Car,
-    Search
+    Search,
+    AlertCircle,
+    Settings
 } from 'lucide-react';
 import { useGarageStore } from '@/store/garageStore';
 import { useVdpStore } from '@/store/vdpStore';
@@ -29,7 +31,7 @@ export function SiteHeader() {
     const router = useRouter();
     const { savedCars, toggleGarage, isOpen: isGarageOpen } = useGarageStore();
     const { currentCar, siblings } = useVdpStore();
-    const { currentView, setView, isDirty } = useAdminStore();
+    const { currentView, setView, isDirty, onSave, headerAction } = useAdminStore();
     const count = savedCars.length;
 
     const isVdp = pathname.startsWith('/cars/');
@@ -103,8 +105,10 @@ export function SiteHeader() {
                             {[
                                 { id: 'stock', label: 'Stock', icon: LayoutDashboard },
                                 { id: 'dictionaries', label: 'Knowledge Base', icon: Library },
+                                { id: 'syncLogs', label: 'Raport Zmian', icon: AlertCircle },
                                 { id: 'pricing', label: 'Pakiety', icon: Coins },
                                 { id: 'bulletins', label: 'Warunki', icon: Tag },
+                                { id: 'settings', label: 'Ustawienia', icon: Settings },
                             ].map((item) => (
                                 <button
                                     key={item.id}
@@ -124,23 +128,50 @@ export function SiteHeader() {
 
                         {/* Admin Right: Actions */}
                         <div className="flex items-center gap-3">
-                            <motion.button
-                                initial={false}
-                                onClick={() => isDirty && useAdminStore.getState().onSave?.()}
-                                animate={{
-                                    opacity: isDirty ? 1 : 0.5,
-                                    scale: isDirty ? 1 : 0.95
-                                }}
-                                className={cn(
-                                    "flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.15em] transition-all duration-500",
-                                    isDirty
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95"
-                                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            <AnimatePresence mode="popLayout">
+                                {headerAction ? (
+                                    <motion.button
+                                        key="header-action"
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        onClick={headerAction.onClick}
+                                        disabled={headerAction.disabled}
+                                        className={cn(
+                                            "flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.1em] transition-all duration-300",
+                                            headerAction.primary
+                                                ? "bg-black text-white hover:bg-gray-800 disabled:opacity-50"
+                                                : "bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 disabled:opacity-50"
+                                        )}
+                                    >
+                                        {headerAction.icon && <headerAction.icon className="w-4 h-4" />}
+                                        {headerAction.label}
+                                    </motion.button>
+                                ) : (
+                                    <motion.button
+                                        key="save-action"
+                                        initial={{ opacity: 0 }}
+                                        animate={{
+                                            opacity: isDirty ? 1 : 0.5,
+                                            scale: isDirty ? 1 : 0.95
+                                        }}
+                                        onClick={() => {
+                                            if (isDirty && onSave) {
+                                                onSave();
+                                            }
+                                        }}
+                                        className={cn(
+                                            "flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.15em] transition-all duration-500",
+                                            isDirty
+                                                ? "bg-blue-600 text-white shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95"
+                                                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                        )}
+                                    >
+                                        <Save className="w-3.5 h-3.5" />
+                                        Zapisz zmiany
+                                    </motion.button>
                                 )}
-                            >
-                                <Save className="w-3.5 h-3.5" />
-                                Zapisz zmiany
-                            </motion.button>
+                            </AnimatePresence>
                         </div>
                     </>
                 ) : (

@@ -1,0 +1,7 @@
+
+    loadTag('link', {
+      rel: 'apple-touch-icon',
+      sizes: '48x48',
+      href: `${window.__conGlobal.basePath}/assets/bmw/images/manifest/icon-48x48.png`,
+    });
+  

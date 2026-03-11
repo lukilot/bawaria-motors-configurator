@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { ProductGroup, StockCar } from '@/types/stock';
 import { compressImage } from '@/lib/image-utils';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Save, Upload, Trash2, CheckCircle, Package, Edit, Eye } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Upload, Trash2, CheckCircle, Package, Edit, Eye, Car, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDropzone } from 'react-dropzone';
 import { useParams, useRouter } from 'next/navigation';
+import { useAdminStore } from '@/store/adminStore';
 import {
     DndContext,
     closestCenter,
@@ -76,6 +77,113 @@ function SortableImage({ img, index, onDelete }: { img: any, index: number, onDe
     );
 }
 
+// BMW Import Modal
+function BMWImportModal({ groupId, onComplete, onClose }: { groupId: string; onComplete: (count: number) => void; onClose: () => void }) {
+    const [configId, setConfigId] = useState('');
+    const [overwrite, setOverwrite] = useState(false);
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [result, setResult] = useState<{ count: number; format: string } | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => { inputRef.current?.focus(); }, []);
+
+    const handleImport = async () => {
+        if (!configId.trim()) return;
+        setStatus('loading');
+        setError(null);
+        try {
+            const res = await fetch('/api/admin/import-bmw-images', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ groupId, configId: configId.trim(), overwrite }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Import failed');
+            setResult({ count: data.count, format: data.format });
+            setStatus('success');
+            onComplete(data.count);
+        } catch (e: any) {
+            setError(e.message);
+            setStatus('error');
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+            <div className="bg-white rounded-sm shadow-2xl max-w-md w-full p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <Car className="w-4 h-4 text-blue-600" />
+                        <h3 className="font-bold text-sm uppercase tracking-wider">Importuj z BMW Konfiguratora</h3>
+                    </div>
+                    <button onClick={onClose} className="text-gray-400 hover:text-black transition-colors"><X className="w-4 h-4" /></button>
+                </div>
+
+                {status !== 'success' ? (
+                    <>
+                        <p className="text-xs text-gray-500 mb-4">
+                            Wpisz Config ID z linku BMW konfiguratora.<br />
+                            <span className="font-mono text-[10px] text-gray-400">configure.bmw.pl/pl_PL/configid/<span className="text-blue-600 font-bold">nq46xoyp</span></span>
+                        </p>
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={configId}
+                            onChange={e => setConfigId(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleImport()}
+                            placeholder="np. nq46xoyp"
+                            className="w-full p-3 border border-gray-300 rounded-sm text-sm font-mono mb-3 focus:border-blue-500 outline-none"
+                            disabled={status === 'loading'}
+                        />
+                        <label className="flex items-center gap-2 text-xs text-gray-600 mb-4 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={overwrite}
+                                onChange={e => setOverwrite(e.target.checked)}
+                                className="accent-black"
+                            />
+                            Nadpisz istniejące zdjęcia grupy
+                        </label>
+
+                        {error && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-sm mb-3">
+                                {error}
+                            </div>
+                        )}
+
+                        <button
+                            onClick={handleImport}
+                            disabled={!configId.trim() || status === 'loading'}
+                            className={cn(
+                                "w-full py-2.5 text-sm font-semibold rounded-sm transition-all flex items-center justify-center gap-2",
+                                configId.trim() && status !== 'loading'
+                                    ? "bg-black text-white hover:bg-blue-700"
+                                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            )}
+                        >
+                            {status === 'loading' ? (
+                                <><Loader2 className="w-4 h-4 animate-spin" /> Pobieranie zdjęć z BMW... (~30s)</>
+                            ) : (
+                                <><Car className="w-4 h-4" /> Importuj zdjęcia</>
+                            )}
+                        </button>
+                    </>
+                ) : (
+                    <div className="text-center py-4">
+                        <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-3" />
+                        <p className="font-bold text-gray-900">{result?.count} zdjęć zaimportowanych!</p>
+                        <p className="text-xs text-gray-500 mt-1">Format: <span className="font-mono uppercase">{result?.format}</span></p>
+                        <button onClick={onClose} className="mt-4 px-6 py-2 bg-black text-white text-sm font-semibold rounded-sm hover:bg-gray-800">
+                            Zamknij
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 export default function AdminGroupEditor() {
     const params = useParams();
     const router = useRouter();
@@ -87,6 +195,8 @@ export default function AdminGroupEditor() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const { setDirty, setOnSave } = useAdminStore();
+    const [showBMWModal, setShowBMWModal] = useState(false);
 
     // Form State
     const [manualPrice, setManualPrice] = useState<string>('');
@@ -146,7 +256,7 @@ export default function AdminGroupEditor() {
     }, [id]);
 
     // Save Handler (Metadata)
-    const handleSave = async () => {
+    const handleSave = useCallback(async () => {
         setSaving(true);
         setMsg(null);
 
@@ -165,13 +275,20 @@ export default function AdminGroupEditor() {
             if (error) throw error;
 
             setMsg({ type: 'success', text: 'Group settings saved successfully.' });
+            setDirty(false);
             router.refresh();
         } catch (e: any) {
             setMsg({ type: 'error', text: e.message });
         } finally {
             setSaving(false);
         }
-    };
+    }, [id, manualPrice, description]);
+
+    // Bind save function to the global SiteHeader button
+    useEffect(() => {
+        setOnSave(() => handleSave());
+        return () => setOnSave(null);
+    }, [handleSave, setOnSave]);
 
     // --- Image Manager Handlers ---
     const [uploading, setUploading] = useState(false);
@@ -197,6 +314,7 @@ export default function AdminGroupEditor() {
 
             if (!error) {
                 setGroup({ ...group, images: newImages });
+                // Do not set dirty since arrayMove triggers upsert directly
             }
         }
     };
@@ -302,29 +420,21 @@ export default function AdminGroupEditor() {
     const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 font-sans">
-            <header className="bg-white border-b border-gray-100 py-6 px-8 flex items-center justify-between sticky top-0 z-50">
-                <div className="flex items-center gap-4">
-                    <Link href="/admin" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                        <ArrowLeft className="w-5 h-5 text-gray-500" />
-                    </Link>
-                    <div>
-                        <h1 className="text-xl font-light text-gray-900 tracking-tight">Edit Product Group</h1>
-                        <p className="text-xs text-gray-600 font-mono">{group.signature.substring(0, 16)}...</p>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex items-center gap-2 px-6 py-2 bg-black text-white hover:bg-gray-800 transition-all rounded-sm font-medium text-sm tracking-wide disabled:opacity-50"
-                    >
-                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        Save Group
-                    </button>
-                </div>
-            </header>
-
+        <div className="min-h-screen bg-gray-50 pb-20 font-sans pt-16">
+            {showBMWModal && group && (
+                <BMWImportModal
+                    groupId={group.id}
+                    onComplete={(count) => {
+                        setMsg({ type: 'success', text: `Zaimportowano ${count} zdjęć z BMW Konfiguratora.` });
+                        // Refresh group images from DB
+                        supabase.from('product_groups').select('images').eq('id', group.id).single().then(({ data }) => {
+                            if (data) setGroup(g => g ? { ...g, images: data.images || [] } : g);
+                        });
+                        setShowBMWModal(false);
+                    }}
+                    onClose={() => setShowBMWModal(false)}
+                />
+            )}
             <div className="max-w-7xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Images & Units */}
                 <div className="lg:col-span-2 space-y-8">
@@ -336,11 +446,20 @@ export default function AdminGroupEditor() {
                                 <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900">Shared Gallery</h3>
                                 <p className="text-[10px] text-gray-500 uppercase mt-1">Photos upload here apply to ALL cars in this group.</p>
                             </div>
+                            <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowBMWModal(true)}
+                                className="flex items-center gap-1.5 text-[10px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-sm border border-blue-200 transition-colors uppercase tracking-wide"
+                            >
+                                <Car className="w-3 h-3" />
+                                BMW Import
+                            </button>
                             {group.images && group.images.length > 0 && (
                                 <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-sm">
                                     {group.images.length} Photos
                                 </span>
                             )}
+                            </div>
                         </div>
 
                         <DndContext
@@ -490,7 +609,10 @@ export default function AdminGroupEditor() {
                             <input
                                 type="number"
                                 value={manualPrice}
-                                onChange={(e) => setManualPrice(e.target.value)}
+                                onChange={(e) => {
+                                    setManualPrice(e.target.value);
+                                    setDirty(true);
+                                }}
                                 placeholder="Catalogue price for all units..."
                                 className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 focus:border-blue-500 outline-none font-bold placeholder:text-gray-400"
                             />
@@ -504,7 +626,10 @@ export default function AdminGroupEditor() {
                             <label className="block text-xs font-semibold uppercase text-gray-700 mb-2">Description / Note</label>
                             <textarea
                                 value={description}
-                                onChange={(e) => setDescription(e.target.value)}
+                                onChange={(e) => {
+                                    setDescription(e.target.value);
+                                    setDirty(true);
+                                }}
                                 rows={4}
                                 className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
                                 placeholder="Internal notes or public description..."

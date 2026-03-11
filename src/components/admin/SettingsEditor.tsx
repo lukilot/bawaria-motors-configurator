@@ -50,38 +50,33 @@ export function SettingsEditor() {
         }
     };
 
-    const handleSave = useCallback(async () => {
-        setSaving(true);
-        try {
-            const updates = Object.entries(settings).map(([key, value]) => ({
-                key,
-                value
-            }));
-
-            const { error } = await supabase.from('site_settings').upsert(updates, { onConflict: 'key' });
-            if (error) throw error;
-
-            setDirty(false);
-            alert('Settings saved!');
-        } catch (err) {
-            console.error('Error saving settings:', err);
-            alert('Failed to save settings');
-        } finally {
-            setSaving(false);
-        }
-    }, [settings, setDirty]);
-
-    // Keep the ref current on every render
+    // Remove old ref-based effect that didn't sync updates back correctly. 
+    // Instead simply watch state and push the save handler explicitly down to store bounds whenever it's active.
     useEffect(() => {
-        handleSaveRef.current = handleSave;
-    });
+        setOnSave(async () => {
+            setSaving(true);
+            try {
+                const updates = Object.entries(settings).map(([key, value]) => ({
+                    key,
+                    value
+                }));
 
-    // Register with the store ONCE on mount, pointing to the ref
-    useEffect(() => {
-        setOnSave(() => handleSaveRef.current?.());
+                const { error } = await supabase.from('site_settings').upsert(updates, { onConflict: 'key' });
+                if (error) throw error;
+
+                setDirty(false);
+                alert('Settings saved!');
+            } catch (err) {
+                console.error('Error saving settings:', err);
+                alert('Failed to save settings');
+            } finally {
+                setSaving(false);
+            }
+        });
+
+        // Cleanup on unmount
         return () => setOnSave(null);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [settings, setDirty, setOnSave]);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'desktop' | 'mobile') => {
         const file = e.target.files?.[0];
@@ -122,6 +117,7 @@ export function SettingsEditor() {
                 ...prev,
                 [type === 'desktop' ? 'intro_media_url' : 'intro_media_url_mobile']: url
             }));
+            setDirty(true);
         } catch (err: any) {
             console.error('Error uploading file:', err);
             alert(`Upload failed: ${err.message}`);
@@ -166,7 +162,10 @@ export function SettingsEditor() {
                                 <img src={settings.intro_media_url} alt="Preview" className="w-full h-full object-cover" />
                             )}
                             <button
-                                onClick={() => setSettings({ ...settings, intro_media_url: '' })}
+                                onClick={() => {
+                                    setSettings({ ...settings, intro_media_url: '' });
+                                    setDirty(true);
+                                }}
                                 className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm"
                             >
                                 <X className="w-3 h-3 text-red-500" />
@@ -204,7 +203,10 @@ export function SettingsEditor() {
                                 <img src={settings.intro_media_url_mobile} alt="Preview" className="w-full h-full object-cover" />
                             )}
                             <button
-                                onClick={() => setSettings({ ...settings, intro_media_url_mobile: '' })}
+                                onClick={() => {
+                                    setSettings({ ...settings, intro_media_url_mobile: '' });
+                                    setDirty(true);
+                                }}
                                 className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm"
                             >
                                 <X className="w-3 h-3 text-red-500" />

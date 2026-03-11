@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
+import { launchBrowser } from '@/lib/browser-launcher';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -36,11 +37,9 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing configuratorUrl or bodyGroup' }, { status: 400 });
         }
 
-        const puppeteer = await import('puppeteer');
-        browser = await puppeteer.default.launch({
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-        });
+        // Launch browser (works on Vercel + local)
+        browser = await launchBrowser();
+
 
         const page = await browser.newPage();
 

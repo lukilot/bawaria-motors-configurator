@@ -114,26 +114,26 @@ export async function POST(request: NextRequest) {
                     .maybeSingle();
 
                 if (existing) {
-                    // Merge: add bodyGroup if not already there, update image_url if missing
+                    // Merge: add bodyGroup if not already there, update image_url
                     const existingBodyGroups: string[] = existing.data?.body_groups || [];
                     const updatedBodyGroups = existingBodyGroups.includes(bodyGroup)
                         ? existingBodyGroups
                         : [...existingBodyGroups, bodyGroup];
 
-                    await supabase
+                    const { error: updateError } = await supabase
                         .from('dictionaries')
                         .update({
                             data: {
                                 ...existing.data,
                                 body_groups: updatedBodyGroups,
-                                image_url: existing.data?.image_url || imageUrl, // don't overwrite manual images
+                                image_url: existing.data?.image_url || imageUrl,
                             },
-                            image_url: existing.data?.image_url || imageUrl,
                         })
                         .eq('id', existing.id);
+                    if (updateError) throw updateError;
                 } else {
                     // Insert new entry
-                    await supabase
+                    const { error: insertError } = await supabase
                         .from('dictionaries')
                         .insert({
                             type: 'option',
@@ -144,8 +144,8 @@ export async function POST(request: NextRequest) {
                                 body_groups: [bodyGroup],
                                 image_url: imageUrl,
                             },
-                            image_url: imageUrl,
                         });
+                    if (insertError) throw insertError;
                 }
 
                 imported++;

@@ -113,10 +113,13 @@ export function SiteHeader() {
                             ].map((item) => (
                                 <button
                                     key={item.id}
-                                    onClick={() => setView(item.id as AdminView)}
+                                onClick={() => {
+                                        setView(item.id as AdminView);
+                                        router.push('/admin');
+                                    }}
                                     className={cn(
                                         "flex items-center gap-2 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all rounded-full",
-                                        currentView === item.id
+                                        !pathname.startsWith('/admin/options') && currentView === item.id
                                             ? "bg-white text-black shadow-sm"
                                             : "text-gray-500 hover:text-gray-900"
                                     )}

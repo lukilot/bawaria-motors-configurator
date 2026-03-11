@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type AdminView = 'stock' | 'dictionaries' | 'pricing' | 'bulletins' | 'settings' | 'syncLogs';
+export type AdminView = 'stock' | 'dictionaries' | 'pricing' | 'bulletins' | 'settings' | 'syncLogs' | 'mappings';
 
 export interface HeaderAction {
     label: string;

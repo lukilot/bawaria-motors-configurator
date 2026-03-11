@@ -59,15 +59,15 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false, is
                                         )}>
                                             {/* Thumbnail Placeholder */}
                                             <div className={cn(
-                                                "w-24 h-16 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden",
+                                                "w-32 h-24 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden",
                                                 isDark ? "bg-[#1a1a1a]" : "bg-white"
                                             )}>
                                                 <img
                                                     src={child.image || `https://placehold.co/100x60/f3f4f6/a3a3a3?text=${child.code}`}
                                                     alt={child.code}
                                                     className={cn(
-                                                        "w-full h-full object-contain p-1",
-                                                        !child.image && "opacity-50 mix-blend-multiply object-cover p-0",
+                                                        "w-full h-full object-contain",
+                                                        !child.image && "opacity-50 mix-blend-multiply",
                                                         isDark && !child.image && "invert opacity-30"
                                                     )}
                                                 />
@@ -95,7 +95,7 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false, is
                 {/* Standard Options Section */}
                 <div>
                     <h4 className={cn("text-lg font-bold uppercase tracking-wide border-b pb-4 mb-6", isDark ? "text-white border-gray-800" : "text-gray-900 border-gray-200")}>
-                        Opcje standardowe
+                        Opcje
                     </h4>
                     <div className="grid grid-cols-1 gap-4">
                         {optionGroups.filter(g => g.type === 'standard').length > 0 ? (
@@ -110,14 +110,14 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false, is
                                 )}>
                                     {/* Thumbnail Placeholder */}
                                     <div className={cn(
-                                        "w-24 h-16 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden",
+                                        "w-32 h-24 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden",
                                         isDark ? "bg-[#1a1a1a]" : "bg-white"
                                     )}>
                                         <img
                                             src={group.image || `https://placehold.co/100x60/f3f4f6/a3a3a3?text=${group.code}`}
                                             alt={group.code}
                                             className={cn(
-                                                "w-full h-full object-cover",
+                                                "w-full h-full object-contain",
                                                 !group.image && "opacity-50 mix-blend-multiply",
                                                 isDark && !group.image && "invert opacity-30"
                                             )}

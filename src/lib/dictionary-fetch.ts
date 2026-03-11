@@ -76,3 +76,37 @@ export async function getAllDictionaries() {
         return acc;
     }, defaults);
 }
+
+export function resolveDictionaryEntry(code: string, dictionaries: any, type: DictionaryItem['type'], bodyGroup?: string) {
+    const entry = dictionaries[type][code];
+    if (!entry) return undefined;
+
+    const findBestData = (dataOrArray: any) => {
+        if (!Array.isArray(dataOrArray)) {
+            // Check if there are variations defined in a single object (deprecated but for safety)
+            if (dataOrArray.variations && bodyGroup) {
+                const variation = dataOrArray.variations.find((v: any) =>
+                    v.body_groups && v.body_groups.includes(bodyGroup)
+                );
+                if (variation) return variation;
+            }
+            return dataOrArray;
+        }
+
+        if (bodyGroup) {
+            const match = dataOrArray.find((data: any) =>
+                data.body_groups && Array.isArray(data.body_groups) && data.body_groups.includes(bodyGroup)
+            );
+            if (match) return match;
+        }
+
+        // Return generic or first
+        return dataOrArray.find((data: any) => !data.body_groups || data.body_groups.length === 0) || dataOrArray[0];
+    };
+
+    const bestData = findBestData(entry);
+    return {
+        ...bestData,
+        image: bestData?.image || bestData?.image_url
+    };
+}

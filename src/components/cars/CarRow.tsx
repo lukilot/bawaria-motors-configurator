@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getColor } from '@/lib/colors';
+import { resolveDictionaryEntry } from '@/lib/dictionary-fetch';
 
 interface CarRowProps {
     car: StockCar;
@@ -114,7 +115,15 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
             : car.list_price;
 
     const hasDiscount = rawEffectivePrice < car.list_price;
-    const colorName = dictionaries.color[car.color_code]?.name;
+    
+    // Resolve names for the main view and spec drawer
+    const colorOpt = resolveDictionaryEntry(car.color_code, dictionaries, 'option', car.body_group);
+    const colorName = colorOpt?.name || (car.color_code === '490'
+        ? (dictionaries.color[car.individual_color || '']?.name || car.individual_color || 'BMW Individual')
+        : (dictionaries.color[car.color_code]?.name || car.color_code));
+
+    const upholsteryOpt = resolveDictionaryEntry(car.upholstery_code, dictionaries, 'option', car.body_group);
+    const upholsteryName = upholsteryOpt?.name || (dictionaries.upholstery[car.upholstery_code]?.name || car.upholstery_code);
 
     return (
         <div className="group relative w-full transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] will-change-transform shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] md:hover:-translate-y-1 z-10">
@@ -411,24 +420,24 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                             isMSeries ? "bg-white/5 md:bg-black/95 border border-white/5 md:border-white/10 md:border-b-0 md:backdrop-blur-2xl" : "bg-gray-50 md:bg-white/95 border border-gray-100 md:border-gray-200/80 md:border-b-0 md:backdrop-blur-2xl")}>
                             <div className="flex flex-col min-w-0">
                                 <span className={cn("text-[8px] uppercase font-bold tracking-wider mb-1", isMSeries ? "text-white/40" : "text-gray-400")}>Lakier</span>
-                                {car.color_code === '490' ? (
-                                    <BMWIndividualBadge
-                                        compact
-                                        className={cn("text-[10px] font-bold uppercase", isMSeries ? "text-white drop-shadow-md" : "text-gray-900")}
-                                        colorName={dictionaries.color[car.individual_color || '']?.name || car.individual_color}
-                                    />
-                                ) : (
-                                    <span className={cn("text-[10px] font-bold uppercase break-words leading-tight mt-0.5", isMSeries ? "text-white drop-shadow-md" : "text-gray-900")}>
-                                        {dictionaries.color[car.color_code]?.name || car.color_code}
-                                    </span>
-                                )}
+                                 {car.color_code === '490' ? (
+                                     <BMWIndividualBadge
+                                         compact
+                                         className={cn("text-[10px] font-bold uppercase", isMSeries ? "text-white drop-shadow-md" : "text-gray-900")}
+                                         colorName={colorName}
+                                     />
+                                 ) : (
+                                     <span className={cn("text-[10px] font-bold uppercase break-words leading-tight mt-0.5", isMSeries ? "text-white drop-shadow-md" : "text-gray-900")}>
+                                         {colorName}
+                                     </span>
+                                 )}
                             </div>
-                            <div className="flex flex-col min-w-0">
-                                <span className={cn("text-[8px] uppercase font-bold tracking-wider mb-1", isMSeries ? "text-white/40" : "text-gray-400")}>Tapicerka</span>
-                                <span className={cn("text-[10px] font-bold uppercase break-words leading-tight mt-0.5", isMSeries ? "text-white drop-shadow-md" : "text-gray-900")}>
-                                    {dictionaries.upholstery[car.upholstery_code]?.name || car.upholstery_code}
-                                </span>
-                            </div>
+                             <div className="flex flex-col min-w-0">
+                                 <span className={cn("text-[8px] uppercase font-bold tracking-wider mb-1", isMSeries ? "text-white/40" : "text-gray-400")}>Tapicerka</span>
+                                 <span className={cn("text-[10px] font-bold uppercase break-words leading-tight mt-0.5", isMSeries ? "text-white drop-shadow-md" : "text-gray-900")}>
+                                     {upholsteryName}
+                                 </span>
+                             </div>
                             <div className="flex flex-col">
                                 <span className={cn("text-[8px] uppercase font-bold tracking-wider mb-1", isMSeries ? "text-white/40" : "text-gray-400")}>Napęd</span>
                                 <span className={cn("text-[10px] font-bold uppercase truncate", isElectric && !isMSeries ? "text-blue-600" : isMSeries ? "text-white drop-shadow-md" : "text-gray-900")}>

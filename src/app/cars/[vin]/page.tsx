@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getCarByVin, getCarVariants, getAvailableCars } from '@/lib/stock-fetch';
-import { getAllDictionaries } from '@/lib/dictionary-fetch';
+import { getAllDictionaries, resolveDictionaryEntry } from '@/lib/dictionary-fetch';
 import { getServicePackages } from '@/lib/service-packages';
 import { getActiveBulletins, getCarDiscountedPrice } from '@/lib/bulletin-fetch';
 import { CarGallery } from '@/components/cars/CarGallery';
@@ -36,31 +36,12 @@ interface OptionGroup {
     children: OptionItem[];
 }
 
-function parseOptionGroups(codes: string[], optionDict: Record<string, any> = {}, bodyGroup?: string, restrictedCodes?: Set<string>): OptionGroup[] {
+function parseOptionGroups(codes: string[], dictionaries: any, bodyGroup?: string, restrictedCodes?: Set<string>): OptionGroup[] {
     const groups: OptionGroup[] = [];
     const childrenSet = new Set<string>();
 
     const getOptionData = (code: string) => {
-        const entry = optionDict[code];
-        if (!entry) return undefined;
-        if (!Array.isArray(entry)) {
-            if (entry.variations && bodyGroup) {
-                const variation = entry.variations.find((v: any) =>
-                    v.body_groups && v.body_groups.includes(bodyGroup)
-                );
-                if (variation && (variation.image || variation.image_url)) return { ...entry, image: variation.image || variation.image_url };
-            }
-            return { ...entry, image: entry.image || entry.image_url };
-        }
-        if (bodyGroup) {
-            const match = entry.find((data: any) =>
-                data.body_groups && Array.isArray(data.body_groups) && data.body_groups.includes(bodyGroup)
-            );
-            if (match) return { ...match, image: match.image || match.image_url };
-        }
-        const generic = entry.find((data: any) => !data.body_groups || data.body_groups.length === 0);
-        const finalEntry = generic || entry[0];
-        return { ...finalEntry, image: finalEntry?.image || finalEntry?.image_url };
+        return resolveDictionaryEntry(code, dictionaries, 'option', bodyGroup);
     };
 
     codes.forEach(raw => {
@@ -144,10 +125,16 @@ export default async function CarPage({ params }: PageProps) {
     const variants = await getCarVariants(car);
     const modelDict = dictionaries.model[car.model_code] || {};
     const modelName = modelDict.name || car.model_name || `BMW ${car.model_code}`;
-    const colorName = car.color_code === '490'
+    
+    // Resolve Color & Upholstery with priority to dictionaries.option (which has marketing names)
+    const colorOpt = resolveDictionaryEntry(car.color_code, dictionaries, 'option', car.body_group);
+    const colorName = colorOpt?.name || (car.color_code === '490'
         ? (dictionaries.color[car.individual_color || '']?.name || car.individual_color || 'BMW Individual')
-        : (dictionaries.color[car.color_code]?.name || car.color_code);
-    const upholsteryName = dictionaries.upholstery[car.upholstery_code]?.name || car.upholstery_code;
+        : (dictionaries.color[car.color_code]?.name || car.color_code));
+
+    const upholsteryOpt = resolveDictionaryEntry(car.upholstery_code, dictionaries, 'option', car.body_group);
+    const upholsteryName = upholsteryOpt?.name || (dictionaries.upholstery[car.upholstery_code]?.name || car.upholstery_code);
+
     const staticAttrs = getModelAttributes(car.model_code);
 
     const enrichedCar = {
@@ -167,7 +154,7 @@ export default async function CarPage({ params }: PageProps) {
 
     const reservationStr = (car.reservation_details || '').trim();
     const restrictedCodes = new Set(servicePkgs.map(p => p.code));
-    const optionGroups = parseOptionGroups(car.option_codes, dictionaries.option, car.body_group, restrictedCodes);
+    const optionGroups = parseOptionGroups(car.option_codes, dictionaries, car.body_group, restrictedCodes);
 
     const allImages = [...(car as any).group_images || [], ...(car.images || [])];
     const uniqueImages = Array.from(new Map(allImages.map(img => [img.url, img])).values());

@@ -41,6 +41,25 @@ export function SiteHeader() {
     const totalAvailable = siblings?.length || 0; // siblings already includes current car
 
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [unmappedCount, setUnmappedCount] = useState(0);
+
+    const fetchUnmapped = async () => {
+        try {
+            const res = await fetch('/api/admin/mappings');
+            const data = await res.json();
+            if (data.unmapped) setUnmappedCount(data.unmapped.length);
+        } catch (e) {
+            console.error('Failed to fetch unmapped count:', e);
+        }
+    };
+
+    useEffect(() => {
+        if (isAdmin) {
+            fetchUnmapped();
+            const interval = setInterval(fetchUnmapped, 60000); // Poll every minute
+            return () => clearInterval(interval);
+        }
+    }, [isAdmin]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -109,6 +128,7 @@ export function SiteHeader() {
                                 { id: 'syncLogs', label: 'Raport Zmian', icon: AlertCircle },
                                 { id: 'pricing', label: 'Pakiety', icon: Coins },
                                 { id: 'bulletins', label: 'Warunki', icon: Tag },
+                                { id: 'mappings', label: 'Mapowania', icon: AlertCircle, badge: unmappedCount },
                                 { id: 'settings', label: 'Ustawienia', icon: Settings },
                             ].map((item) => (
                                 <button
@@ -126,6 +146,11 @@ export function SiteHeader() {
                                 >
                                     <item.icon className="w-3.5 h-3.5" />
                                     {item.label}
+                                    {(item as any).badge > 0 && (
+                                        <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold">
+                                            {(item as any).badge}
+                                        </span>
+                                    )}
                                 </button>
                             ))}
                             {/* Options — separate route */}

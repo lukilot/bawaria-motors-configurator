@@ -160,6 +160,12 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
             if (['FWD', 'Na przód'].includes(rawDrive)) drive = 'Na przód';
             if (['RWD', 'Na tył'].includes(rawDrive)) drive = 'Na tył';
 
+            // Resolve Color Group:
+            // 1. Look in base dictionaries.color (classic mapping)
+            // 2. Fallback to dictionaries.option (marketing name) but must have mapping in color dict for group
+            const colorData = (dictionaries.color[car.color_code] as any);
+            const upholsteryData = (dictionaries.upholstery[car.upholstery_code] as any);
+
             return {
                 ...car,
                 model_name: (modelDict.name as string) || car.model_name,
@@ -171,8 +177,8 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                 acceleration: modelDict.acceleration as string,
                 max_speed: modelDict.max_speed as string,
                 trunk_capacity: modelDict.trunk_capacity as string,
-                color_group: (dictionaries.color[car.color_code] as any)?.group,
-                upholstery_group: (dictionaries.upholstery[car.upholstery_code] as any)?.group,
+                color_group: colorData?.group,
+                upholstery_group: upholsteryData?.group,
                 special_price: bulletinPrices?.[car.vin] || car.special_price
             };
         });

@@ -10,6 +10,7 @@ import { BulletinManager } from '@/components/admin/BulletinManager';
 import { SettingsEditor } from '@/components/admin/SettingsEditor';
 import { AdminAuth } from '@/components/admin/AdminAuth';
 import { SyncLogs } from '@/components/admin/SyncLogs';
+import { MappingManager } from '@/components/admin/MappingManager';
 import { useAdminStore } from '@/store/adminStore';
 import { cn } from '@/lib/utils';
 
@@ -46,6 +47,10 @@ export default function AdminPage() {
                     ) : currentView === 'bulletins' ? (
                         <div className="animate-in fade-in duration-500">
                             <BulletinManager />
+                        </div>
+                    ) : currentView === 'mappings' ? (
+                        <div className="animate-in fade-in duration-500">
+                            <MappingManager />
                         </div>
                     ) : (
                         <div className="animate-in fade-in duration-500">

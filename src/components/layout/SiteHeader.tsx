@@ -18,7 +18,8 @@ import {
     Car,
     Search,
     AlertCircle,
-    Settings
+    Settings,
+    Package
 } from 'lucide-react';
 import { useGarageStore } from '@/store/garageStore';
 import { useVdpStore } from '@/store/vdpStore';
@@ -124,6 +125,19 @@ export function SiteHeader() {
                                     {item.label}
                                 </button>
                             ))}
+                            {/* Options — separate route */}
+                            <Link
+                                href="/admin/options"
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all rounded-full",
+                                    pathname.startsWith('/admin/options')
+                                        ? "bg-white text-black shadow-sm"
+                                        : "text-gray-500 hover:text-gray-900"
+                                )}
+                            >
+                                <Package className="w-3.5 h-3.5" />
+                                Options
+                            </Link>
                         </nav>
 
                         {/* Admin Right: Actions */}

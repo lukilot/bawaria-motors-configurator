@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
-import { Loader2, ArrowLeft, Download, Pencil, Check, X } from 'lucide-react';
+import { Loader2, ArrowLeft, Download, Pencil, Check, X, Trash2, Image as ImageIcon, Upload } from 'lucide-react';
 import { AdminAuth } from '@/components/admin/AdminAuth';
 import BMWOptionsImportModal from '@/components/admin/BMWOptionsImportModal';
 import Image from 'next/image';
@@ -94,6 +94,49 @@ export default function BodyGroupOptionsPage() {
         setOptions(prev => prev.map(o => o.id === opt.id ? { ...o, data: { ...o.data, name: editName } } : o));
         setSavingId(null);
         setEditingId(null);
+    };
+
+    const handleDeleteOption = async (opt: OptionItem) => {
+        if (!confirm(`Czy na pewno chcesz usunąć opcję ${opt.code} z modelu ${bodyGroup}?`)) return;
+        
+        const updatedGroups = (opt.data.body_groups || []).filter(bg => bg !== bodyGroup);
+        
+        const { error } = await supabase
+            .from('dictionaries')
+            .update({ data: { ...opt.data, body_groups: updatedGroups } })
+            .eq('id', opt.id);
+
+        if (!error) {
+            setOptions(prev => prev.filter(o => o.id !== opt.id));
+        }
+    };
+
+    const handleImageUpload = async (opt: OptionItem, file: File) => {
+        setSavingId(opt.id);
+        try {
+            const filename = `options/${bodyGroup}/${opt.code}_${Date.now()}.webp`;
+            const { error: uploadError } = await supabase.storage
+                .from('stock-images')
+                .upload(filename, file, { upsert: true });
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage.from('stock-images').getPublicUrl(filename);
+
+            const { error: updateError } = await supabase
+                .from('dictionaries')
+                .update({ data: { ...opt.data, image_url: publicUrl } })
+                .eq('id', opt.id);
+
+            if (updateError) throw updateError;
+
+            setOptions(prev => prev.map(o => o.id === opt.id ? { ...o, data: { ...o.data, image_url: publicUrl } } : o));
+        } catch (err) {
+            console.error('Upload failed:', err);
+            alert('Błąd podczas wgrywania zdjęcia');
+        } finally {
+            setSavingId(null);
+        }
     };
 
     const categoryCounts = {
@@ -188,8 +231,8 @@ export default function BodyGroupOptionsPage() {
                                             isEditing ? "border-blue-300 shadow-md" : "border-gray-100 hover:border-gray-200 hover:shadow-sm"
                                         )}
                                     >
-                                        {/* Image */}
-                                        <div className="relative aspect-square bg-gray-50">
+                                        {/* Image overlay with upload */}
+                                        <div className="relative aspect-square bg-gray-50 group/img">
                                             {opt.data?.image_url ? (
                                                 <Image
                                                     src={opt.data.image_url}
@@ -199,13 +242,30 @@ export default function BodyGroupOptionsPage() {
                                                     sizes="160px"
                                                 />
                                             ) : (
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <span className="text-[9px] text-gray-300 font-bold uppercase">Brak</span>
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                                                    <span className="text-[9px] text-gray-300 font-bold uppercase tracking-widest">Brak</span>
+                                                    <ImageIcon className="w-4 h-4 text-gray-200" />
                                                 </div>
                                             )}
+                                            
+                                            {/* Upload overlay */}
+                                            <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 cursor-pointer">
+                                                <Upload className="w-5 h-5 text-white" />
+                                                <span className="text-[8px] font-bold text-white uppercase tracking-wider">Zmień zdjęcie</span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={e => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) handleImageUpload(opt, file);
+                                                    }}
+                                                />
+                                            </label>
+
                                             {/* Category badge */}
                                             <div className={cn(
-                                                "absolute top-1.5 left-1.5 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded",
+                                                "absolute top-1.5 left-1.5 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded z-10",
                                                 cat === 'paint' ? "bg-amber-50 text-amber-600" :
                                                 cat === 'upholstery' ? "bg-rose-50 text-rose-600" :
                                                 cat === 'package' ? "bg-purple-50 text-purple-600" :
@@ -213,6 +273,20 @@ export default function BodyGroupOptionsPage() {
                                             )}>
                                                 {cat === 'paint' ? 'L' : cat === 'upholstery' ? 'T' : cat === 'package' ? 'P' : 'W'}
                                             </div>
+
+                                            {/* Trash button */}
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleDeleteOption(opt); }}
+                                                className="absolute top-1.5 right-1.5 p-1.5 bg-white shadow-sm border border-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 z-10"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
+
+                                            {savingId === opt.id && (
+                                                <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-20">
+                                                    <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Info */}

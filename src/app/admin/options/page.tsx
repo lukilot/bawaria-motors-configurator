@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Loader2, ChevronRight, Package, Plus } from 'lucide-react';
+import { Loader2, ChevronRight, Package, Plus, Trash2 } from 'lucide-react';
 import { AdminAuth } from '@/components/admin/AdminAuth';
 import BMWOptionsImportModal from '@/components/admin/BMWOptionsImportModal';
 
@@ -47,6 +47,29 @@ export default function OptionsPage() {
 
         setGroups(sorted);
         setIsLoading(false);
+    };
+
+    const handleDeleteGroup = async (bodyGroup: string) => {
+        if (!confirm(`Czy na pewno chcesz usunąć całą grupę ${bodyGroup}? Spowoduje to odpięcie wszystkich opcji od tego modelu.`)) return;
+        
+        setIsLoading(true);
+        const { data: items } = await supabase
+            .from('dictionaries')
+            .select('id, data')
+            .eq('type', 'option')
+            .contains('data', { body_groups: [bodyGroup] });
+
+        if (items) {
+            for (const item of items) {
+                const updatedGroups = (item.data.body_groups || []).filter((g: string) => g !== bodyGroup);
+                await supabase
+                    .from('dictionaries')
+                    .update({ data: { ...item.data, body_groups: updatedGroups } })
+                    .eq('id', item.id);
+            }
+        }
+
+        await fetchGroups();
     };
 
     useEffect(() => { fetchGroups(); }, []);
@@ -96,7 +119,15 @@ export default function OptionsPage() {
                                             <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center group-hover:bg-blue-50 transition-colors">
                                                 <Package className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
                                             </div>
-                                            <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition-colors" />
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group.bodyGroup); }}
+                                                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded transition-all"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition-colors" />
+                                            </div>
                                         </div>
                                         <p className="text-lg font-bold text-gray-900 tracking-tight">{group.bodyGroup}</p>
                                         <p className="text-xs text-gray-400 mt-0.5">{group.count} opcji</p>

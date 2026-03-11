@@ -7,6 +7,27 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+function normalizeCode(code: string): string {
+    if (!code) return '';
+    
+    // S0248 -> 248 (3 chars)
+    // S0337 -> 337 (3 chars)
+    if (code.startsWith('S0')) return code.substring(2);
+    
+    // P0C31 -> C31 (3 chars)
+    if (code.startsWith('P0')) return code.substring(2);
+    
+    // PI337 -> 337 (3 chars)
+    // PIC4E -> C4E (3 chars)
+    if (code.startsWith('PI') && code.length > 4) return code.substring(2);
+    
+    // FKUMY -> KUMY (4 chars as per user: 'upholstery is 4 characters')
+    // FBLAT -> BLAT
+    if (code.match(/^[FKZ][A-Z0-9]{4}$/)) return code.substring(1);
+    
+    return code;
+}
+
 async function fetchAndCompress(url: string): Promise<Buffer> {
     const response = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BawariaBot/1.0)' }
@@ -37,42 +58,52 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing configuratorUrl or bodyGroup' }, { status: 400 });
         }
 
-        // Launch browser (works on Vercel + local)
         browser = await launchBrowser();
-
-
         const page = await browser.newPage();
 
-        let optionImages: Record<string, string> = {};   // code -> COSY URL
-        let optionNames: Record<string, string> = {};    // code -> fallback name
-        let marketingTexts: Record<string, { name: string; salesText?: string; category?: string }> = {};
+        let rawOptionImages: Record<string, string> = {};   // RAW code -> COSY URL
+        let rawOptionNames: Record<string, string> = {};    // RAW code -> name
+        let marketingTexts: Record<string, { name: string; category?: string }> = {};
 
         page.on('response', async (response: any) => {
             const url = response.url();
             try {
+                // 1. Grid payload (images + some names)
                 if (url.includes('option-selector-grid')) {
                     const json = await response.json();
                     const desktop = json?.collections?.['option-selector-grid']?.desktop || {};
                     for (const [code, data] of Object.entries(desktop as Record<string, any>)) {
                         const imgUrl = data?.imageGroups?.[0]?.images?.[0]?.viewImage;
-                        if (imgUrl && !optionImages[code]) {
-                            optionImages[code] = imgUrl;
+                        if (imgUrl && !rawOptionImages[code]) {
+                            rawOptionImages[code] = imgUrl;
                         }
                         const name = data?.salesText || data?.title;
-                        if (name && !optionNames[code]) {
-                            optionNames[code] = name;
+                        if (name && !rawOptionNames[code]) {
+                            rawOptionNames[code] = name;
                         }
                     }
                 }
 
-                if (url.includes('localisations/marketing-texts') && url.includes('validity')) {
+                // 2. Pricing payload (labels for EVERYTHING, including standard equipment/selected)
+                if (url.includes('pricing/calculation')) {
+                    const json = await response.json();
+                    const components = json?.publicCalculation?.components || [];
+                    for (const comp of components) {
+                        const code = comp.componentId;
+                        if (code && comp.label && !rawOptionNames[code]) {
+                            rawOptionNames[code] = comp.label;
+                        }
+                    }
+                }
+
+                // 3. Marketing texts (fallback)
+                if (url.includes('localisations/marketing-texts')) {
                     const json = await response.json();
                     for (const [code, data] of Object.entries(json as Record<string, any>)) {
-                        if (!marketingTexts[code]) {
+                        if (data && !marketingTexts[code]) {
                             marketingTexts[code] = {
-                                name: (data as any).option || (data as any).salesText || code,
-                                salesText: (data as any).salesText,
-                                category: (data as any).category,
+                                name: (data as any).salesText || (data as any).option || code,
+                                category: (data as any).category
                             };
                         }
                     }
@@ -82,46 +113,46 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        await page.goto(configuratorUrl, { waitUntil: 'networkidle2', timeout: 60000 });
-        await new Promise(r => setTimeout(r, 4000));
+        await page.goto(configuratorUrl, { waitUntil: 'networkidle2', timeout: 90000 });
+        await new Promise(r => setTimeout(r, 6000));
         await browser.close();
         browser = null;
 
-        const codes = Object.keys(optionImages);
-        if (codes.length === 0) {
-            return NextResponse.json({ error: 'No option images found. Check configuratorUrl.' }, { status: 404 });
+        // Process all found codes (keys from images + names + texts)
+        const allRawCodes = new Set([
+            ...Object.keys(rawOptionImages),
+            ...Object.keys(rawOptionNames),
+            ...Object.keys(marketingTexts)
+        ]);
+
+        if (allRawCodes.size === 0) {
+            return NextResponse.json({ error: 'No options found. Check URL.' }, { status: 404 });
         }
 
         let imported = 0;
         let skipped = 0;
         const errors: string[] = [];
 
-        for (const code of codes) {
+        // Map everything to normalized codes
+        for (const rawCode of allRawCodes) {
             try {
-                const cosyUrl = optionImages[code];
-                const textData = marketingTexts[code];
+                const code = normalizeCode(rawCode);
+                if (!code || code.length < 2) continue;
 
-                // Download + compress + upload to Supabase (permanent storage)
-                const compressed = await fetchAndCompress(cosyUrl);
-                const imageUrl = await uploadToSupabase(compressed, bodyGroup, code);
-
-                // Detect exact category type from code prefix
-                let categoryType: 'paint' | 'upholstery' | 'package' | 'equipment' = 'equipment';
+                const name = rawOptionNames[rawCode] || marketingTexts[rawCode]?.name || code;
+                const cosyUrl = rawOptionImages[rawCode];
                 
-                if (code.startsWith('P0') || code.startsWith('P1') || code.startsWith('PIC')) {
-                    categoryType = 'paint';
-                } else if (code.startsWith('PIU') || code.startsWith('S04')) {
-                    categoryType = 'upholstery';
-                } else if (code.match(/^[FKZ][A-Z0-9]{4}$/)) {
-                    // Tapicerka usually has 5 letter codes like FBLAT, KGNL
-                    categoryType = 'upholstery';
-                } else if (code.startsWith('PIP') || code.startsWith('P0C')) {
-                    categoryType = 'package';
+                let imageUrl = null;
+                if (cosyUrl) {
+                    try {
+                        const compressed = await fetchAndCompress(cosyUrl);
+                        imageUrl = await uploadToSupabase(compressed, bodyGroup, code);
+                    } catch (err) {
+                        console.warn(`Failed to process image for ${code}:`, err);
+                    }
                 }
 
-                const finalName = textData?.name || optionNames[code] || code;
-
-                // Fetch existing entry
+                // Fetch existing
                 const { data: existing } = await supabase
                     .from('dictionaries')
                     .select('id, data')
@@ -129,46 +160,39 @@ export async function POST(request: NextRequest) {
                     .eq('type', 'option')
                     .maybeSingle();
 
-                if (existing) {
-                    // Merge: add bodyGroup if not already there, update image_url
-                    const existingBodyGroups: string[] = existing.data?.body_groups || [];
-                    const updatedBodyGroups = existingBodyGroups.includes(bodyGroup)
-                        ? existingBodyGroups
-                        : [...existingBodyGroups, bodyGroup];
+                const existingBodyGroups: string[] = existing?.data?.body_groups || [];
+                const updatedBodyGroups = existingBodyGroups.includes(bodyGroup)
+                    ? existingBodyGroups
+                    : [...existingBodyGroups, bodyGroup];
 
+                const upsertData = {
+                    ...existing?.data,
+                    name: name !== code ? name : (existing?.data?.name || name),
+                    body_groups: updatedBodyGroups,
+                    // Only update image_url if we found a new one from BMW
+                    image_url: imageUrl || existing?.data?.image_url || null,
+                };
+
+                if (existing) {
                     const { error: updateError } = await supabase
                         .from('dictionaries')
-                        .update({
-                            data: {
-                                ...existing.data,
-                                name: finalName,
-                                category: categoryType,
-                                body_groups: updatedBodyGroups,
-                                image_url: existing.data?.image_url || imageUrl,
-                            },
-                        })
+                        .update({ data: upsertData })
                         .eq('id', existing.id);
                     if (updateError) throw updateError;
                 } else {
-                    // Insert new entry
                     const { error: insertError } = await supabase
                         .from('dictionaries')
                         .insert({
                             type: 'option',
                             code,
-                            data: {
-                                name: finalName,
-                                category: categoryType,
-                                body_groups: [bodyGroup],
-                                image_url: imageUrl,
-                            },
+                            data: upsertData,
                         });
                     if (insertError) throw insertError;
                 }
 
                 imported++;
             } catch (e: any) {
-                errors.push(`${code}: ${e.message}`);
+                errors.push(`${rawCode}: ${e.message}`);
                 skipped++;
             }
         }
@@ -177,7 +201,7 @@ export async function POST(request: NextRequest) {
             success: true,
             imported,
             skipped,
-            total: codes.length,
+            total: imported + skipped,
             errors: errors.slice(0, 10),
         });
 

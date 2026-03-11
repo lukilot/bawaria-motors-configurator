@@ -16,6 +16,11 @@ function normalizeCode(code: string): string {
     return code;
 }
 
+// Helper to check if a string looks like a BMW option code
+function isBmwCode(s: string) {
+    return /^[SP][0I][A-Z0-9]{3,5}$/.test(s) || /^[FKZ][A-Z0-9]{4}$/.test(s);
+}
+
 async function fetchAndCompress(url: string): Promise<Buffer> {
     const response = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BawariaBot/1.0)' }
@@ -60,7 +65,7 @@ export async function POST(request: NextRequest) {
                 if (url.includes('.json') || response.headers()['content-type']?.includes('json')) {
                     const json = await response.json();
                     
-                    // 1. Grid payload
+                    // 1. Standard approach: Grid, Pricing, Marketing
                     if (url.includes('option-selector-grid')) {
                         const desktop = json?.collections?.['option-selector-grid']?.desktop || {};
                         for (const [code, data] of Object.entries(desktop as Record<string, any>)) {
@@ -71,7 +76,6 @@ export async function POST(request: NextRequest) {
                         }
                     }
 
-                    // 2. Pricing payload (Standard Labels)
                     if (url.includes('pricing/calculation')) {
                         const components = json?.publicCalculation?.components || [];
                         for (const comp of components) {
@@ -81,7 +85,6 @@ export async function POST(request: NextRequest) {
                         }
                     }
 
-                    // 3. Marketing texts
                     if (url.includes('marketing-texts')) {
                         for (const [code, data] of Object.entries(json || {})) {
                             const name = (data as any)?.salesText || (data as any)?.option;
@@ -89,17 +92,44 @@ export async function POST(request: NextRequest) {
                         }
                     }
 
-                    // 4. Exhaustive image collection (unified-sgt)
-                    // This captures images for S0248, S0760 etc. that are often hidden from grid
+                    // 2. Deep recursion/Dictionary interception
+                    // Handle cases where codes are direct keys of the JSON object
+                    for (const [key, val] of Object.entries(json)) {
+                        if (isBmwCode(key)) {
+                            const name = (val as any)?.phrases?.longDescription || (val as any)?.phrases?.description || (val as any)?.salesText;
+                            if (name && !rawOptionNames[key]) {
+                                rawOptionNames[key] = name;
+                                debugLogs.push(`Found name for ${key} in root dictionary`);
+                            }
+                            const imgUrl = (val as any)?.imageGroups?.[0]?.images?.[0]?.viewImage;
+                            if (imgUrl && !rawOptionImages[key]) {
+                                rawOptionImages[key] = imgUrl;
+                                debugLogs.push(`Found image for ${key} in root dictionary`);
+                            }
+                        }
+                    }
+
+                    // 3. Nested collections (unified-sgt)
                     if (json.collections) {
                         for (const [collName, collData] of Object.entries(json.collections)) {
                             if (collName.includes('unified-sgt-options')) {
-                                const items = (collData as any).desktop || (collData as any).items || {};
-                                for (const [code, data] of Object.entries(items)) {
-                                    const imgUrl = (data as any)?.imageGroups?.[0]?.images?.[0]?.viewImage;
-                                    if (imgUrl && !rawOptionImages[code]) {
-                                        rawOptionImages[code] = imgUrl;
-                                        debugLogs.push(`Found image for ${code} in ${collName}`);
+                                const desktop = (collData as any).desktop || (collData as any).items || {};
+                                // Sometimes it has nested size-keys like "100", "200"
+                                const possibleSubKeys = ['100', '200', '300', '500', '800'];
+                                const subObjectsToScan = [desktop];
+                                for (const sk of possibleSubKeys) {
+                                    if ((collData as any)[sk]) subObjectsToScan.push((collData as any)[sk]);
+                                }
+
+                                for (const obj of subObjectsToScan) {
+                                    for (const [code, data] of Object.entries(obj)) {
+                                        if (isBmwCode(code)) {
+                                            const imgUrl = (data as any)?.imageGroups?.[0]?.images?.[0]?.viewImage;
+                                            if (imgUrl && !rawOptionImages[code]) {
+                                                rawOptionImages[code] = imgUrl;
+                                                debugLogs.push(`Found image for ${code} in ${collName}`);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -161,9 +191,8 @@ export async function POST(request: NextRequest) {
 
                 const upsertData = {
                     ...existing?.data,
-                    name: name !== code ? name : (existing?.data?.name || name),
+                    name: (name && name !== code) ? name : (existing?.data?.name || name),
                     body_groups: updatedBodyGroups,
-                    // If we found a NEW image from BMW, use it. Otherwise keep existing (manual or old).
                     image_url: imageUrl || existing?.data?.image_url || null,
                 };
 
@@ -188,7 +217,7 @@ export async function POST(request: NextRequest) {
             imported,
             skipped,
             total: imported + skipped,
-            debug: debugLogs.slice(0, 30),
+            debug: debugLogs.slice(0, 50),
         });
 
     } catch (error: any) {

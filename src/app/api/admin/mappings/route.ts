@@ -31,16 +31,17 @@ export async function GET() {
         for (const opt of options) {
             const code = opt.code;
             const name = opt.data?.name || '';
+            const ignored = !!opt.data?.ignored;
+
+            if (ignored) continue;
             
             // Heuristic for Color detection:
             // - 3 digits (e.g. 300, 475)
-            // - C/P prefix + 2 digits/chars (C31, P5T)
-            // - Mention of "Lakier" in data? (Optional if not available)
-            const isColor = /^[0-9]{3}$/.test(code) || /^[CP][A-Z0-9]{2,3}$/.test(code);
+            // - C/P/U/B prefix + 2 digits/chars (C31, P5T, U91, B39)
+            const isColor = /^[0-9]{3}$/.test(code) || /^[CPUB][A-Z0-9]{2,3}$/.test(code);
             
             // Heuristic for Upholstery detection:
-            // - 4 chars (FKCU, KPSW)
-            // - Specialized prefixes if known
+            // - Exactly 4 characters (e.g., KGNL, MAG6, LCSW)
             const isUpholstery = /^[A-Z0-9]{4}$/.test(code) && !isColor;
 
             if (isColor) {
@@ -54,7 +55,7 @@ export async function GET() {
             }
         }
 
-        // Deduplicate by code (options can have multiple entries for different models)
+        // Deduplicate by code
         const uniqueUnmapped = Array.from(new Map(unmapped.map(item => [`${item.type}:${item.code}`, item])).values());
 
         return NextResponse.json({ unmapped: uniqueUnmapped });
@@ -65,10 +66,34 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
-        const { type, code, name, group } = await req.json();
+        const body = await req.json();
+        const { type, code, name, group, action } = body;
 
-        if (!type || !code || !group) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        if (!type || !code) {
+            return NextResponse.json({ error: 'Missing type or code' }, { status: 400 });
+        }
+
+        // Action: Ignore
+        if (action === 'ignore') {
+            // We need to find the option entry and set ignored: true
+            const { data: option } = await supabase
+                .from('dictionaries')
+                .select('id, data')
+                .eq('type', 'option')
+                .eq('code', code)
+                .single();
+
+            if (option) {
+                await supabase
+                    .from('dictionaries')
+                    .update({ data: { ...option.data, ignored: true } })
+                    .eq('id', option.id);
+            }
+            return NextResponse.json({ success: true });
+        }
+
+        if (!group) {
+            return NextResponse.json({ error: 'Missing group' }, { status: 400 });
         }
 
         // Check if mapping exists

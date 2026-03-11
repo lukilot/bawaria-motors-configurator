@@ -61,6 +61,29 @@ export function MappingManager() {
         }
     };
 
+    const handleIgnore = async (item: any) => {
+        setIsSaving(`${item.type}:${item.code}`);
+        try {
+            const res = await fetch('/api/admin/mappings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: item.type,
+                    code: item.code,
+                    action: 'ignore'
+                })
+            });
+
+            if (res.ok) {
+                setUnmapped(prev => prev.filter(i => !(i.type === item.type && i.code === item.code)));
+            }
+        } catch (e) {
+            console.error('Failed to ignore mapping:', e);
+        } finally {
+            setIsSaving(null);
+        }
+    };
+
     useEffect(() => { fetchUnmapped(); }, []);
 
     if (isLoading) {
@@ -144,7 +167,15 @@ export function MappingManager() {
                                         ))}
                                     </select>
                                 </td>
-                                <td className="px-6 py-5 text-right">
+                                <td className="px-6 py-5 text-right flex items-center justify-end gap-2">
+                                    <button
+                                        onClick={() => handleIgnore(item)}
+                                        disabled={isSaving === `${item.type}:${item.code}`}
+                                        className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-500 transition-colors"
+                                        title="Usuń z tej listy (to nie lakier/tapicerka)"
+                                    >
+                                        To nie to
+                                    </button>
                                     <button
                                         onClick={() => handleSave(item)}
                                         disabled={!item.group || isSaving === `${item.type}:${item.code}`}

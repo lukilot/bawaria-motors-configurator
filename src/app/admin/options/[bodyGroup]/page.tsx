@@ -115,17 +115,19 @@ export default function BodyGroupOptionsPage() {
     };
 
     const handleDeleteOption = async (opt: OptionItem) => {
-        if (!confirm(`Czy na pewno chcesz usunąć opcję ${opt.code} z modelu ${bodyGroup}?`)) return;
+        if (!confirm(`Czy na pewno chcesz usunąć opcję ${opt.code} z modelu ${bodyGroup}? Spowoduje to również usunięcie zdjęcia dla tego modelu.`)) return;
         
-        const updatedGroups = (opt.data.body_groups || []).filter(bg => bg !== bodyGroup);
-        
-        const { error } = await supabase
-            .from('dictionaries')
-            .update({ data: { ...opt.data, body_groups: updatedGroups } })
-            .eq('id', opt.id);
+        const res = await fetch('/api/admin/options/delete', {
+            method: 'POST',
+            body: JSON.stringify({ ids: [opt.id], bodyGroup }),
+            headers: { 'Content-Type': 'application/json' }
+        });
 
-        if (!error) {
+        if (res.ok) {
             setOptions(prev => prev.filter(o => o.id !== opt.id));
+        } else {
+            const err = await res.json();
+            alert('Błąd podczas usuwania: ' + (err.error || 'Nieznany błąd'));
         }
     };
 
@@ -201,22 +203,25 @@ export default function BodyGroupOptionsPage() {
     };
 
     const handleDeleteSelected = async () => {
-        if (!confirm(`Czy na pewno chcesz usunąć ${selectedIds.size} zaznaczonych opcji z modelu ${bodyGroup}?`)) return;
+        if (!confirm(`Czy na pewno chcesz usunąć ${selectedIds.size} zaznaczonych opcji z modelu ${bodyGroup}? Operacja ta usunie również powiązane zdjęcia.`)) return;
         
         setIsLoading(true);
-        for (const id of Array.from(selectedIds)) {
-            const opt = options.find(o => o.id === id);
-            if (!opt) continue;
-            
-            const updatedGroups = (opt.data.body_groups || []).filter(bg => bg !== bodyGroup);
-            await supabase
-                .from('dictionaries')
-                .update({ data: { ...opt.data, body_groups: updatedGroups } })
-                .eq('id', opt.id);
+        const ids = Array.from(selectedIds);
+        
+        const res = await fetch('/api/admin/options/delete', {
+            method: 'POST',
+            body: JSON.stringify({ ids, bodyGroup }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (res.ok) {
+            setOptions(prev => prev.filter(o => !selectedIds.has(o.id)));
+            setSelectedIds(new Set());
+        } else {
+            const err = await res.json();
+            alert('Błąd podczas usuwania zaznaczonych: ' + (err.error || 'Nieznany błąd'));
         }
         
-        setOptions(prev => prev.filter(o => !selectedIds.has(o.id)));
-        setSelectedIds(new Set());
         setIsLoading(false);
     };
 

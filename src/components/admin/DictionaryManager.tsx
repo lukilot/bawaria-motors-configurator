@@ -6,7 +6,7 @@ import { ModelUploader } from './ModelUploader';
 import { Palette, Car, Layers, Tags } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Section = 'models' | 'colors' | 'upholstery' | 'options';
+type Section = 'models' | 'colors' | 'upholstery';
 
 export function DictionaryManager() {
     const [activeSection, setActiveSection] = useState<Section>('models');
@@ -16,7 +16,6 @@ export function DictionaryManager() {
         { id: 'models', label: 'Models', icon: Car, type: 'model' as const },
         { id: 'colors', label: 'Colors', icon: Palette, type: 'color' as const },
         { id: 'upholstery', label: 'Upholstery', icon: Layers, type: 'upholstery' as const },
-        { id: 'options', label: 'Options & Packages', icon: Tags, type: 'option' as const },
     ];
 
     return (
@@ -55,9 +54,6 @@ export function DictionaryManager() {
                 )}
                 {activeSection === 'upholstery' && (
                     <DictionaryEditor type="upholstery" title="Upholstery Dictionary" />
-                )}
-                {activeSection === 'options' && (
-                    <DictionaryEditor type="option" title="Options & Packages Dictionary" />
                 )}
             </div>
 

@@ -50,22 +50,29 @@ export default function OptionsPage() {
     };
 
     const handleDeleteGroup = async (bodyGroup: string) => {
-        if (!confirm(`Czy na pewno chcesz usunąć całą grupę ${bodyGroup}? Spowoduje to odpięcie wszystkich opcji od tego modelu.`)) return;
+        if (!confirm(`Czy na pewno chcesz usunąć całą grupę ${bodyGroup}? Spowoduje to usunięcie wszystkich powiązanych zdjęć i danych dla tego modelu.`)) return;
         
         setIsLoading(true);
+        // 1. Get all IDs belonging to this group
         const { data: items } = await supabase
             .from('dictionaries')
-            .select('id, data')
+            .select('id')
             .eq('type', 'option')
             .contains('data', { body_groups: [bodyGroup] });
 
-        if (items) {
-            for (const item of items) {
-                const updatedGroups = (item.data.body_groups || []).filter((g: string) => g !== bodyGroup);
-                await supabase
-                    .from('dictionaries')
-                    .update({ data: { ...item.data, body_groups: updatedGroups } })
-                    .eq('id', item.id);
+        if (items && items.length > 0) {
+            const ids = items.map(i => i.id);
+            
+            // 2. Call the new robust delete API
+            const res = await fetch('/api/admin/options/delete', {
+                method: 'POST',
+                body: JSON.stringify({ ids, bodyGroup }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                alert('Błąd podczas usuwania: ' + (err.error || 'Nieznany błąd'));
             }
         }
 

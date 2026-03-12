@@ -74,7 +74,7 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false, is
                                                     : "bg-white border border-gray-100 hover:border-gray-300"
                                         )}>
                                             {/* Thumbnail Placeholder */}
-                                            <div className="w-32 h-24 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden bg-transparent">
+                                            <div className="w-26 h-20 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden bg-transparent">
                                                 <img
                                                     src={child.image || `https://placehold.co/100x60/f3f4f6/a3a3a3?text=${child.code}`}
                                                     alt={child.code}
@@ -126,7 +126,7 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false, is
                                             : "bg-white border border-gray-100 hover:border-gray-300"
                                 )}>
                                     {/* Thumbnail Placeholder */}
-                                    <div className="w-32 h-24 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden bg-transparent">
+                                    <div className="w-26 h-20 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden bg-transparent">
                                         <img
                                             src={group.image || `https://placehold.co/100x60/f3f4f6/a3a3a3?text=${group.code}`}
                                             alt={group.code}

@@ -28,7 +28,8 @@ async function fetchAndCompress(url: string): Promise<Buffer> {
     if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
     const buffer = Buffer.from(await response.arrayBuffer());
     return sharp(buffer)
-        .resize(400, 400, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
+        .trim()
+        .resize(400, 400, { fit: 'inside', background: { r: 255, g: 255, b: 255, alpha: 0 } })
         .webp({ quality: 82 })
         .toBuffer();
 }

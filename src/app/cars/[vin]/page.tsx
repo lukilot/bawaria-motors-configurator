@@ -52,13 +52,16 @@ function parseOptionGroups(codes: string[], dictionaries: any, bodyGroup?: strin
             const content = match[2];
             const kidsCodes = content.trim().split(/[\s,]+/).filter(Boolean);
             const kids: OptionItem[] = kidsCodes
-                .filter(k => getOptionData(k)?.visible !== false)
+                .filter(k => {
+                    const d = getOptionData(k);
+                    return d?.visible !== false && d?.hidden !== true;
+                })
                 .map(k => {
                     const data = getOptionData(k);
                     return { code: k, name: data?.name, image: data?.image };
                 });
             const pkgData = getOptionData(pkgCode);
-            if (pkgData?.visible !== false) {
+            if (pkgData?.visible !== false && pkgData?.hidden !== true) {
                 groups.push({ type: 'package', code: pkgCode, name: pkgData?.name, image: pkgData?.image, children: kids });
             }
             kidsCodes.forEach(k => childrenSet.add(k));
@@ -71,7 +74,7 @@ function parseOptionGroups(codes: string[], dictionaries: any, bodyGroup?: strin
             if (restrictedCodes?.has(cleanCode)) return;
             if (!childrenSet.has(cleanCode)) {
                 const data = getOptionData(cleanCode);
-                if (data?.visible !== false) {
+                if (data?.visible !== false && data?.hidden !== true) {
                     groups.push({ type: 'standard', code: cleanCode, name: data?.name, image: data?.image, children: [] });
                 }
             }
@@ -252,22 +255,36 @@ export default async function CarPage({ params }: PageProps) {
                                         </div>
                                     </SpecsAccordion>
                                     <SpecsAccordion title="Kolor i Tapicerka" className={theme.border} titleClassName={theme.accordionTitle}>
-                                        <div className={cn("py-4 text-sm space-y-4", isMSeries ? "text-gray-400" : "text-gray-600")}>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-[9px] uppercase font-black tracking-widest opacity-40">Kolor</span>
-                                                {car.color_code === '490' ? (
-                                                    <BMWIndividualBadge
-                                                        compact
-                                                        className={cn("text-[11px] font-bold uppercase", isMSeries ? "text-white" : "text-gray-900")}
-                                                        colorName={colorName}
-                                                    />
-                                                ) : (
-                                                    <span className={cn("font-bold uppercase text-[11px]", theme.accentText)}>{colorName}</span>
+                                        <div className={cn("py-4 text-sm space-y-6", isMSeries ? "text-gray-400" : "text-gray-600")}>
+                                            <div className="flex justify-between items-center gap-4">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-[9px] uppercase font-black tracking-widest opacity-40">Kolor</span>
+                                                    {car.color_code === '490' ? (
+                                                        <BMWIndividualBadge
+                                                            compact
+                                                            className={cn("text-[11px] font-bold uppercase", isMSeries ? "text-white" : "text-gray-900")}
+                                                            colorName={colorName}
+                                                        />
+                                                    ) : (
+                                                        <span className={cn("font-bold uppercase text-[11px]", theme.accentText)}>{colorName}</span>
+                                                    )}
+                                                </div>
+                                                {colorOpt?.image && (
+                                                    <div className="w-16 h-12 rounded-xl overflow-hidden border border-black/5 shadow-sm shrink-0 bg-gray-50">
+                                                        <img src={colorOpt.image} alt={colorName} className="w-full h-full object-cover" />
+                                                    </div>
                                                 )}
                                             </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-[9px] uppercase font-black tracking-widest opacity-40">Tapicerka</span>
-                                                <span className="font-bold uppercase text-[11px]">{upholsteryName}</span>
+                                            <div className="flex justify-between items-center gap-4">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-[9px] uppercase font-black tracking-widest opacity-40">Tapicerka</span>
+                                                    <span className="font-bold uppercase text-[11px]">{upholsteryName}</span>
+                                                </div>
+                                                {upholsteryOpt?.image && (
+                                                    <div className="w-16 h-12 rounded-xl overflow-hidden border border-black/5 shadow-sm shrink-0 bg-gray-50">
+                                                        <img src={upholsteryOpt.image} alt={upholsteryName} className="w-full h-full object-cover" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </SpecsAccordion>

@@ -1,5 +1,7 @@
+'use client';
+
 import { cn } from '@/lib/utils';
-import React from 'react';
+import React, { useState } from 'react';
 
 export interface OptionItem {
     code: string;
@@ -23,6 +25,20 @@ interface OptionsListProps {
 }
 
 export function OptionsList({ optionGroups, optionCodesCount, isDark = false, isElectric = false }: OptionsListProps) {
+    const [squareOptions, setSquareOptions] = useState<Set<string>>(new Set());
+
+    const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>, code: string) => {
+        const img = e.currentTarget;
+        const ratio = img.naturalWidth / img.naturalHeight;
+        // With trimmed images, panoramas will have ratio > 1.4, wheels will be ~1.0
+        if (ratio < 1.3) {
+            setSquareOptions(prev => {
+                const next = new Set(prev);
+                next.add(code);
+                return next;
+            });
+        }
+    };
     return (
         <div>
             <div className="flex items-center justify-between mb-8">
@@ -58,15 +74,16 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false, is
                                                     : "bg-white border border-gray-100 hover:border-gray-300"
                                         )}>
                                             {/* Thumbnail Placeholder */}
-                                            <div className={cn(
-                                                "w-32 h-24 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden",
-                                                isDark ? "bg-[#1a1a1a]" : "bg-white"
-                                            )}>
+                                            <div className="w-32 h-24 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden bg-transparent">
                                                 <img
                                                     src={child.image || `https://placehold.co/100x60/f3f4f6/a3a3a3?text=${child.code}`}
                                                     alt={child.code}
+                                                    onLoad={(e) => handleImageLoad(e, child.code)}
                                                     className={cn(
-                                                        "w-full h-full object-contain",
+                                                        "h-full transition-all duration-300",
+                                                        squareOptions.has(child.code) 
+                                                            ? "w-full object-contain" 
+                                                            : "w-[104%] max-w-none object-contain object-left",
                                                         !child.image && "opacity-50 mix-blend-multiply",
                                                         isDark && !child.image && "invert opacity-30"
                                                     )}
@@ -109,15 +126,16 @@ export function OptionsList({ optionGroups, optionCodesCount, isDark = false, is
                                             : "bg-white border border-gray-100 hover:border-gray-300"
                                 )}>
                                     {/* Thumbnail Placeholder */}
-                                    <div className={cn(
-                                        "w-32 h-24 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden",
-                                        isDark ? "bg-[#1a1a1a]" : "bg-white"
-                                    )}>
+                                    <div className="w-32 h-24 rounded-sm flex-shrink-0 flex items-center justify-center overflow-hidden bg-transparent">
                                         <img
                                             src={group.image || `https://placehold.co/100x60/f3f4f6/a3a3a3?text=${group.code}`}
                                             alt={group.code}
+                                            onLoad={(e) => handleImageLoad(e, group.code)}
                                             className={cn(
-                                                "w-full h-full object-contain",
+                                                "h-full transition-all duration-300",
+                                                squareOptions.has(group.code) 
+                                                    ? "w-full object-contain" 
+                                                    : "w-[104%] max-w-none object-contain object-left",
                                                 !group.image && "opacity-50 mix-blend-multiply",
                                                 isDark && !group.image && "invert opacity-30"
                                             )}

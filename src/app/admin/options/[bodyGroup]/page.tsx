@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
-import { Loader2, ArrowLeft, Download, Pencil, Check, X, Trash2, Image as ImageIcon, Upload } from 'lucide-react';
+import { Loader2, ArrowLeft, Download, Pencil, Check, X, Trash2, Image as ImageIcon, Upload, Eye, EyeOff } from 'lucide-react';
 import { AdminAuth } from '@/components/admin/AdminAuth';
 import BMWOptionsImportModal from '@/components/admin/BMWOptionsImportModal';
 import Image from 'next/image';
@@ -17,6 +17,7 @@ interface OptionItem {
         category?: string;
         body_groups?: string[];
         image_url?: string;
+        hidden?: boolean;
     };
 }
 
@@ -145,6 +146,20 @@ export default function BodyGroupOptionsPage() {
         }
     };
 
+    const toggleVisibility = async (opt: OptionItem) => {
+        setSavingId(opt.id);
+        const isHidden = !opt.data.hidden;
+        const { error } = await supabase
+            .from('dictionaries')
+            .update({ data: { ...opt.data, hidden: isHidden } })
+            .eq('id', opt.id);
+
+        if (!error) {
+            setOptions(prev => prev.map(o => o.id === opt.id ? { ...o, data: { ...o.data, hidden: isHidden } } : o));
+        }
+        setSavingId(null);
+    };
+
     const toggleSelect = (id: string) => {
         const next = new Set(selectedIds);
         if (next.has(id)) next.delete(id);
@@ -176,6 +191,23 @@ export default function BodyGroupOptionsPage() {
         }
         
         setOptions(prev => prev.filter(o => !selectedIds.has(o.id)));
+        setSelectedIds(new Set());
+        setIsLoading(false);
+    };
+
+    const handleVisibilityBulk = async (hide: boolean) => {
+        setIsLoading(true);
+        for (const id of Array.from(selectedIds)) {
+            const opt = options.find(o => o.id === id);
+            if (!opt) continue;
+            
+            await supabase
+                .from('dictionaries')
+                .update({ data: { ...opt.data, hidden: hide } })
+                .eq('id', opt.id);
+        }
+        
+        setOptions(prev => prev.map(o => selectedIds.has(o.id) ? { ...o, data: { ...o.data, hidden: hide } } : o));
         setSelectedIds(new Set());
         setIsLoading(false);
     };
@@ -254,11 +286,26 @@ export default function BodyGroupOptionsPage() {
                         </div>
 
                         {selectedIds.size > 0 && (
-                            <div className="flex items-center gap-4 bg-red-50 px-4 py-2 rounded-full border border-red-100 animate-in fade-in slide-in-from-top-2 duration-200">
-                                <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest">
+                            <div className="flex items-center gap-4 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">
                                     Zaznaczono: {selectedIds.size}
                                 </span>
-                                <div className="w-px h-3 bg-red-200" />
+                                <div className="w-px h-3 bg-blue-200" />
+                                <button
+                                    onClick={() => handleVisibilityBulk(true)}
+                                    className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600 uppercase tracking-widest hover:text-blue-700 transition-colors"
+                                >
+                                    <EyeOff className="w-3.5 h-3.5" />
+                                    Ukryj
+                                </button>
+                                <button
+                                    onClick={() => handleVisibilityBulk(false)}
+                                    className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600 uppercase tracking-widest hover:text-blue-700 transition-colors"
+                                >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    Pokaż
+                                </button>
+                                <div className="w-px h-3 bg-blue-200" />
                                 <button
                                     onClick={handleDeleteSelected}
                                     className="flex items-center gap-1.5 text-[10px] font-bold text-red-600 uppercase tracking-widest hover:text-red-700 transition-colors"
@@ -298,82 +345,95 @@ export default function BodyGroupOptionsPage() {
                                 const cat = getCategory(opt.code, opt.data?.category);
 
                                 return (
-                                    <div
-                                        key={opt.id}
-                                        className={cn(
-                                            "group relative flex flex-col border rounded-lg overflow-hidden transition-all duration-200",
-                                            isEditing ? "border-blue-300 shadow-md" : 
-                                            selectedIds.has(opt.id) ? "border-blue-400 bg-blue-50/30 shadow-sm" :
-                                            "border-gray-100 hover:border-gray-200 hover:shadow-sm"
-                                        )}
-                                    >
-                                        {/* Selection Checkbox */}
-                                        <div 
-                                            onClick={() => toggleSelect(opt.id)}
+                                        <div
+                                            key={opt.id}
                                             className={cn(
-                                                "absolute top-1.5 right-1.5 w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-all z-20",
-                                                selectedIds.has(opt.id) ? "bg-blue-500 border-blue-500" : "bg-white/80 border-gray-200 opacity-0 group-hover:opacity-100"
+                                                "group relative flex flex-col border rounded-lg overflow-hidden transition-all duration-200",
+                                                isEditing ? "border-blue-300 shadow-md" : 
+                                                selectedIds.has(opt.id) ? "border-blue-400 bg-blue-50/30 shadow-sm" :
+                                                opt.data.hidden ? "border-gray-100 opacity-60 grayscale-[0.5]" :
+                                                "border-gray-100 hover:border-gray-200 hover:shadow-sm"
                                             )}
                                         >
-                                            {selectedIds.has(opt.id) && <Check className="w-3 h-3 text-white" />}
-                                        </div>
-                                        {/* Image overlay with upload */}
-                                        <div className="relative aspect-square bg-gray-50 group/img">
-                                            {opt.data?.image_url ? (
-                                                <Image
-                                                    src={opt.data.image_url}
-                                                    alt={opt.data?.name || opt.code}
-                                                    fill
-                                                    className="object-contain p-1"
-                                                    sizes="160px"
-                                                />
-                                            ) : (
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                                                    <span className="text-[9px] text-gray-300 font-bold uppercase tracking-widest">Brak</span>
-                                                    <ImageIcon className="w-4 h-4 text-gray-200" />
-                                                </div>
-                                            )}
-                                            
-                                            {/* Upload overlay */}
-                                            <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 cursor-pointer">
-                                                <Upload className="w-5 h-5 text-white" />
-                                                <span className="text-[8px] font-bold text-white uppercase tracking-wider">Zmień zdjęcie</span>
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                    onChange={e => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) handleImageUpload(opt, file);
-                                                    }}
-                                                />
-                                            </label>
-
-                                            {/* Category badge */}
-                                            <div className={cn(
-                                                "absolute top-1.5 left-1.5 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded z-10",
-                                                cat === 'paint' ? "bg-amber-50 text-amber-600" :
-                                                cat === 'upholstery' ? "bg-rose-50 text-rose-600" :
-                                                cat === 'package' ? "bg-purple-50 text-purple-600" :
-                                                "bg-blue-50 text-blue-600"
-                                            )}>
-                                                {cat === 'paint' ? 'L' : cat === 'upholstery' ? 'T' : cat === 'package' ? 'P' : 'W'}
-                                            </div>
-
-                                            {/* Trash button */}
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); handleDeleteOption(opt); }}
-                                                className="absolute bottom-1.5 right-1.5 p-1.5 bg-white/90 shadow-sm border border-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 z-10"
+                                            {/* Selection Checkbox */}
+                                            <div 
+                                                onClick={() => toggleSelect(opt.id)}
+                                                className={cn(
+                                                    "absolute top-1.5 right-1.5 w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-all z-20",
+                                                    selectedIds.has(opt.id) ? "bg-blue-500 border-blue-500" : "bg-white/80 border-gray-200 opacity-0 group-hover:opacity-100"
+                                                )}
                                             >
-                                                <Trash2 className="w-3 h-3" />
-                                            </button>
-
-                                            {savingId === opt.id && (
-                                                <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-20">
-                                                    <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                                                {selectedIds.has(opt.id) && <Check className="w-3 h-3 text-white" />}
+                                            </div>
+                                            {/* Image overlay with upload */}
+                                            <div className="relative aspect-square bg-gray-50 group/img">
+                                                {opt.data?.image_url ? (
+                                                    <Image
+                                                        src={opt.data.image_url}
+                                                        alt={opt.data?.name || opt.code}
+                                                        fill
+                                                        className="object-contain p-1"
+                                                        sizes="160px"
+                                                    />
+                                                ) : (
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                                                        <span className="text-[9px] text-gray-300 font-bold uppercase tracking-widest">Brak</span>
+                                                        <ImageIcon className="w-4 h-4 text-gray-200" />
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Upload overlay */}
+                                                <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 cursor-pointer">
+                                                    <Upload className="w-5 h-5 text-white" />
+                                                    <span className="text-[8px] font-bold text-white uppercase tracking-wider">Zmień zdjęcie</span>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={e => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) handleImageUpload(opt, file);
+                                                        }}
+                                                    />
+                                                </label>
+    
+                                                {/* Category badge */}
+                                                <div className={cn(
+                                                    "absolute top-1.5 left-1.5 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded z-10",
+                                                    cat === 'paint' ? "bg-amber-50 text-amber-600" :
+                                                    cat === 'upholstery' ? "bg-rose-50 text-rose-600" :
+                                                    cat === 'package' ? "bg-purple-50 text-purple-600" :
+                                                    "bg-blue-50 text-blue-600"
+                                                )}>
+                                                    {cat === 'paint' ? 'L' : cat === 'upholstery' ? 'T' : cat === 'package' ? 'P' : 'W'}
                                                 </div>
-                                            )}
-                                        </div>
+    
+                                                {/* Controls overlay */}
+                                                <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); toggleVisibility(opt); }}
+                                                        className={cn(
+                                                            "p-1.5 bg-white/90 shadow-sm border border-gray-100 rounded hover:text-blue-500 transition-colors",
+                                                            opt.data.hidden ? "text-amber-500" : "text-gray-400"
+                                                        )}
+                                                        title={opt.data.hidden ? "Pokaż na stronie" : "Ukryj na stronie"}
+                                                    >
+                                                        {opt.data.hidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleDeleteOption(opt); }}
+                                                        className="p-1.5 bg-white/90 shadow-sm border border-gray-100 rounded hover:text-red-500 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-3 h-3 text-gray-400 group-hover:text-red-500" />
+                                                    </button>
+                                                </div>
+    
+                                                {savingId === opt.id && (
+                                                    <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-20">
+                                                        <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                                                    </div>
+                                                )}
+                                            </div>
 
                                         {/* Info */}
                                         <div className="p-2">

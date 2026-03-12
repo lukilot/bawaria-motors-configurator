@@ -21,8 +21,9 @@ export async function POST(request: NextRequest) {
         
         // Process image with Sharp: resize, contain, background white (if needed), compress to WebP
         const processedBuffer = await sharp(buffer)
+            .trim()
             .resize(400, 400, { 
-                fit: 'contain', 
+                fit: 'inside', 
                 background: { r: 255, g: 255, b: 255, alpha: 0 } 
             })
             .webp({ quality: 82 })

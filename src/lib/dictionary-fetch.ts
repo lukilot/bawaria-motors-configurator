@@ -25,9 +25,26 @@ export async function getDictionary(type: DictionaryItem['type']) {
 }
 
 export async function getAllDictionaries() {
-    const { data, error } = await supabase
-        .from('dictionaries')
-        .select('*');
+    let allData: any[] = [];
+    let from = 0;
+    const batchSize = 1000;
+
+    while (true) {
+        const { data, error } = await supabase
+            .from('dictionaries')
+            .select('*')
+            .range(from, from + batchSize - 1);
+
+        if (error) {
+            console.error('Error fetching dictionaries batch:', error);
+            break;
+        }
+
+        if (!data || data.length === 0) break;
+        allData.push(...data);
+        if (data.length < batchSize) break;
+        from += batchSize;
+    }
 
     const defaults = {
         model: {},
@@ -43,29 +60,23 @@ export async function getAllDictionaries() {
         }
     };
 
-    if (error) {
-        console.error('Error fetching all dictionaries:', error);
-        return defaults;
-    }
+    if (allData.length === 0) return defaults;
 
-    return data.reduce((acc: any, item: any) => {
+    return allData.reduce((acc: any, item: any) => {
         if (!acc[item.type]) acc[item.type] = {};
 
         // For options with body groups, store as array to handle multiple variants
+        // (Legacy check for multiple rows, though unique constraint should prevent this now)
         if (item.type === 'option' && item.data.body_groups && item.data.body_groups.length > 0) {
             if (!acc[item.type][item.code]) {
                 acc[item.type][item.code] = [];
             }
-            // Store as array if not already
             if (Array.isArray(acc[item.type][item.code])) {
                 acc[item.type][item.code].push(item.data);
             } else {
-                // Convert existing single entry to array
                 acc[item.type][item.code] = [acc[item.type][item.code], item.data];
             }
         } else {
-            // For non-body-group options or other types, store normally
-            // But check if there's already an array (body-group variant exists)
             if (Array.isArray(acc[item.type][item.code])) {
                 acc[item.type][item.code].push(item.data);
             } else {
@@ -78,35 +89,31 @@ export async function getAllDictionaries() {
 }
 
 export function resolveDictionaryEntry(code: string, dictionaries: any, type: DictionaryItem['type'], bodyGroup?: string) {
-    const entry = dictionaries[type][code];
+    if (!code) return undefined;
+    const entry = dictionaries[type]?.[code];
     if (!entry) return undefined;
 
     const findBestData = (dataOrArray: any) => {
-        if (!Array.isArray(dataOrArray)) {
-            // Check if there are variations defined in a single object (deprecated but for safety)
-            if (dataOrArray.variations && bodyGroup) {
-                const variation = dataOrArray.variations.find((v: any) =>
-                    v.body_groups && v.body_groups.includes(bodyGroup)
-                );
-                if (variation) return variation;
-            }
-            return dataOrArray;
-        }
+        const baseData = Array.isArray(dataOrArray) ? dataOrArray[0] : dataOrArray;
+        if (!baseData) return undefined;
 
-        if (bodyGroup) {
-            const match = dataOrArray.find((data: any) =>
-                data.body_groups && Array.isArray(data.body_groups) && data.body_groups.includes(bodyGroup)
+        // If we have specific variations, look for a match
+        if (baseData.variations && Array.isArray(baseData.variations) && bodyGroup) {
+            const variant = baseData.variations.find((v: any) =>
+                v.body_groups && Array.isArray(v.body_groups) && v.body_groups.includes(bodyGroup)
             );
-            if (match) return match;
+            // MERGE variation into base data to avoid losing name/marketing info
+            if (variant) return { ...baseData, ...variant };
         }
 
-        // Return generic or first
-        return dataOrArray.find((data: any) => !data.body_groups || data.body_groups.length === 0) || dataOrArray[0];
+        return baseData;
     };
 
     const bestData = findBestData(entry);
+    if (!bestData) return undefined;
+
     return {
         ...bestData,
-        image: bestData?.image || bestData?.image_url
+        image: bestData.image || bestData.image_url
     };
 }

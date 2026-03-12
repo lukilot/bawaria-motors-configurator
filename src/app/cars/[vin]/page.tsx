@@ -129,16 +129,17 @@ export default async function CarPage({ params }: PageProps) {
     const modelDict = dictionaries.model[car.model_code] || {};
     const modelName = modelDict.name || car.model_name || `BMW ${car.model_code}`;
     
+    const staticAttrs = getModelAttributes(car.model_code);
+    const enrichedBodyGroup = staticAttrs.body_group || car.body_group;
+
     // Resolve Color & Upholstery with priority to dictionaries.option (which has marketing names)
-    const colorOpt = resolveDictionaryEntry(car.color_code, dictionaries, 'option', car.body_group);
+    const colorOpt = resolveDictionaryEntry(car.color_code, dictionaries, 'option', enrichedBodyGroup);
     const colorName = colorOpt?.name || (car.color_code === '490'
         ? (dictionaries.color[car.individual_color || '']?.name || car.individual_color || 'BMW Individual')
         : (dictionaries.color[car.color_code]?.name || car.color_code));
 
-    const upholsteryOpt = resolveDictionaryEntry(car.upholstery_code, dictionaries, 'option', car.body_group);
+    const upholsteryOpt = resolveDictionaryEntry(car.upholstery_code, dictionaries, 'option', enrichedBodyGroup);
     const upholsteryName = upholsteryOpt?.name || (dictionaries.upholstery[car.upholstery_code]?.name || car.upholstery_code);
-
-    const staticAttrs = getModelAttributes(car.model_code);
 
     const enrichedCar = {
         ...car,
@@ -151,13 +152,13 @@ export default async function CarPage({ params }: PageProps) {
         acceleration: modelDict.acceleration,
         max_speed: modelDict.max_speed,
         trunk_capacity: modelDict.trunk_capacity,
-        body_group: staticAttrs.body_group || car.body_group,
+        body_group: enrichedBodyGroup,
         special_price: getCarDiscountedPrice(car, bulletins) || car.special_price
     };
 
     const reservationStr = (car.reservation_details || '').trim();
     const restrictedCodes = new Set(servicePkgs.map(p => p.code));
-    const optionGroups = parseOptionGroups(car.option_codes, dictionaries, car.body_group, restrictedCodes);
+    const optionGroups = parseOptionGroups(car.option_codes, dictionaries, enrichedBodyGroup, restrictedCodes);
 
     const allImages = [...(car as any).group_images || [], ...(car.images || [])];
     const uniqueImages = Array.from(new Map(allImages.map(img => [img.url, img])).values());

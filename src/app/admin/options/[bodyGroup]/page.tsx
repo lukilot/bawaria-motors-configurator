@@ -18,6 +18,11 @@ interface OptionItem {
         body_groups?: string[];
         image_url?: string;
         hidden?: boolean;
+        variations?: Array<{
+            body_groups: string[];
+            name?: string;
+            image_url?: string;
+        }>;
     };
 }
 
@@ -89,11 +94,22 @@ export default function BodyGroupOptionsPage() {
 
     const saveEdit = async (opt: OptionItem) => {
         setSavingId(opt.id);
+        
+        let newData = { ...opt.data };
+        if (newData.variations) {
+            const vIdx = newData.variations.findIndex(v => v.body_groups.includes(bodyGroup));
+            if (vIdx >= 0) {
+                newData.variations[vIdx] = { ...newData.variations[vIdx], name: editName };
+            }
+        }
+        newData.name = editName; // Sync global for safety
+
         await supabase
             .from('dictionaries')
-            .update({ data: { ...opt.data, name: editName } })
+            .update({ data: newData })
             .eq('id', opt.id);
-        setOptions(prev => prev.map(o => o.id === opt.id ? { ...o, data: { ...o.data, name: editName } } : o));
+            
+        setOptions(prev => prev.map(o => o.id === opt.id ? { ...o, data: newData } : o));
         setSavingId(null);
         setEditingId(null);
     };
@@ -130,14 +146,23 @@ export default function BodyGroupOptionsPage() {
 
             const publicUrl = data.publicUrl;
 
+            let newData = { ...opt.data };
+            if (newData.variations) {
+                const vIdx = newData.variations.findIndex(v => v.body_groups.includes(bodyGroup));
+                if (vIdx >= 0) {
+                    newData.variations[vIdx] = { ...newData.variations[vIdx], image_url: publicUrl };
+                }
+            }
+            newData.image_url = publicUrl; // Sync global
+
             const { error: updateError } = await supabase
                 .from('dictionaries')
-                .update({ data: { ...opt.data, image_url: publicUrl } })
+                .update({ data: newData })
                 .eq('id', opt.id);
 
             if (updateError) throw updateError;
 
-            setOptions(prev => prev.map(o => o.id === opt.id ? { ...o, data: { ...o.data, image_url: publicUrl } } : o));
+            setOptions(prev => prev.map(o => o.id === opt.id ? { ...o, data: newData } : o));
         } catch (err) {
             console.error('Upload failed:', err);
             alert('Błąd podczas wgrywania zdjęcia');
@@ -367,20 +392,26 @@ export default function BodyGroupOptionsPage() {
                                             </div>
                                             {/* Image overlay with upload */}
                                             <div className="relative aspect-square bg-gray-50 group/img">
-                                                {opt.data?.image_url ? (
-                                                    <Image
-                                                        src={opt.data.image_url}
-                                                        alt={opt.data?.name || opt.code}
-                                                        fill
-                                                        className="object-contain p-1"
-                                                        sizes="160px"
-                                                    />
-                                                ) : (
-                                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                                                        <span className="text-[9px] text-gray-300 font-bold uppercase tracking-widest">Brak</span>
-                                                        <ImageIcon className="w-4 h-4 text-gray-200" />
-                                                    </div>
-                                                )}
+                                                {(() => {
+                                                    const variant = opt.data.variations?.find(v => v.body_groups.includes(bodyGroup));
+                                                    const displayImage = variant?.image_url || opt.data.image_url;
+                                                    const displayName = variant?.name || opt.data.name || opt.code;
+
+                                                    return displayImage ? (
+                                                        <Image
+                                                            src={displayImage}
+                                                            alt={displayName}
+                                                            fill
+                                                            className="object-contain p-1"
+                                                            sizes="160px"
+                                                        />
+                                                    ) : (
+                                                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                                                            <span className="text-[9px] text-gray-300 font-bold uppercase tracking-widest">Brak</span>
+                                                            <ImageIcon className="w-4 h-4 text-gray-200" />
+                                                        </div>
+                                                    );
+                                                })()}
                                                 
                                                 {/* Upload overlay */}
                                                 <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 cursor-pointer">
@@ -457,7 +488,10 @@ export default function BodyGroupOptionsPage() {
                                             ) : (
                                                 <div className="flex items-start justify-between gap-1">
                                                     <p className="text-[10px] text-gray-700 leading-tight line-clamp-2">
-                                                        {opt.data?.name || <span className="text-gray-300 italic">Brak nazwy</span>}
+                                                        {(() => {
+                                                            const variant = opt.data.variations?.find(v => v.body_groups.includes(bodyGroup));
+                                                            return variant?.name || opt.data.name || <span className="text-gray-300 italic">Brak nazwy</span>;
+                                                        })()}
                                                     </p>
                                                     <button
                                                         onClick={() => startEdit(opt)}

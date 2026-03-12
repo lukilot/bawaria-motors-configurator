@@ -187,23 +187,44 @@ export async function POST(request: NextRequest) {
                     .eq('type', 'option')
                     .maybeSingle();
 
-                const existingBodyGroups: string[] = existing?.data?.body_groups || [];
-                const updatedBodyGroups = Array.from(new Set([...existingBodyGroups, bodyGroup]));
+                let data = existing?.data || { body_groups: [] };
+                
+                // Ensure variations array exists
+                if (!data.variations) data.variations = [];
 
-                const upsertData = {
-                    ...existing?.data,
-                    name: (name && name !== code) ? name : (existing?.data?.name || name),
-                    body_groups: updatedBodyGroups,
-                    image_url: imageUrl || existing?.data?.image_url || null,
+                // Handle the current bodyGroup variation
+                let variationIdx = (data.variations as any[]).findIndex((v: any) => 
+                    v.body_groups && v.body_groups.includes(bodyGroup)
+                );
+
+                const currentVariation = {
+                    body_groups: [bodyGroup],
+                    name: (name && name !== code) ? name : (variationIdx >= 0 ? data.variations[variationIdx].name : name),
+                    image_url: imageUrl || (variationIdx >= 0 ? data.variations[variationIdx].image_url : null)
                 };
 
+                if (variationIdx >= 0) {
+                    data.variations[variationIdx] = currentVariation;
+                } else {
+                    data.variations.push(currentVariation);
+                }
+
+                // Maintain global body_groups for indexing/discovery
+                const existingBodyGroups: string[] = data.body_groups || [];
+                data.body_groups = Array.from(new Set([...existingBodyGroups, bodyGroup]));
+
+                // For legacy compatibility, keep global fields updated with the latest import
+                // but emphasize that resolveDictionaryEntry should prioritize variations
+                data.name = currentVariation.name || data.name;
+                data.image_url = currentVariation.image_url || data.image_url;
+
                 if (existing) {
-                    await supabase.from('dictionaries').update({ data: upsertData }).eq('id', existing.id);
+                    await supabase.from('dictionaries').update({ data }).eq('id', existing.id);
                 } else {
                     await supabase.from('dictionaries').insert({
                         type: 'option',
                         code,
-                        data: upsertData,
+                        data,
                     });
                 }
                 imported++;

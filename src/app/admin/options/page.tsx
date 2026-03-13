@@ -116,7 +116,7 @@ export default function OptionsPage() {
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                             <button
-                                onClick={() => router.push(`/admin/options/all`)}
+                                onClick={() => router.push(`/admin/options/hidden`)}
                                 className="group relative flex flex-col p-5 border border-blue-200 bg-blue-50/50 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200 text-left"
                             >
                                 <div className="flex items-start justify-between mb-4">
@@ -127,7 +127,7 @@ export default function OptionsPage() {
                                         <ChevronRight className="w-4 h-4 text-blue-400 group-hover:text-blue-600 transition-colors" />
                                     </div>
                                 </div>
-                                <p className="text-lg font-bold text-gray-900 tracking-tight">Wszystkie Opcje</p>
+                                <p className="text-lg font-bold text-gray-900 tracking-tight">Opcje Ukryte</p>
                                 <p className="text-xs text-blue-600/80 font-medium mt-0.5">Zarządzaj globalnie</p>
                             </button>
                             {groups.map((group) => {

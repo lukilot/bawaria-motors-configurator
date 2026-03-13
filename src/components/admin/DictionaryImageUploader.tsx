@@ -95,9 +95,9 @@ export function DictionaryImageUploader({ currentImage, onUploadComplete, dictio
                         onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
                     />
                     {isUploading ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                        <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
                     ) : (
-                        <Upload className="w-4 h-4 text-gray-400" />
+                        <Upload className="w-4 h-4 text-gray-500" />
                     )}
                 </div>
             )}

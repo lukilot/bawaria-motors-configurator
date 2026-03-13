@@ -117,14 +117,14 @@ function BMWImportModal({ groupId, onComplete, onClose }: { groupId: string; onC
                         <Car className="w-4 h-4 text-blue-600" />
                         <h3 className="font-bold text-sm uppercase tracking-wider">Importuj z BMW Konfiguratora</h3>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-black transition-colors"><X className="w-4 h-4" /></button>
+                    <button onClick={onClose} className="text-gray-500 hover:text-black transition-colors"><X className="w-4 h-4" /></button>
                 </div>
 
                 {status !== 'success' ? (
                     <>
                         <p className="text-xs text-gray-500 mb-4">
                             Wpisz Config ID z linku BMW konfiguratora.<br />
-                            <span className="font-mono text-[10px] text-gray-400">configure.bmw.pl/pl_PL/configid/<span className="text-blue-600 font-bold">nq46xoyp</span></span>
+                            <span className="font-mono text-[10px] text-gray-500">configure.bmw.pl/pl_PL/configid/<span className="text-blue-600 font-bold">nq46xoyp</span></span>
                         </p>
                         <input
                             ref={inputRef}
@@ -159,7 +159,7 @@ function BMWImportModal({ groupId, onComplete, onClose }: { groupId: string; onC
                                 "w-full py-2.5 text-sm font-semibold rounded-sm transition-all flex items-center justify-center gap-2",
                                 configId.trim() && status !== 'loading'
                                     ? "bg-black text-white hover:bg-blue-700"
-                                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                    : "bg-gray-100 text-gray-500 cursor-not-allowed"
                             )}
                         >
                             {status === 'loading' ? (
@@ -614,7 +614,7 @@ export default function AdminGroupEditor() {
                                     setDirty(true);
                                 }}
                                 placeholder="Catalogue price for all units..."
-                                className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 focus:border-blue-500 outline-none font-bold placeholder:text-gray-400"
+                                className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 focus:border-blue-500 outline-none font-bold placeholder:text-gray-500"
                             />
                             <p className="text-[10px] text-gray-600 mt-1">
                                 Sets the catalogue price (before discount) for all units in this group.
@@ -631,7 +631,7 @@ export default function AdminGroupEditor() {
                                     setDirty(true);
                                 }}
                                 rows={4}
-                                className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
+                                className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-500"
                                 placeholder="Internal notes or public description..."
                             />
                         </div>

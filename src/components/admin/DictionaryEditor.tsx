@@ -289,7 +289,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                     </div>
 
                     <div className="relative">
-                        <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2 top-1/2 -translate-y-1/2" />
+                        <Search className="w-3.5 h-3.5 text-gray-500 absolute left-2 top-1/2 -translate-y-1/2" />
                         <input
                             type="text"
                             placeholder="Search..."
@@ -303,7 +303,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                             onClick={() => setSortBy('date')}
                             className={cn(
                                 "px-3 py-1 text-xs transition-all rounded-sm",
-                                sortBy === 'date' ? "bg-white text-black shadow-sm" : "text-gray-400 hover:text-gray-600"
+                                sortBy === 'date' ? "bg-white text-black shadow-sm" : "text-gray-500 hover:text-gray-600"
                             )}
                         >
                             Date Added
@@ -312,7 +312,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                             onClick={() => setSortBy('code')}
                             className={cn(
                                 "px-3 py-1 text-xs transition-all rounded-sm",
-                                sortBy === 'code' ? "bg-white text-black shadow-sm" : "text-gray-400 hover:text-gray-600"
+                                sortBy === 'code' ? "bg-white text-black shadow-sm" : "text-gray-500 hover:text-gray-600"
                             )}
                         >
                             Code
@@ -579,7 +579,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                                     <button
                                                         type="button"
                                                         onClick={() => removeVariationRow(variation.id)}
-                                                        className="mt-6 text-gray-400 hover:text-red-500 transition-colors"
+                                                        className="mt-6 text-gray-500 hover:text-red-500 transition-colors"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
@@ -629,7 +629,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
             <div className="max-h-[500px] overflow-y-auto">
                 {isLoading ? (
                     <div className="p-12 flex justify-center">
-                        <Loader2 className="w-6 h-6 text-gray-300 animate-spin" />
+                        <Loader2 className="w-6 h-6 text-gray-500 animate-spin" />
                     </div>
                 ) : items.length === 0 ? (
                     <div className="p-12 text-center text-gray-500 text-sm italic">
@@ -738,7 +738,7 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(item.id, item.code)}
-                                                className="text-gray-300 hover:text-red-500 p-2 transition-colors"
+                                                className="text-gray-500 hover:text-red-500 p-2 transition-colors"
                                                 title="Delete"
                                             >
                                                 <Trash2 className="w-4 h-4" />

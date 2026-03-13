@@ -149,7 +149,7 @@ function ProductGroupRow({ group, modelMap }: { group: ProductGroup, modelMap: R
             <tr className={cn("hover:bg-gray-50 transition-colors cursor-pointer", expanded && "bg-gray-50")} onClick={() => setExpanded(!expanded)}>
                 <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                        {expanded ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+                        {expanded ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronRight className="w-4 h-4 text-gray-500" />}
                         <div>
                             <div className="font-medium text-gray-900">
                                 {displayName}
@@ -231,7 +231,7 @@ function ProductGroupRow({ group, modelMap }: { group: ProductGroup, modelMap: R
                                             <td className="px-6 py-3">
                                                 <span className={cn(
                                                     "inline-flex items-center gap-1 text-[10px] font-bold",
-                                                    car.visibility === 'PUBLIC' ? "text-blue-600" : "text-gray-400"
+                                                    car.visibility === 'PUBLIC' ? "text-blue-600" : "text-gray-500"
                                                 )}>
                                                     {car.visibility === 'PUBLIC' ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                                                     {car.visibility}
@@ -378,7 +378,7 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
             {/* Search Bar */}
             <div className="bg-white border border-gray-200 p-4 rounded-sm flex flex-col md:flex-row justify-between items-center gap-4 sticky top-[68px] z-30 shadow-sm">
                 <div className="relative w-full md:w-96">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <input
                         type="text"
                         placeholder="Search VIN, Model, Color..."

@@ -78,7 +78,7 @@ export function ServicePricingManager() {
     };
 
     if (isLoading) {
-        return <div className="flex items-center justify-center p-12"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>;
+        return <div className="flex items-center justify-center p-12"><Loader2 className="w-6 h-6 animate-spin text-gray-500" /></div>;
     }
 
     return (
@@ -111,7 +111,7 @@ export function ServicePricingManager() {
                 {/* Search */}
                 <div className="p-4 border-b border-gray-100">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                         <input
                             type="text"
                             placeholder="Szukaj kodu lub nazwy..."

@@ -88,7 +88,7 @@ export default function OptionsPage() {
                     {/* Header */}
                     <div className="flex items-center justify-between mb-8 pt-6">
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1">Admin Panel</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-1">Admin Panel</p>
                             <h1 className="text-2xl font-bold tracking-tight text-gray-900">Options & Packages</h1>
                             <p className="text-sm text-gray-500 mt-1">Zarządzaj zdjęciami opcji wyposażenia per model BMW</p>
                         </div>
@@ -104,16 +104,31 @@ export default function OptionsPage() {
                     {/* Body Groups Grid */}
                     {isLoading ? (
                         <div className="flex items-center justify-center py-32">
-                            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                            <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
                         </div>
                     ) : groups.length === 0 ? (
                         <div className="text-center py-32 border border-dashed border-gray-200 rounded-lg">
-                            <Package className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                            <p className="text-sm font-medium text-gray-400">Brak zaimportowanych opcji</p>
-                            <p className="text-xs text-gray-300 mt-1">Kliknij &ldquo;Importuj model&rdquo; aby rozpocząć</p>
+                            <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                            <p className="text-sm font-medium text-gray-500">Brak zaimportowanych opcji</p>
+                            <p className="text-xs text-gray-500 mt-1">Kliknij &ldquo;Importuj model&rdquo; aby rozpocząć</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            <button
+                                onClick={() => router.push(`/admin/options/all`)}
+                                className="group relative flex flex-col p-5 border border-blue-200 bg-blue-50/50 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200 text-left"
+                            >
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                                        <Package className="w-5 h-5 text-blue-600 transition-colors" />
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <ChevronRight className="w-4 h-4 text-blue-400 group-hover:text-blue-600 transition-colors" />
+                                    </div>
+                                </div>
+                                <p className="text-lg font-bold text-gray-900 tracking-tight">Wszystkie Opcje</p>
+                                <p className="text-xs text-blue-600/80 font-medium mt-0.5">Zarządzaj globalnie</p>
+                            </button>
                             {groups.map((group) => {
                                 const pct = group.count > 0 ? Math.round((group.withImages / group.count) * 100) : 0;
                                 return (
@@ -124,28 +139,28 @@ export default function OptionsPage() {
                                     >
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                                                <Package className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                                                <Package className="w-5 h-5 text-gray-500 group-hover:text-blue-500 transition-colors" />
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group.bodyGroup); }}
-                                                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded transition-all"
+                                                    className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-all"
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" />
                                                 </button>
-                                                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition-colors" />
+                                                <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-blue-400 transition-colors" />
                                             </div>
                                         </div>
                                         <p className="text-lg font-bold text-gray-900 tracking-tight">{group.bodyGroup}</p>
-                                        <p className="text-xs text-gray-400 mt-0.5">{group.count} opcji</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">{group.count} opcji</p>
 
                                         {/* Image coverage bar */}
                                         <div className="mt-3">
                                             <div className="flex items-center justify-between mb-1">
-                                                <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Zdjęcia</span>
+                                                <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Zdjęcia</span>
                                                 <span className={cn(
                                                     "text-[9px] font-bold",
-                                                    pct === 100 ? "text-green-500" : pct > 50 ? "text-blue-500" : "text-gray-400"
+                                                    pct === 100 ? "text-green-500" : pct > 50 ? "text-blue-500" : "text-gray-500"
                                                 )}>{pct}%</span>
                                             </div>
                                             <div className="h-1 bg-gray-100 rounded-full overflow-hidden">

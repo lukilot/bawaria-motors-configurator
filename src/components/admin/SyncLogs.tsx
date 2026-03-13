@@ -152,10 +152,10 @@ export function SyncLogs() {
                         <p className="text-[10px] uppercase font-bold tracking-widest text-red-500 mb-0.5">Wymaga akcji</p>
                         <p className="text-2xl font-black text-red-600 leading-none">{unresolvedCount}</p>
                     </div>
-                    <button onClick={wipeAllResolved} className="h-12 w-12 flex items-center justify-center bg-gray-50 hover:bg-red-50 hover:text-red-600 text-gray-400 rounded-xl border border-gray-100 transition-colors" title="Usuń rozwiązane">
+                    <button onClick={wipeAllResolved} className="h-12 w-12 flex items-center justify-center bg-gray-50 hover:bg-red-50 hover:text-red-600 text-gray-500 rounded-xl border border-gray-100 transition-colors" title="Usuń rozwiązane">
                         <Trash2 className="w-5 h-5" />
                     </button>
-                    <button onClick={fetchLogs} className="h-12 w-12 flex items-center justify-center bg-gray-50 hover:bg-blue-50 hover:text-blue-600 text-gray-400 rounded-xl border border-gray-100 transition-colors" title="Odśwież">
+                    <button onClick={fetchLogs} className="h-12 w-12 flex items-center justify-center bg-gray-50 hover:bg-blue-50 hover:text-blue-600 text-gray-500 rounded-xl border border-gray-100 transition-colors" title="Odśwież">
                         <RotateCw className="w-5 h-5" />
                     </button>
                 </div>
@@ -263,7 +263,7 @@ export function SyncLogs() {
                                     </button>
                                     <button
                                         onClick={() => deleteLog(log.id)}
-                                        className="w-12 lg:w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-gray-400 hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-colors"
+                                        className="w-12 lg:w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-gray-500 hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-colors"
                                         title="Usuń trwale"
                                     >
                                         <Trash2 className="w-4 h-4" />

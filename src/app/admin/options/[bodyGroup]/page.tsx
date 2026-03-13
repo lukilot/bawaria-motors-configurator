@@ -59,14 +59,21 @@ export default function BodyGroupOptionsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+    const isAll = bodyGroup === 'all';
+
     const fetchOptions = useCallback(async () => {
         setIsLoading(true);
-        const { data, error } = await supabase
+        let query = supabase
             .from('dictionaries')
             .select('id, code, data')
             .eq('type', 'option')
-            .contains('data', { body_groups: [bodyGroup] })
             .order('code');
+
+        if (!isAll) {
+            query = query.contains('data', { body_groups: [bodyGroup] });
+        }
+
+        const { data, error } = await query;
 
         if (!error && data) setOptions(data);
         setIsLoading(false);
@@ -96,7 +103,7 @@ export default function BodyGroupOptionsPage() {
         setSavingId(opt.id);
         
         let newData = { ...opt.data };
-        if (newData.variations) {
+        if (!isAll && newData.variations) {
             const vIdx = newData.variations.findIndex(v => v.body_groups.includes(bodyGroup));
             if (vIdx >= 0) {
                 newData.variations[vIdx] = { ...newData.variations[vIdx], name: editName };
@@ -115,11 +122,15 @@ export default function BodyGroupOptionsPage() {
     };
 
     const handleDeleteOption = async (opt: OptionItem) => {
-        if (!confirm(`Czy na pewno chcesz usunąć opcję ${opt.code} z modelu ${bodyGroup}? Spowoduje to również usunięcie zdjęcia dla tego modelu.`)) return;
+        if (isAll) {
+            if (!confirm(`Czy na pewno chcesz CAŁKOWICIE usunąć opcję ${opt.code}? Spowoduje to usunięcie jej ze wszystkich modeli.`)) return;
+        } else {
+            if (!confirm(`Czy na pewno chcesz usunąć opcję ${opt.code} z modelu ${bodyGroup}? Spowoduje to również usunięcie zdjęcia dla tego modelu.`)) return;
+        }
         
         const res = await fetch('/api/admin/options/delete', {
             method: 'POST',
-            body: JSON.stringify({ ids: [opt.id], bodyGroup }),
+            body: JSON.stringify({ ids: [opt.id], bodyGroup: isAll ? null : bodyGroup }),
             headers: { 'Content-Type': 'application/json' }
         });
 
@@ -203,14 +214,18 @@ export default function BodyGroupOptionsPage() {
     };
 
     const handleDeleteSelected = async () => {
-        if (!confirm(`Czy na pewno chcesz usunąć ${selectedIds.size} zaznaczonych opcji z modelu ${bodyGroup}? Operacja ta usunie również powiązane zdjęcia.`)) return;
+        if (isAll) {
+            if (!confirm(`Czy na pewno chcesz CAŁKOWICIE usunąć ${selectedIds.size} zaznaczonych opcji? Operacja ta usunie je ze wszystkich modeli i opróżni powiązane zdjęcia.`)) return;
+        } else {
+            if (!confirm(`Czy na pewno chcesz usunąć ${selectedIds.size} zaznaczonych opcji z modelu ${bodyGroup}? Operacja ta usunie również powiązane zdjęcia.`)) return;
+        }
         
         setIsLoading(true);
         const ids = Array.from(selectedIds);
         
         const res = await fetch('/api/admin/options/delete', {
             method: 'POST',
-            body: JSON.stringify({ ids, bodyGroup }),
+            body: JSON.stringify({ ids, bodyGroup: isAll ? null : bodyGroup }),
             headers: { 'Content-Type': 'application/json' }
         });
 
@@ -265,17 +280,19 @@ export default function BodyGroupOptionsPage() {
                             </button>
                             <div className="w-px h-5 bg-gray-200" />
                             <div>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Body Group</p>
-                                <h1 className="text-xl font-bold tracking-tight text-gray-900">{bodyGroup}</h1>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">{isAll ? 'Global' : 'Body Group'}</p>
+                                <h1 className="text-xl font-bold tracking-tight text-gray-900">{isAll ? 'Wszystkie Opcje' : bodyGroup}</h1>
                             </div>
                         </div>
-                        <button
-                            onClick={() => setShowImport(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-blue-700 transition-colors"
-                        >
-                            <Download className="w-3.5 h-3.5" />
-                            Importuj pochodną
-                        </button>
+                        {!isAll && (
+                            <button
+                                onClick={() => setShowImport(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-blue-700 transition-colors"
+                            >
+                                <Download className="w-3.5 h-3.5" />
+                                Importuj pochodną
+                            </button>
+                        )}
                     </div>
 
                     {/* Filters + Search + Bulk Actions */}
@@ -295,14 +312,14 @@ export default function BodyGroupOptionsPage() {
                                     >
                                         {f.label}
                                         {f.value && (
-                                            <span className="ml-1.5 text-gray-400">
+                                            <span className="ml-1.5 text-gray-500">
                                                 {f.value === 'paint' ? categoryCounts.paint :
                                                  f.value === 'upholstery' ? categoryCounts.upholstery :
                                                  f.value === 'package' ? categoryCounts.package :
                                                  categoryCounts.equipment}
                                             </span>
                                         )}
-                                        {!f.value && <span className="ml-1.5 text-gray-400">{options.length}</span>}
+                                        {!f.value && <span className="ml-1.5 text-gray-500">{options.length}</span>}
                                     </button>
                                 ))}
                             </div>
@@ -345,7 +362,7 @@ export default function BodyGroupOptionsPage() {
                                 </button>
                                 <button
                                     onClick={() => setSelectedIds(new Set())}
-                                    className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-gray-600 transition-colors"
+                                    className="text-[10px] font-bold text-gray-500 uppercase tracking-widest hover:text-gray-600 transition-colors"
                                 >
                                     Anuluj
                                 </button>
@@ -365,7 +382,7 @@ export default function BodyGroupOptionsPage() {
                     {/* Options Grid */}
                     {isLoading ? (
                         <div className="flex items-center justify-center py-32">
-                            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                            <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
                         </div>
                     ) : (
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
@@ -398,7 +415,7 @@ export default function BodyGroupOptionsPage() {
                                             {/* Image overlay with upload */}
                                             <div className="relative aspect-square bg-gray-50 group/img">
                                                 {(() => {
-                                                    const variant = opt.data.variations?.find(v => v.body_groups.includes(bodyGroup));
+                                                    const variant = !isAll ? opt.data.variations?.find(v => v.body_groups.includes(bodyGroup)) : null;
                                                     const displayImage = variant?.image_url || opt.data.image_url;
                                                     const displayName = variant?.name || opt.data.name || opt.code;
 
@@ -412,26 +429,28 @@ export default function BodyGroupOptionsPage() {
                                                         />
                                                     ) : (
                                                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                                                            <span className="text-[9px] text-gray-300 font-bold uppercase tracking-widest">Brak</span>
-                                                            <ImageIcon className="w-4 h-4 text-gray-200" />
+                                                            <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Brak</span>
+                                                            <ImageIcon className="w-4 h-4 text-gray-300" />
                                                         </div>
                                                     );
                                                 })()}
                                                 
                                                 {/* Upload overlay */}
-                                                <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 cursor-pointer">
-                                                    <Upload className="w-5 h-5 text-white" />
-                                                    <span className="text-[8px] font-bold text-white uppercase tracking-wider">Zmień zdjęcie</span>
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        className="hidden"
-                                                        onChange={e => {
-                                                            const file = e.target.files?.[0];
-                                                            if (file) handleImageUpload(opt, file);
-                                                        }}
-                                                    />
-                                                </label>
+                                                {!isAll && (
+                                                    <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 cursor-pointer">
+                                                        <Upload className="w-5 h-5 text-white" />
+                                                        <span className="text-[8px] font-bold text-white uppercase tracking-wider">Zmień zdjęcie</span>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={e => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file) handleImageUpload(opt, file);
+                                                            }}
+                                                        />
+                                                    </label>
+                                                )}
     
                                                 {/* Category badge */}
                                                 <div className={cn(
@@ -450,7 +469,7 @@ export default function BodyGroupOptionsPage() {
                                                         onClick={(e) => { e.stopPropagation(); toggleVisibility(opt); }}
                                                         className={cn(
                                                             "p-1.5 bg-white/90 shadow-sm border border-gray-100 rounded hover:text-blue-500 transition-colors",
-                                                            opt.data.hidden ? "text-amber-500" : "text-gray-400"
+                                                            opt.data.hidden ? "text-amber-500" : "text-gray-500"
                                                         )}
                                                         title={opt.data.hidden ? "Pokaż na stronie" : "Ukryj na stronie"}
                                                     >
@@ -460,7 +479,7 @@ export default function BodyGroupOptionsPage() {
                                                         onClick={(e) => { e.stopPropagation(); handleDeleteOption(opt); }}
                                                         className="p-1.5 bg-white/90 shadow-sm border border-gray-100 rounded hover:text-red-500 transition-colors"
                                                     >
-                                                        <Trash2 className="w-3 h-3 text-gray-400 group-hover:text-red-500" />
+                                                        <Trash2 className="w-3 h-3 text-gray-500 group-hover:text-red-500" />
                                                     </button>
                                                 </div>
     
@@ -473,7 +492,7 @@ export default function BodyGroupOptionsPage() {
 
                                         {/* Info */}
                                         <div className="p-2">
-                                            <p className="text-[9px] font-bold text-gray-400 tracking-wider mb-0.5">{opt.code}</p>
+                                            <p className="text-[9px] font-bold text-gray-500 tracking-wider mb-0.5">{opt.code}</p>
                                             {isEditing ? (
                                                 <div className="flex items-center gap-1">
                                                     <input
@@ -486,7 +505,7 @@ export default function BodyGroupOptionsPage() {
                                                     <button onClick={() => saveEdit(opt)} disabled={isSaving} className="text-green-500 hover:text-green-600">
                                                         {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                                                     </button>
-                                                    <button onClick={cancelEdit} className="text-gray-400 hover:text-gray-600">
+                                                    <button onClick={cancelEdit} className="text-gray-500 hover:text-gray-600">
                                                         <X className="w-3 h-3" />
                                                     </button>
                                                 </div>
@@ -494,15 +513,15 @@ export default function BodyGroupOptionsPage() {
                                                 <div className="flex items-start justify-between gap-1">
                                                     <p className="text-[10px] text-gray-700 leading-tight line-clamp-2">
                                                         {(() => {
-                                                            const variant = opt.data.variations?.find(v => v.body_groups.includes(bodyGroup));
-                                                            return variant?.name || opt.data.name || <span className="text-gray-300 italic">Brak nazwy</span>;
+                                                            const variant = !isAll ? opt.data.variations?.find(v => v.body_groups.includes(bodyGroup)) : null;
+                                                            return variant?.name || opt.data.name || <span className="text-gray-500 italic">Brak nazwy</span>;
                                                         })()}
                                                     </p>
                                                     <button
                                                         onClick={() => startEdit(opt)}
                                                         className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5"
                                                     >
-                                                        <Pencil className="w-3 h-3 text-gray-400 hover:text-blue-500" />
+                                                        <Pencil className="w-3 h-3 text-gray-500 hover:text-blue-500" />
                                                     </button>
                                                 </div>
                                             )}

@@ -244,7 +244,7 @@ export function BulletinManager() {
                                 <div className="flex items-center gap-1 ml-4 shrink-0">
                                     <button
                                         onClick={() => handleToggleActive(b)}
-                                        className={cn("p-2 rounded transition-colors", b.is_active ? "text-green-600 hover:bg-green-50" : "text-gray-400 hover:bg-gray-100")}
+                                        className={cn("p-2 rounded transition-colors", b.is_active ? "text-green-600 hover:bg-green-50" : "text-gray-500 hover:bg-gray-100")}
                                         title={b.is_active ? 'Dezaktywuj' : 'Aktywuj'}
                                     >
                                         {b.is_active ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
@@ -332,7 +332,7 @@ function SearchableSelect({
     return (
         <div ref={containerRef} className="relative">
             <div className="flex items-center border border-gray-300 rounded bg-white">
-                <Search className="w-3.5 h-3.5 text-gray-400 ml-2 shrink-0" />
+                <Search className="w-3.5 h-3.5 text-gray-500 ml-2 shrink-0" />
                 <input
                     className="flex-1 p-2 text-sm outline-none bg-transparent"
                     placeholder={placeholder}
@@ -496,7 +496,7 @@ function BulletinModal({ bulletin, onClose, onSave, saving, modelDict, stockBody
             <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-lg font-bold">{bulletin ? 'Edytuj Biuletyn' : 'Nowy Biuletyn'}</h2>
-                    <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
+                    <button onClick={onClose}><X className="w-5 h-5 text-gray-500" /></button>
                 </div>
 
                 <div className="space-y-5">

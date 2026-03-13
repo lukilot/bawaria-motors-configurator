@@ -89,8 +89,8 @@ export function MappingManager() {
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-gray-300 mb-4" />
-                <p className="text-sm text-gray-400">Analizowanie słowników...</p>
+                <Loader2 className="w-8 h-8 animate-spin text-gray-500 mb-4" />
+                <p className="text-sm text-gray-500">Analizowanie słowników...</p>
             </div>
         );
     }
@@ -125,11 +125,11 @@ export function MappingManager() {
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-gray-50/50 border-b border-gray-100">
-                            <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400 w-16">Typ</th>
-                            <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400 w-24">Kod</th>
-                            <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">Marketingowa Nazwa</th>
-                            <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400 w-64">Grupa Filtra (SRP)</th>
-                            <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400 w-32"></th>
+                            <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500 w-16">Typ</th>
+                            <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500 w-24">Kod</th>
+                            <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Marketingowa Nazwa</th>
+                            <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500 w-64">Grupa Filtra (SRP)</th>
+                            <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500 w-32"></th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -171,7 +171,7 @@ export function MappingManager() {
                                     <button
                                         onClick={() => handleIgnore(item)}
                                         disabled={isSaving === `${item.type}:${item.code}`}
-                                        className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-500 transition-colors"
+                                        className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-gray-500 hover:text-red-500 transition-colors"
                                         title="Usuń z tej listy (to nie lakier/tapicerka)"
                                     >
                                         To nie to
@@ -183,7 +183,7 @@ export function MappingManager() {
                                             "px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all",
                                             item.group 
                                                 ? "bg-black text-white hover:bg-gray-800 shadow-sm"
-                                                : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                                                : "bg-gray-100 text-gray-500 cursor-not-allowed"
                                         )}
                                     >
                                         {isSaving === `${item.type}:${item.code}` ? (

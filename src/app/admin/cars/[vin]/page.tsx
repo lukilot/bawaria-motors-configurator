@@ -478,7 +478,7 @@ export default function AdminCarEditor() {
                                     setDirty(true);
                                 }}
                                 placeholder="Optional"
-                                className="w-full p-2 border border-2 border-gray-300 rounded-sm text-sm text-gray-900 focus:border-blue-500 outline-none font-bold placeholder:text-gray-400"
+                                className="w-full p-2 border border-2 border-gray-300 rounded-sm text-sm text-gray-900 focus:border-blue-500 outline-none font-bold placeholder:text-gray-500"
                             />
                             <p className="text-[10px] text-gray-600 mt-1">Leave empty to use List Price.</p>
                         </div>
@@ -501,7 +501,7 @@ export default function AdminCarEditor() {
                                     // small delay to allow click on option
                                     onBlur={() => setTimeout(() => setIsColorDropdownOpen(false), 200)}
                                     placeholder="Wyszukaj kod lub nazwę..."
-                                    className="w-full p-2 border border-blue-200 rounded-sm text-sm text-gray-900 focus:border-blue-500 outline-none placeholder:text-gray-400 bg-blue-50/30"
+                                    className="w-full p-2 border border-blue-200 rounded-sm text-sm text-gray-900 focus:border-blue-500 outline-none placeholder:text-gray-500 bg-blue-50/30"
                                 />
                                 {isColorDropdownOpen && (
                                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-sm shadow-lg max-h-60 overflow-y-auto">
@@ -553,7 +553,7 @@ export default function AdminCarEditor() {
                                         value={fuelType}
                                         onChange={(e) => { setFuelType(e.target.value); setDirty(true); }}
                                         placeholder="e.g. Diesel"
-                                        className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
+                                        className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-500"
                                     />
                                 </div>
                                 <div>
@@ -563,7 +563,7 @@ export default function AdminCarEditor() {
                                         value={power}
                                         onChange={(e) => { setPower(e.target.value); setDirty(true); }}
                                         placeholder="e.g. 286 KM"
-                                        className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
+                                        className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-500"
                                     />
                                 </div>
                             </div>
@@ -574,7 +574,7 @@ export default function AdminCarEditor() {
                                     value={drivetrain}
                                     onChange={(e) => { setDrivetrain(e.target.value); setDirty(true); }}
                                     placeholder="e.g. xDrive"
-                                    className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-400"
+                                    className="w-full p-2 border border-gray-300 rounded-sm text-sm text-gray-900 placeholder:text-gray-500"
                                 />
                             </div>
                         </div>

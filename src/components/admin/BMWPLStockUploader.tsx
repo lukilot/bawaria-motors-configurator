@@ -133,7 +133,7 @@ export function BMWPLStockUploader({ onSyncSuccess }: BMWPLStockUploaderProps) {
                 {importResult && (
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="bg-white border border-gray-100 p-4 rounded-xl shadow-sm">
-                            <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Przetworzone</p>
+                            <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Przetworzone</p>
                             <p className="text-2xl font-black text-gray-900">{importResult.processed}</p>
                         </div>
                         <div className="bg-white border border-red-50 p-4 rounded-xl shadow-sm border-l-4 border-l-red-400">
@@ -145,7 +145,7 @@ export function BMWPLStockUploader({ onSyncSuccess }: BMWPLStockUploaderProps) {
                             <p className="text-2xl font-black text-orange-600">{importResult.skipped_type}</p>
                         </div>
                         <div className="bg-white border border-gray-100 p-4 rounded-xl shadow-sm">
-                            <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Błędy</p>
+                            <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Błędy</p>
                             <p className="text-2xl font-black text-red-500">{importResult.errors.length}</p>
                         </div>
                     </div>
@@ -163,7 +163,7 @@ export function BMWPLStockUploader({ onSyncSuccess }: BMWPLStockUploaderProps) {
 
                 {importResult?.errors && importResult.errors.length > 0 && (
                     <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 max-h-40 overflow-y-auto">
-                        <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">Logi błędów</h4>
+                        <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2">Logi błędów</h4>
                         <ul className="space-y-1">
                             {importResult.errors.map((err: string, i: number) => (
                                 <li key={i} className="text-[10px] text-red-600 font-mono">{err}</li>

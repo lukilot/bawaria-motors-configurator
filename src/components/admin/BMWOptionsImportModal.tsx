@@ -47,7 +47,7 @@ export default function BMWOptionsImportModal({ bodyGroup: defaultBodyGroup, onC
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <div>
                         <h2 className="text-sm font-bold text-gray-900">Importuj opcje z BMW</h2>
-                        <p className="text-[11px] text-gray-400 mt-0.5">Wklej link do konfiguratora dla wybranej wersji silnikowej</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">Wklej link do konfiguratora dla wybranej wersji silnikowej</p>
                     </div>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
                         <X className="w-4 h-4 text-gray-500" />
@@ -83,7 +83,7 @@ export default function BMWOptionsImportModal({ bodyGroup: defaultBodyGroup, onC
                             rows={3}
                             className="w-full px-4 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-400 bg-gray-50 font-mono resize-none"
                         />
-                        <p className="text-[10px] text-gray-400 mt-1">
+                        <p className="text-[10px] text-gray-500 mt-1">
                             Użyj URL z konfiguratora dla danej pochodnej (np. M235i). Możesz importować wiele pochodnych — opcje zostaną połączone.
                         </p>
                     </div>

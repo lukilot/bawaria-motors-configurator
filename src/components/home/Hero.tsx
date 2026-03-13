@@ -81,7 +81,7 @@ export function Hero() {
                                 </div>
                                 <div>
                                     <span className="block text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Status</span>
-                                    <span className="text-xl font-medium text-white">Dostępny</span>
+                                    <span className="text-xl font-medium text-white">Od ręki</span>
                                 </div>
                             </div>
                         </div>

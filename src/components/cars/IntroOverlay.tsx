@@ -276,7 +276,7 @@ export function IntroOverlay() {
                                         <div className="flex items-center gap-1">
                                             {currentCar.status_code > 190 && <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />}
                                             <span className="text-[7px] font-black uppercase tracking-widest opacity-60">
-                                                {currentCar.status_code > 190 ? 'Dostępny' : 'Oferta'}
+                                                {currentCar.status_code > 190 ? 'Od ręki' : 'Oferta'}
                                             </span>
                                         </div>
                                     </div>

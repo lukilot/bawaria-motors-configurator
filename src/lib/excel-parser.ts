@@ -426,7 +426,7 @@ export const parseBMWPLStock = async (fileBuffer: ArrayBuffer): Promise<ImportRe
             const car: StockCar = {
                 vin,
                 status_code: status,
-                order_status: status === 500 ? 'Sprzedany / Przejęty' : 'Dostępny',
+                order_status: status === 500 ? 'Sprzedany / Przejęty' : 'Od ręki',
                 processing_type: 'SH',
                 model_code: modelCode,
                 model_name: modelName,

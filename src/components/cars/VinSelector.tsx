@@ -141,7 +141,7 @@ export function VinSelector({ currentVin, siblings, isDark }: VinSelectorProps) 
                                                 {s.vin}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-1.5" title={isReady ? "Dostępny od ręki" : "W drodze / w produkcji"}>
+                                        <div className="flex items-center gap-1.5" title={isReady ? "Od ręki" : "W drodze / w produkcji"}>
                                             {isReady ? (
                                                 <CheckCircle2 className="w-4 h-4 text-green-500" />
                                             ) : (

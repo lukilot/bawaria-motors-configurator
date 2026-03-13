@@ -370,7 +370,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                                         {!isSold && isReady && (
                                             <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm", isMSeries ? "bg-white/5 border border-green-900/40 text-green-400" : "bg-green-50/80 text-green-700")}>
                                                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shrink-0" />
-                                                Dostępny
+                                                Od ręki
                                             </span>
                                         )}
                                         {!isSold && isReserved && (

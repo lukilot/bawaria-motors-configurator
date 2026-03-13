@@ -103,7 +103,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const price = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(car.special_price || car.list_price);
     const mainImage = car.images?.[0]?.url || 'https://stock.bawariamotors.pl/images/car-cover.png';
     return {
-        title: `${name} - Dostępny od ręki`,
+        title: `${name} - Od ręki`,
         description: `Sprawdź BMW ${name} za ${price}. Samochód dostępny od ręki w Bawaria Motors. Pełna specyfikacja i zdjęcia.`,
         openGraph: {
             title: `${name} | Bawaria Motors`,
@@ -400,7 +400,7 @@ export default async function CarPage({ params }: PageProps) {
                                     {showReady && (
                                         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
                                             <div className="w-1 h-1 rounded-full bg-green-500" />
-                                            <span className="text-[8px] font-black uppercase tracking-widest text-green-600">Dostępny</span>
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-green-600">Od ręki</span>
                                         </div>
                                     )}
                                     {totalAvailable > 1 && (

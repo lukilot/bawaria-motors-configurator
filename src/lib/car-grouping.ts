@@ -44,7 +44,7 @@ export function groupIdenticalCars(cars: StockCar[]): StockCar[] {
                 if (!isSold) s += 1000; // Prioritize ANY available car over sold ones
                 if (c.status_code > 190 && !isSold) s += 100; // Ready!
                 if (c.images && c.images.length > 0) s += 50; // Has photos
-                if (c.order_status?.includes('Dostępny')) s += 20;
+                if (c.order_status?.includes('Od ręki')) s += 20;
                 return s;
             };
             return score(b) - score(a);
@@ -71,7 +71,7 @@ export function groupIdenticalCars(cars: StockCar[]): StockCar[] {
 
         if (hasReadyCar) {
             primary.status_code = 193;
-            primary.order_status = 'Dostępny od ręki';
+            primary.order_status = 'Od ręki';
         }
         // If NO ready car, we leave the primary status as is. 
         // If primary is Sold (because all are sold), it remains Sold.

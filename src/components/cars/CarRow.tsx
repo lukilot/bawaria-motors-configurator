@@ -13,6 +13,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getColor } from '@/lib/colors';
 import { resolveDictionaryEntry } from '@/lib/dictionary-fetch';
+import { getPluralForm } from '@/lib/plurals';
 
 interface CarRowProps {
     car: StockCar;
@@ -347,7 +348,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                     <div className={cn("absolute top-4 md:top-5 right-4 md:right-5 z-30 flex flex-col items-end gap-1.5 text-[9px] uppercase font-bold tracking-widest text-white", isLightboxOpen && "hidden")}>
                         {car.available_count && car.available_count > 1 && (
                             <div className={cn("px-2.5 py-1.5 rounded-sm border shadow-sm", isMSeries ? "bg-black/80 border-white/20 text-white backdrop-blur-xl" : "bg-white border-gray-200 text-gray-800 shadow-sm")}>
-                                {car.available_count} dostępne
+                                {car.available_count} {getPluralForm(car.available_count, 'dostępny', 'dostępne', 'dostępnych')}
                             </div>
                         )}
                     </div>

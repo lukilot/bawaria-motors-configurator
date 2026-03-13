@@ -19,6 +19,7 @@ import { ServicePackageConfiguratorSection } from '@/components/cars/ServicePack
 import { VinSelector } from '@/components/cars/VinSelector';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { PerformanceBar } from '@/components/cars/PerformanceBar';
+import { getPluralForm } from '@/lib/plurals';
 
 export const revalidate = 60;
 
@@ -405,7 +406,7 @@ export default async function CarPage({ params }: PageProps) {
                                     )}
                                     {totalAvailable > 1 && (
                                         <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
-                                            <span className="text-[8px] font-black uppercase tracking-widest text-blue-600">{totalAvailable} sztuki</span>
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-blue-600">{totalAvailable} {getPluralForm(totalAvailable, 'sztuka', 'sztuki', 'sztuk')}</span>
                                         </div>
                                     )}
                                 </div>

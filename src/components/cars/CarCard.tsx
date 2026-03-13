@@ -9,6 +9,8 @@ import { useGarageStore } from '@/store/garageStore';
 import { useCompareStore } from '@/store/compareStore';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { resolveDictionaryEntry } from '@/lib/dictionary-fetch';
+import { getPluralForm } from '@/lib/plurals';
 import { getColor } from '@/lib/colors';
 
 interface CarCardProps {
@@ -218,14 +220,14 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
                     </button>
                 </div>
 
-                {/* Top Right: Status / Brand Badges (M and i removed) */}
-                <div className="absolute top-5 right-4 z-30 flex flex-col items-end gap-1.5 text-[9px] uppercase font-bold tracking-widest text-white">
-                    {car.available_count && car.available_count > 1 && (
-                        <div className="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-sm border border-white/20 shadow-lg">
-                            {car.available_count} dostępne
-                        </div>
-                    )}
-                </div>
+                {/* Brand Badges Top Right */}
+                    <div className="absolute top-4 right-4 z-30 flex flex-col items-end gap-1.5 text-[9px] uppercase font-bold tracking-widest text-white">
+                        {car.available_count && car.available_count > 1 && (
+                            <div className={cn("px-2.5 py-1.5 rounded-sm border shadow-sm", isMSeries ? "bg-black/80 border-white/20 text-white backdrop-blur-xl" : "bg-white border-gray-200 text-gray-800 shadow-sm")}>
+                                {car.available_count} {getPluralForm(car.available_count, 'dostępny', 'dostępne', 'dostępnych')}
+                            </div>
+                        )}
+                    </div>
 
                 {/* Bottom Content Area */}
                 <div className="relative md:absolute md:inset-x-0 md:bottom-0 z-20 flex flex-col justify-end p-5 md:p-8 w-full flex-1">

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { ChevronDown, CheckCircle2, Clock } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getPluralForm } from '@/lib/plurals';
 
 interface VinSelectorProps {
     currentVin: string;
@@ -57,7 +58,7 @@ export function VinSelector({ currentVin, siblings, isDark }: VinSelectorProps) 
     return (
         <div className="flex flex-col gap-2 relative" ref={dropdownRef}>
             <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40">
-                Wybierz egzemplarz ({totalAvailable} szt.)
+                Wybierz egzemplarz ({totalAvailable} {getPluralForm(totalAvailable, 'szt.', 'szt.', 'szt.')})
             </span>
 
             <button

@@ -25,7 +25,8 @@ export default function OptionsPage() {
         const { data, error } = await supabase
             .from('dictionaries')
             .select('code, data')
-            .eq('type', 'option');
+            .eq('type', 'option')
+            .limit(10000);
 
         if (error || !data) { setIsLoading(false); return; }
 

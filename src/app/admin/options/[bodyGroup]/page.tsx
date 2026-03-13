@@ -67,7 +67,8 @@ export default function BodyGroupOptionsPage() {
             .from('dictionaries')
             .select('id, code, data')
             .eq('type', 'option')
-            .order('code');
+            .order('code')
+            .limit(10000);
 
         if (!isAll) {
             query = query.contains('data', { body_groups: [bodyGroup] });

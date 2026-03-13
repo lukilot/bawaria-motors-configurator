@@ -81,7 +81,8 @@ export function DictionaryEditor({ type, title }: DictionaryEditorProps) {
             .from('dictionaries')
             .select('*')
             .eq('type', type)
-            .order(orderColumn, { ascending: sortBy === 'code' });
+            .order(orderColumn, { ascending: sortBy === 'code' })
+            .limit(10000);
 
         if (error) {
             console.error('Error fetching dictionaries:', error);

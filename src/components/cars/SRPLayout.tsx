@@ -270,6 +270,7 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                 const individualColorName = car.individual_color
                     ? normalize((dictionaries.color[car.individual_color]?.name as string) || car.individual_color)
                     : '';
+                const productionYear = car.production_date ? String(car.production_date).substring(0, 4) : '';
                 // Include model_code directly so "X3" matches model code "31EU" style names AND model_name
                 // Include series ("Seria 3"), drivetrain ("xDrive"), fuel for broad but accurate matching
                 const combined = [
@@ -281,7 +282,8 @@ export function SRPLayout({ cars, dictionaries, bulletinPrices }: SRPLayoutProps
                     normalize(car.fuel_type || ''),        // e.g. "Elektryczny"
                     carOptionsStr,
                     colorName,
-                    individualColorName
+                    individualColorName,
+                    productionYear
                 ].join(' ');
 
                 // Two-phase matching:

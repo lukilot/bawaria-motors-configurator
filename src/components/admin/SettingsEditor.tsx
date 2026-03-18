@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Save, Upload, X } from 'lucide-react';
 import { compressImage } from '@/lib/image-utils';
 import { useAdminStore } from '@/store/adminStore';
+import { revalidateHomepageContent } from '@/app/actions/revalidate-settings';
 
 interface Settings {
     intro_media_url: string;
@@ -85,6 +86,9 @@ export function SettingsEditor() {
 
                 const { error } = await supabase.from('site_settings').upsert(updates, { onConflict: 'key' });
                 if (error) throw error;
+
+                // Sync frontend cache instantly
+                await revalidateHomepageContent();
 
                 setDirty(false);
                 alert('Settings saved!');

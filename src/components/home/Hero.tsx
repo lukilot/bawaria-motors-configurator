@@ -102,7 +102,7 @@ export function Hero({ settings = {} }: HeroProps) {
                                 className="group flex items-center gap-6"
                             >
                                 <span className="text-xs font-bold text-white/40 uppercase tracking-[0.4em] transition-colors group-hover:text-white">
-                                    Pełna Oferta Bawaria Motors
+                                    Pełna Oferta
                                 </span>
                                 <MoveRight className="w-6 h-6 text-white/20 group-hover:text-white group-hover:translate-x-4 transition-all duration-700" />
                             </Link>

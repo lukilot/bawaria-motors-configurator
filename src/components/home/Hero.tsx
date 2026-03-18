@@ -24,6 +24,7 @@ export function Hero({ settings = {} }: HeroProps) {
                     fill
                     className="object-cover opacity-80"
                     priority
+                    unoptimized // Next.js loader block for dynamic Supabase DB blobs
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />

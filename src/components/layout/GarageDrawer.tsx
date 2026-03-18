@@ -79,13 +79,13 @@ export function GarageDrawer() {
                             const modelName = car.model_name || `BMW ${car.model_code}`;
                             const price = car.special_price || car.list_price;
                             const hasDiscount = car.special_price && car.special_price < car.list_price;
-                            const isCompared = compareCars.some(c => c.vin === car.vin);
+                            const isCompared = compareCars.some(c => c.product_group_id === car.product_group_id);
 
                             const toggleCompare = (e: React.MouseEvent) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 if (isCompared) {
-                                    removeCompareCar(car.vin);
+                                    removeCompareCar(car.product_group_id!);
                                 } else {
                                     if (compareCars.length >= 3) {
                                         alert('Możesz porównywać maksymalnie 3 samochody jednocześnie.');
@@ -97,7 +97,7 @@ export function GarageDrawer() {
 
                             return (
                                 <div
-                                    key={car.vin}
+                                    key={car.product_group_id}
                                     className="group relative flex gap-4 p-4 border border-gray-200 rounded-xl hover:border-gray-400 hover:shadow-md transition-all bg-white"
                                 >
                                     {/* Compare Toggle - Integrated on the left */}
@@ -132,7 +132,6 @@ export function GarageDrawer() {
                                     {/* Details */}
                                     <div className="flex flex-col flex-1 min-w-0 py-0.5">
                                         <h4 className="font-bold text-sm text-gray-900 leading-tight pr-6 truncate">{modelName}</h4>
-                                        <p className="text-[10px] text-gray-400 font-mono mt-0.5 mb-auto">{car.vin}</p>
 
                                         {/* Price block */}
                                         <div className="mt-2">
@@ -155,7 +154,7 @@ export function GarageDrawer() {
 
                                     {/* Remove */}
                                     <button
-                                        onClick={() => removeCar(car.vin)}
+                                        onClick={() => removeCar(car.product_group_id!)}
                                         className="absolute top-3 right-3 p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                         title="Usuń z garażu"
                                     >
@@ -164,7 +163,7 @@ export function GarageDrawer() {
 
                                     {/* View link */}
                                     <Link
-                                        href={`/cars/${car.vin}`}
+                                        href={`/cars/${car.product_group_id}`}
                                         onClick={closeGarage}
                                         className="absolute bottom-3 right-3 flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors"
                                     >

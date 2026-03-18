@@ -42,8 +42,8 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
     const { addCar: addGarageCar, removeCar: removeGarageCar } = useGarageStore();
     const { compareCars, addCar: addCompareCar, removeCar: removeCompareCar } = useCompareStore();
 
-    const isCarCompared = useCompareStore(state => state.compareCars.some(c => c.vin === car.vin));
-    const isCarSaved = useGarageStore(state => state.savedCars?.some((c: any) => c.vin === car.vin));
+    const isCarCompared = useCompareStore(state => state.compareCars.some(c => c.product_group_id === car.product_group_id));
+    const isCarSaved = useGarageStore(state => state.savedCars?.some((c: any) => c.product_group_id === car.product_group_id));
 
     const [clientMounted, setClientMounted] = useState(false);
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -58,7 +58,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
         e.preventDefault();
         e.stopPropagation();
         if (saved) {
-            removeGarageCar(car.vin);
+            removeGarageCar(car.product_group_id!);
         } else {
             addGarageCar(car);
         }
@@ -68,7 +68,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
         e.preventDefault();
         e.stopPropagation();
         if (compared) {
-            removeCompareCar(car.vin);
+            removeCompareCar(car.product_group_id!);
         } else {
             if (compareCars.length >= 3) {
                 alert("Możesz porównywać maksymalnie 3 samochody jednocześnie.");
@@ -155,7 +155,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                     onMouseLeave={handleMouseLeave}
                 >
                     {/* Images */}
-                    <Link href={`/cars/${encodeURIComponent(car.vin)}`} className={cn("absolute inset-0 z-0", isSold && "cursor-default pointer-events-none")}>
+                    <Link href={`/cars/${car.product_group_id!.slice(0, 8).toUpperCase()}`} className={cn("absolute inset-0 z-0", isSold && "cursor-default pointer-events-none")} prefetch={false}>
                         {displayImages.length > 0 ? (
                             <>
                                 {/* Desktop Hover Scrubbing Images */}
@@ -214,7 +214,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                         <>
                             {/* Desktop: hover-expand link to VDP */}
                             <Link
-                                href={`/cars/${encodeURIComponent(car.vin)}`}
+                                href={`/cars/${car.product_group_id!.slice(0, 8).toUpperCase()}`}
                                 className="hidden md:block absolute bottom-5 right-5 z-40 group/pip w-16 h-16 sm:w-[72px] sm:h-[72px] cursor-pointer"
                             >
                                 <div className="absolute bottom-0 right-0 overflow-hidden w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-[32px] sm:rounded-[36px] border border-white/30 shadow-[0_4px_12px_rgba(0,0,0,0.4)] bg-black/40 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover/pip:w-[280px] sm:group-hover/pip:w-[320px] group-hover/pip:h-[200px] sm:group-hover/pip:h-[220px] group-hover/pip:rounded-[20px] group-hover/pip:shadow-[0_24px_48px_rgba(0,0,0,0.6)] group-hover/pip:border-white/40">
@@ -290,7 +290,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                                 >
                                     {/* Primary: Detale button */}
                                     <button
-                                        onClick={() => router.push(`/cars/${encodeURIComponent(car.vin)}`)}
+                                        onClick={() => router.push(`/cars/${car.product_group_id!.slice(0, 8).toUpperCase()}`)}
                                         className="flex-1 flex items-center justify-center gap-2 bg-white text-black rounded-2xl py-4 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] transition-transform"
                                     >
                                         <span>Detale</span>
@@ -313,7 +313,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                 )}
 
                 {/* Right Info Pane */}
-                <Link href={`/cars/${encodeURIComponent(car.vin)}`} className={cn("flex-1 p-5 lg:p-8 flex flex-col justify-between md:justify-end relative overflow-hidden", isSold && "cursor-default pointer-events-none")}>
+                <Link href={`/cars/${car.product_group_id}`} className={cn("flex-1 p-5 lg:p-8 flex flex-col justify-between md:justify-end relative overflow-hidden", isSold && "cursor-default pointer-events-none")}>
 
                     {/* Minimalist Action Buttons — Desktop only (hidden on mobile, shown in gallery instead) */}
                     <div className="hidden md:flex absolute top-5 left-5 lg:top-8 lg:left-8 z-30 flex-row items-center gap-5">
@@ -359,7 +359,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                             <div className="flex-1 min-w-0 pr-8 md:pr-0">
                                 <div className={cn("flex items-center gap-3 md:gap-4 mb-2", isLightboxOpen && "invisible")}>
                                     <span className={cn("text-[9px] md:text-[10px] font-mono tracking-widest uppercase opacity-70 group-hover:opacity-100 transition-opacity", isMSeries ? "text-white/60" : "text-gray-500")}>
-                                        {car.vin}
+                                        OFERTA: {car.product_group_id!.slice(0, 8).toUpperCase()}
                                     </span>
                                     {/* Status Badges */}
                                     <div className="flex flex-wrap gap-1.5">

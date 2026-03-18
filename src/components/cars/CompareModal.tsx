@@ -55,7 +55,7 @@ function getPlural(n: number, one: string, few: string, many: string) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 function GarageButton({ car }: { car: any }) {
-    const isSaved = useGarageStore(state => state.savedCars.some(c => c.vin === car.vin));
+    const isSaved = useGarageStore(state => state.savedCars.some(c => c.product_group_id === car.product_group_id));
     const addCar = useGarageStore(state => state.addCar);
     const removeCar = useGarageStore(state => state.removeCar);
 
@@ -64,7 +64,7 @@ function GarageButton({ car }: { car: any }) {
             onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (isSaved) removeCar(car.vin);
+                if (isSaved) removeCar(car.product_group_id!);
                 else addCar(car);
             }}
             className={cn(
@@ -280,7 +280,7 @@ export function CompareModal() {
                                         <div className="w-[320px] group relative pt-4">
                                             <div className="absolute top-2 left-2 z-50">
                                                 <button
-                                                    onClick={() => { removeCar(car.vin); if (n <= 1) closeModal(); }}
+                                                    onClick={() => { removeCar(car.product_group_id!); if (n <= 1) closeModal(); }}
                                                     className="w-9 h-9 bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-100 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg opacity-0 group-hover:opacity-100 hover:scale-110"
                                                     title="Usuń z porównania"
                                                 >
@@ -296,7 +296,7 @@ export function CompareModal() {
                                                             <div className="relative w-full h-full overflow-hidden rounded-[16px]">
                                                                 <Image
                                                                     src={imgUrl}
-                                                                    alt={car.vin}
+                                                                    alt={car.product_group_id || car.model_name || car.model_code}
                                                                     fill
                                                                     className="object-cover object-[center_38%] transition-transform duration-700 group-hover/card:scale-110"
                                                                     sizes="320px"
@@ -311,7 +311,7 @@ export function CompareModal() {
                                                         );
                                                     })()}
                                                     <GarageButton car={car} />
-                                                    <Link href={`/cars/${encodeURIComponent(car.vin)}`} className="absolute inset-0 z-10" />
+                                                    <Link href={`/cars/${car.product_group_id}`} className="absolute inset-0 z-10" />
                                                     <div className="absolute top-3 right-3 px-2 py-1 rounded-md bg-white/80 backdrop-blur-md border border-black/[0.03] text-[9px] font-bold text-gray-400 tracking-widest z-10">
                                                         #{idx + 1}
                                                     </div>
@@ -322,7 +322,6 @@ export function CompareModal() {
                                                         <h3 className="text-sm font-bold text-gray-900 leading-tight uppercase tracking-tight truncate group-hover/card:text-blue-600 transition-colors">
                                                             {isLoading ? `BMW ${car.model_code}` : getModelName(d, car.model_code)}
                                                         </h3>
-                                                        <p className="text-[9px] text-gray-400 font-mono truncate uppercase opacity-60 m-0">{car.vin}</p>
                                                         
                                                         <div className="mt-2 flex items-baseline gap-2">
                                                             {car.special_price && car.special_price < car.list_price ? (
@@ -459,9 +458,9 @@ export function CompareModal() {
                 {/* Fixed Top Section: Car Selector with Horizontal Scroll */}
                 <div className="shrink-0 bg-white border-b border-gray-100 px-4 py-4 flex gap-4 overflow-x-auto no-scrollbar shadow-sm z-50">
                     {compareCars.map((car, idx) => (
-                        <div key={car.vin} className="flex-shrink-0 w-28 flex flex-col items-center group relative">
+                        <div key={car.product_group_id} className="flex-shrink-0 w-28 flex flex-col items-center group relative">
                             <button
-                                onClick={() => { removeCar(car.vin); if (n <= 1) closeModal(); }}
+                                onClick={() => { removeCar(car.product_group_id!); if (n <= 1) closeModal(); }}
                                 className="absolute -top-1.5 -right-1.5 z-10 w-7 h-7 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 shadow-md active:bg-red-50 active:text-red-500 transition-colors"
                             >
                                 <X className="w-4 h-4" />
@@ -469,7 +468,7 @@ export function CompareModal() {
 
                             <div className="w-28 h-12 rounded-xl overflow-hidden border border-gray-100 bg-gray-50 relative shadow-sm">
                                 {car.images?.[0]?.url ? (
-                                    <Image src={car.images[0].url} alt={car.vin} fill className="object-cover object-[center_38%]" sizes="120px" />
+                                    <Image src={car.images[0].url} alt={car.product_group_id || car.model_name || car.model_code} fill className="object-cover object-[center_38%]" sizes="120px" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-gray-50">
                                         <Scale className="w-4 h-4 text-gray-200" />

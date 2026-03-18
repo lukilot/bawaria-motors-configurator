@@ -61,6 +61,9 @@ export interface ProductGroup {
   // Virtual / Computed
   available_units?: StockCar[];
   available_count?: number;
+  ready_count?: number;
+  in_production_count?: number;
+  sold_count?: number;
   min_price?: number;
   max_price?: number;
 }

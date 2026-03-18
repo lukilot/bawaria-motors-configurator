@@ -1,6 +1,7 @@
 import { getAvailableProductGroups } from '@/lib/stock-fetch';
 import { getAllDictionaries } from '@/lib/dictionary-fetch';
 import { getActiveBulletins, getCarDiscountedPrice } from '@/lib/bulletin-fetch';
+import { supabase } from '@/lib/supabase';
 import { StockCar } from '@/types/stock';
 import { Hero } from '@/components/home/Hero';
 import { FeaturedOffers } from '@/components/home/FeaturedOffers';
@@ -16,11 +17,19 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function Home() {
-  const [productGroups, dictionaries, bulletins] = await Promise.all([
+  const [{ data: settingsData }, productGroups, dictionaries, bulletins] = await Promise.all([
+    supabase.from('site_settings').select('key, value'),
     getAvailableProductGroups(),
     getAllDictionaries(),
     getActiveBulletins()
   ]);
+
+  const settings: Record<string, string> = {};
+  if (settingsData) {
+    settingsData.forEach(item => {
+      settings[item.key] = item.value;
+    });
+  }
 
   // Transform Product Groups into Representative Cars
   const cars: StockCar[] = productGroups.map(group => {
@@ -65,7 +74,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-white">
-      <Hero />
+      <Hero settings={settings} />
       <FeaturedOffers cars={featuredCars} dictionaries={dictionaries} />
       <AboutMe />
     </main>

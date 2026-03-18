@@ -7,13 +7,19 @@ import { ArrowRight, MoveRight } from 'lucide-react';
 import { BMWIndividualBadge } from '@/components/cars/BMWIndividualBadge';
 import { cn } from '@/lib/utils';
 
-export function Hero() {
+interface HeroProps {
+    settings?: Record<string, string>;
+}
+
+export function Hero({ settings = {} }: HeroProps) {
+    const bgImage = settings.hero_image_url || "https://images.unsplash.com/photo-1617469767053-d3b508a042a2?q=80&w=2072&auto=format&fit=crop";
+    
     return (
         <section className="relative w-full h-[90vh] min-h-[700px] overflow-hidden bg-black flex items-center">
             {/* Background Image - Cinematic & Dark */}
             <div className="absolute inset-0 z-0">
                 <Image
-                    src="https://images.unsplash.com/photo-1617469767053-d3b508a042a2?q=80&w=2072&auto=format&fit=crop"
+                    src={bgImage}
                     alt="BMW Individual Showroom"
                     fill
                     className="object-cover opacity-80"
@@ -45,8 +51,10 @@ export function Hero() {
                         transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
                         className="text-6xl md:text-8xl font-light text-white tracking-[-0.03em] leading-[0.9] mb-12"
                     >
-                        Definicja <br />
-                        <span className="font-medium bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/40">Premium.</span>
+                        {settings.hero_title_line1 || 'Definicja'} <br />
+                        <span className="font-medium bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/40">
+                            {settings.hero_title_line2 || 'Premium.'}
+                        </span>
                     </motion.h1>
 
                     {/* Feature Card - Glassmorphism */}
@@ -57,17 +65,17 @@ export function Hero() {
                         className="flex flex-col md:flex-row items-end gap-12"
                     >
                         <div className="relative p-8 rounded-sm bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl max-w-sm">
-                            <BMWIndividualBadge colorName="Frozen Marina Bay Blue" className="mb-6" />
-                            <h2 className="text-2xl font-light text-white mb-4">Nowy BMW M5</h2>
+                            <BMWIndividualBadge colorName={settings.hero_color_badge || "Frozen Marina Bay Blue"} className="mb-6" />
+                            <h2 className="text-2xl font-light text-white mb-4">{settings.hero_car_name || 'Nowy BMW M5'}</h2>
                             <p className="text-sm text-white/60 leading-relaxed mb-8">
-                                Odkryj esencję sportowej elegancji. Egzemplarz w unikatowym lakierze Individual, dostępny do natychmiastowego odbioru.
+                                {settings.hero_description || 'Odkryj esencję sportowej elegancji. Egzemplarz w unikatowym lakierze Individual, dostępny do natychmiastowego odbioru.'}
                             </p>
 
                             <Link
-                                href="/cars"
+                                href={settings.hero_button_link || "/cars"}
                                 className="group inline-flex items-center gap-4 text-white hover:text-white/80 transition-colors"
                             >
-                                <span className="text-xs font-bold uppercase tracking-[0.2em]">Szczegóły oferty</span>
+                                <span className="text-xs font-bold uppercase tracking-[0.2em]">{settings.hero_button_text || 'Szczegóły oferty'}</span>
                                 <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-500">
                                     <ArrowRight className="w-4 h-4" />
                                 </div>
@@ -77,11 +85,11 @@ export function Hero() {
                             <div className="grid grid-cols-2 gap-8 mt-12 pt-8 border-t border-white/10">
                                 <div>
                                     <span className="block text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Moc silnika</span>
-                                    <span className="text-xl font-medium text-white">600 KM</span>
+                                    <span className="text-xl font-medium text-white">{settings.hero_stats_power || '600 KM'}</span>
                                 </div>
                                 <div>
                                     <span className="block text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Status</span>
-                                    <span className="text-xl font-medium text-white">Od ręki</span>
+                                    <span className="text-xl font-medium text-white">{settings.hero_stats_status || 'Od ręki'}</span>
                                 </div>
                             </div>
                         </div>

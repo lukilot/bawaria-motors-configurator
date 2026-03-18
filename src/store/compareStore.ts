@@ -6,8 +6,8 @@ interface CompareState {
     compareCars: StockCar[];
     isModalOpen: boolean;
     addCar: (car: StockCar) => void;
-    removeCar: (vin: string) => void;
-    isCompared: (vin: string) => boolean;
+    removeCar: (groupId: string) => void;
+    isCompared: (groupId: string) => boolean;
     clearCompare: () => void;
     openModal: () => void;
     closeModal: () => void;
@@ -24,15 +24,15 @@ export const useCompareStore = create<CompareState>()(
                     // Maximum 3 cars
                     return;
                 }
-                if (!compareCars.find(c => c.vin === car.vin)) {
+                if (!compareCars.find(c => c.product_group_id === car.product_group_id)) {
                     set({ compareCars: [...compareCars, car] });
                 }
             },
-            removeCar: (vin) => {
-                set({ compareCars: get().compareCars.filter(c => c.vin !== vin) });
+            removeCar: (groupId) => {
+                set({ compareCars: get().compareCars.filter(c => c.product_group_id !== groupId) });
             },
-            isCompared: (vin) => {
-                return get().compareCars.some(c => c.vin === vin);
+            isCompared: (groupId) => {
+                return get().compareCars.some(c => c.product_group_id === groupId);
             },
             clearCompare: () => set({ compareCars: [] }),
             openModal: () => set({ isModalOpen: true }),

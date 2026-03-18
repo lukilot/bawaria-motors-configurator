@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getCarByVin, getCarVariants, getAvailableCars } from '@/lib/stock-fetch';
+import { getProductGroupById, getCarVariants, getAvailableCars, getSimilarActiveGroups } from '@/lib/stock-fetch';
 import { getAllDictionaries, resolveDictionaryEntry } from '@/lib/dictionary-fetch';
 import { getServicePackages } from '@/lib/service-packages';
 import { getActiveBulletins, getCarDiscountedPrice } from '@/lib/bulletin-fetch';
@@ -16,10 +16,11 @@ import { getModelAttributes } from '@/lib/model-attributes';
 import { CarActionButtons } from '@/components/cars/CarActionButtons';
 import { VdpStoreInit } from '@/components/cars/VdpStoreInit';
 import { ServicePackageConfiguratorSection } from '@/components/cars/ServicePackageConfiguratorSection';
-import { VinSelector } from '@/components/cars/VinSelector';
+import { GroupAvailability } from '@/components/cars/GroupAvailability';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { PerformanceBar } from '@/components/cars/PerformanceBar';
 import { getPluralForm } from '@/lib/plurals';
+import { SoldLeadGenerator } from '@/components/cars/SoldLeadGenerator';
 
 export const revalidate = 60;
 
@@ -90,16 +91,18 @@ function parseOptionGroups(codes: string[], dictionaries: any, bodyGroup?: strin
 }
 
 interface PageProps {
-    params: Promise<{ vin: string }>;
+    params: Promise<{ groupId: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-    const { vin } = await params;
-    const [car, dictionaries] = await Promise.all([
-        getCarByVin(decodeURIComponent(vin)),
+    const { groupId } = await params;
+    const [group, dictionaries] = await Promise.all([
+        getProductGroupById(decodeURIComponent(groupId)),
         getAllDictionaries()
     ]);
-    if (!car) return { title: 'Pojazd nieodnaleziony' };
+    if (!group) return { title: 'Pojazd nieodnaleziony' };
+    const car = group.available_units?.[0];
+    if (!car) return { title: 'Pojazd niedostępny' };
     const name = dictionaries.model[car.model_code]?.name || car.model_name || `BMW ${car.model_code}`;
     const price = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(car.special_price || car.list_price);
     const mainImage = car.images?.[0]?.url || 'https://stock.bawariamotors.pl/images/car-cover.png';
@@ -115,20 +118,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function CarPage({ params }: PageProps) {
-    const { vin } = await params;
-    const decodedVin = decodeURIComponent(vin);
-    const [car, dictionaries, servicePkgs, bulletins] = await Promise.all([
-        getCarByVin(decodedVin),
+    const { groupId } = await params;
+    const decodedGroupId = decodeURIComponent(groupId);
+    const [group, dictionaries, servicePkgs, bulletins] = await Promise.all([
+        getProductGroupById(decodedGroupId),
         getAllDictionaries(),
         getServicePackages(),
         getActiveBulletins()
     ]);
 
-    if (!car) notFound();
+    if (!group) notFound();
+    const car = group.available_units?.[0];
+    
+    // Calculate modelName early since we need it for the LeadGenerator as well
+    const modelDict = dictionaries.model[group.model_code] || {};
+    const modelName = modelDict.name || (car?.model_name) || `BMW ${group.model_code}`;
+    
+    if (!car) {
+        // Offer is sold out (no active cars in group)
+        const similarGroups = await getSimilarActiveGroups(group.model_code, group.id);
+        
+        return (
+            <SoldLeadGenerator 
+                groupId={group.id} 
+                group={group} 
+                modelName={modelName} 
+                similarGroups={similarGroups} 
+            />
+        );
+    }
 
     const variants = await getCarVariants(car);
-    const modelDict = dictionaries.model[car.model_code] || {};
-    const modelName = modelDict.name || car.model_name || `BMW ${car.model_code}`;
     
     const staticAttrs = getModelAttributes(car.model_code);
     const enrichedBodyGroup = staticAttrs.body_group || car.body_group;
@@ -161,28 +181,16 @@ export default async function CarPage({ params }: PageProps) {
     const restrictedCodes = new Set(servicePkgs.map(p => p.code));
     const optionGroups = parseOptionGroups(car.option_codes, dictionaries, enrichedBodyGroup, restrictedCodes);
 
-    const allImages = [...(car as any).group_images || [], ...(car.images || [])];
+    const allImages = [...(group.images || []), ...(car.images || [])];
     const uniqueImages = Array.from(new Map(allImages.map(img => [img.url, img])).values());
 
     const allStock = await getAvailableCars();
-    const isIdentical = (a: any, b: any) => {
-        if (a.model_code !== b.model_code) return false;
-        if (a.color_code !== b.color_code) return false;
-        if (a.color_code === '490' && a.individual_color !== b.individual_color) return false;
-        if (a.upholstery_code !== b.upholstery_code) return false;
-        const yA = (a.production_date || '').substring(0, 4);
-        const yB = (b.production_date || '').substring(0, 4);
-        if (yA !== yB) return false;
-        const optsA = [...(a.option_codes || [])].sort().join(',');
-        const optsB = [...(b.option_codes || [])].sort().join(',');
-        return optsA === optsB;
-    };
+    const siblings = group.available_units || [];
+    const totalAvailable = group.ready_count || 0;
+    const inProduction = group.in_production_count || 0;
+    const effectiveIsReady = siblings.some((c: any) => c.status_code > 190) || car.status_code > 190;
 
-    const siblings = allStock.filter(c => isIdentical(car, c));
-    const totalAvailable = siblings.length;
-    const effectiveIsReady = siblings.some(c => c.status_code > 190) || car.status_code > 190;
-
-    const showSold = (car.order_status || '').includes('Sprzedany');
+    const showSold = totalAvailable === 0 && inProduction === 0;
     const showReserved = !showSold && !!reservationStr && reservationStr.toLowerCase() !== 'rezerwuj';
     const showReady = !showSold && !showReserved && effectiveIsReady;
 
@@ -325,7 +333,7 @@ export default async function CarPage({ params }: PageProps) {
                                                     <Link
                                                         key={v.vin}
                                                         replace
-                                                        href={`/cars/${v.vin}`}
+                                                        href={`/cars/${v.product_group_id!.slice(0, 8).toUpperCase()}`}
                                                         className={cn(
                                                             "group flex flex-col gap-4 p-4 rounded-3xl border transition-all",
                                                             isMSeries ? "bg-white/5 border-white/10" : "bg-white border-black/[0.03]",
@@ -334,22 +342,22 @@ export default async function CarPage({ params }: PageProps) {
                                                                 : (isMSeries ? "hover:bg-white/10 hover:shadow-2xl hover:scale-[1.01]" : "hover:border-black/10 hover:shadow-2xl hover:scale-[1.01]")
                                                         )}
                                                     >
-                                                        {/* Image Composite - Side-by-Side Duo Split */}
-                                                        <div className="relative aspect-[21/9] w-full shrink-0 flex overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
+                                                        {/* Image Composite - Side-by-Side Panoramic Duo Split */}
+                                                        <div className="relative aspect-[3/1] sm:aspect-[4/1] w-full shrink-0 flex overflow-hidden rounded-2xl bg-gray-100 group border border-black/[0.03]">
                                                             {/* Exterior (Left 50%) */}
                                                             <div className="w-1/2 h-full bg-white relative overflow-hidden">
                                                                 {exteriorImg ? (
-                                                                    <img src={exteriorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                                    <img src={exteriorImg} alt="" className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700" />
                                                                 ) : (
                                                                     <div className="w-full h-full bg-gray-100" />
                                                                 )}
-                                                                <div className="absolute right-0 inset-y-0 w-px bg-black/[0.1] z-10" />
+                                                                <div className="absolute right-0 inset-y-0 w-[2px] bg-white z-10 box-content shadow-[0_0_10px_rgba(0,0,0,0.1)]" />
                                                             </div>
 
                                                             {/* Interior (Right 50%) */}
                                                             <div className="w-1/2 h-full bg-gray-50 relative overflow-hidden">
                                                                 {interiorImg ? (
-                                                                    <img src={interiorImg} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                                    <img src={interiorImg} alt="" className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700" />
                                                                 ) : (
                                                                     <div className="w-full h-full bg-gray-200" />
                                                                 )}
@@ -413,10 +421,13 @@ export default async function CarPage({ params }: PageProps) {
 
                                 {/* Title & Vin Selector */}
                                 <div className="space-y-3">
+                                    <h4 className="text-[10px] text-gray-500 uppercase tracking-widest font-mono font-bold mb-1">
+                                        Numer oferty: {decodedGroupId.slice(0, 8).toUpperCase()}
+                                    </h4>
                                     <h1 className={cn("text-4xl lg:text-5xl font-bold tracking-tight leading-none", theme.text)}>
                                         {modelName}
                                     </h1>
-                                    <VinSelector currentVin={car.vin} siblings={siblings} isDark={isMSeries} />
+                                    <GroupAvailability totalAvailable={totalAvailable} inProduction={inProduction} isDark={isMSeries} />
                                 </div>
                             </div>
 

@@ -46,6 +46,79 @@ export async function getAvailableProductGroups(): Promise<ProductGroup[]> {
     });
 }
 
+export async function resolveGroupId(idOrShortId: string): Promise<string | null> {
+    if (idOrShortId.length >= 36) return idOrShortId;
+    
+    let allData: { id: string }[] = [];
+    let count = 0;
+    const pageSize = 1000;
+    
+    while (true) {
+        const { data, error } = await supabase
+            .from('product_groups')
+            .select('id')
+            .range(count, count + pageSize - 1);
+            
+        if (error || !data) break;
+        
+        allData = allData.concat(data);
+        count += data.length;
+        
+        if (data.length < pageSize) break;
+    }
+    
+    const shortId = idOrShortId.toUpperCase();
+    const found = allData.find(g => g.id.toUpperCase().startsWith(shortId));
+    return found ? found.id : null;
+}
+
+export async function getProductGroupById(idOrShortId: string): Promise<ProductGroup | null> {
+    const groupId = await resolveGroupId(idOrShortId);
+    if (!groupId) return null;
+
+    const { data: groupData, error: groupError } = await supabase
+        .from('product_groups')
+        .select('*')
+        .eq('id', groupId)
+        .single();
+
+    if (groupError || !groupData) {
+        console.error('Error fetching product group by id:', groupError);
+        return null;
+    }
+
+    const { data: unitsData, error: unitsError } = await supabase
+        .from('stock_units')
+        .select('*')
+        .eq('product_group_id', groupId)
+        .eq('visibility', 'PUBLIC');
+
+    const units = (unitsData as StockCar[] || []).map(u => {
+        if (groupData.manual_price && groupData.manual_price > 0) {
+            return { ...u, list_price: groupData.manual_price };
+        }
+        return u;
+    });
+
+    const prices = units.map(u => u.special_price || u.list_price).filter(p => !!p && p > 0);
+    const min_price = prices.length > 0 ? Math.min(...prices) : 0;
+    const max_price = prices.length > 0 ? Math.max(...prices) : 0;
+
+    const publicUnits = units;
+    const soldUnits = units.filter(u => (u.order_status || '').includes('Sprzedany'));
+
+    return {
+        ...groupData,
+        available_units: publicUnits,
+        available_count: publicUnits.length,
+        ready_count: publicUnits.filter(u => u.status_code > 190).length,
+        in_production_count: publicUnits.filter(u => u.status_code <= 190).length,
+        sold_count: soldUnits.length,
+        min_price,
+        max_price
+    } as ProductGroup;
+}
+
 export async function getAvailableCars(): Promise<StockCar[]> {
     let allCars: StockCar[] = [];
     let from = 0;
@@ -186,4 +259,35 @@ export async function getCarVariants(currentCar: StockCar): Promise<StockCar[]> 
         // optional: attach count
         return { ...rep, available_count: group.length };
     });
+}
+
+export async function getSimilarActiveGroups(modelCode: string, excludeGroupId: string, limit: number = 4): Promise<ProductGroup[]> {
+    const { data, error } = await supabase
+        .from('product_groups')
+        .select(`
+            id,
+            model_code,
+            color_code,
+            upholstery_code,
+            images,
+            signature,
+            option_codes,
+            production_year,
+            stock_units(*)
+        `)
+        .eq('model_code', modelCode)
+        .neq('id', excludeGroupId)
+        .order('created_at', { ascending: false });
+
+    if (error || !data) return [];
+
+    const activeGroups = data
+        .map(g => ({
+            ...g,
+            available_units: g.stock_units.filter((u: StockCar) => u.status_code !== 500 && u.visibility === 'PUBLIC')
+        }))
+        .filter(g => g.available_units.length > 0)
+        .slice(0, limit);
+
+    return activeGroups as ProductGroup[];
 }

@@ -6,8 +6,8 @@ interface GarageState {
     savedCars: StockCar[];
     isOpen: boolean;
     addCar: (car: StockCar) => void;
-    removeCar: (vin: string) => void;
-    isSaved: (vin: string) => boolean;
+    removeCar: (groupId: string) => void;
+    isSaved: (groupId: string) => boolean;
     clearGarage: () => void;
     openGarage: () => void;
     closeGarage: () => void;
@@ -21,15 +21,15 @@ export const useGarageStore = create<GarageState>()(
             isOpen: false,
             addCar: (car) => {
                 const { savedCars } = get();
-                if (!savedCars.find(c => c.vin === car.vin)) {
+                if (!savedCars.find(c => c.product_group_id === car.product_group_id)) {
                     set({ savedCars: [...savedCars, car] });
                 }
             },
-            removeCar: (vin) => {
-                set({ savedCars: get().savedCars.filter(c => c.vin !== vin) });
+            removeCar: (groupId) => {
+                set({ savedCars: get().savedCars.filter(c => c.product_group_id !== groupId) });
             },
-            isSaved: (vin) => {
-                return get().savedCars.some(c => c.vin === vin);
+            isSaved: (groupId) => {
+                return get().savedCars.some(c => c.product_group_id === groupId);
             },
             clearGarage: () => set({ savedCars: [] }),
             openGarage: () => set({ isOpen: true }),

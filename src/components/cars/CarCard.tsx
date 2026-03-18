@@ -34,8 +34,8 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
     const { addCar: addGarageCar, removeCar: removeGarageCar, isSaved } = useGarageStore();
     const { compareCars, addCar: addCompareCar, removeCar: removeCompareCar } = useCompareStore();
 
-    const isCarCompared = useCompareStore(state => state.compareCars.some(c => c.vin === car.vin));
-    const isCarSaved = useGarageStore(state => state.savedCars?.some((c: any) => c.vin === car.vin));
+    const isCarCompared = useCompareStore(state => state.compareCars.some(c => c.product_group_id === car.product_group_id));
+    const isCarSaved = useGarageStore(state => state.savedCars?.some((c: any) => c.product_group_id === car.product_group_id));
 
     const [clientMounted, setClientMounted] = useState(false);
     useEffect(() => { setClientMounted(true); }, []);
@@ -47,7 +47,7 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
         e.preventDefault();
         e.stopPropagation();
         if (saved) {
-            removeGarageCar(car.vin);
+            removeGarageCar(car.product_group_id!);
         } else {
             addGarageCar(car);
         }
@@ -57,7 +57,7 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
         e.preventDefault();
         e.stopPropagation();
         if (compared) {
-            removeCompareCar(car.vin);
+            removeCompareCar(car.product_group_id!);
         } else {
             if (compareCars.length >= 3) {
                 alert("Możesz porównywać maksymalnie 3 samochody jednocześnie.");
@@ -119,7 +119,7 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
             )}
 
             <Link
-                href={`/cars/${encodeURIComponent(car.vin)}`}
+                href={`/cars/${car.product_group_id}`}
                 className={cn(
                     "absolute inset-0 overflow-hidden rounded-2xl block",
                     isMSeries ? "bg-[#0f0f0f] border border-[#222]" : "bg-white md:bg-black border border-gray-100 md:border-transparent group-hover:border-white/10",
@@ -239,7 +239,7 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
                         <div className="flex items-end justify-between gap-3 md:gap-5">
                             <div className="flex-1 min-w-0 pr-6 md:pr-0">
                                 <p className={cn("text-[10px] uppercase font-mono tracking-widest mb-1.5 md:mb-2 md:opacity-70 group-hover:opacity-100 transition-opacity", isMSeries ? "text-white/60 md:text-white/60" : "text-gray-500 md:text-white/60")}>
-                                    {car.vin}
+                                    OFERTA: {car.product_group_id!.slice(0, 8).toUpperCase()}
                                 </p>
                                 <h3 className={cn("text-[20px] sm:text-[26px] md:text-[32px] font-bold tracking-tight leading-[1.05] line-clamp-2 md:pr-4", isMSeries ? "text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300" : "text-gray-900 md:text-white")}>
                                     {modelName || `BMW Model ${car.model_code}`}
@@ -259,7 +259,7 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
 
                             {/* Premium Interactive PIP Thumbnail - Interior view */}
                             {interiorImage && (
-                                <Link href={`/cars/${encodeURIComponent(car.vin)}`} className="group/pip md:relative absolute right-5 -top-10 md:top-auto md:right-auto z-50 shrink-0 ml-4 md:mb-2 w-16 h-16 sm:w-[72px] sm:h-[72px] cursor-pointer block">
+                                <Link href={`/cars/${car.product_group_id}`} className="group/pip md:relative absolute right-5 -top-10 md:top-auto md:right-auto z-50 shrink-0 ml-4 md:mb-2 w-16 h-16 sm:w-[72px] sm:h-[72px] cursor-pointer block">
                                     {/* The Expanding PIP container */}
                                     {/* By using specific pixel radiuses (rounded-[32px] for 64px, rounded-[36px] for 72px) instead of rounded-full, the border-radius transitions perfectly smoothly to rounded-[24px] without weird snapping mid-animation. */}
                                     <div className="absolute bottom-0 right-0 overflow-hidden w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-[32px] sm:rounded-[36px] border border-white/30 shadow-[0_8px_20px_rgba(0,0,0,0.5)] bg-black/40 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover/pip:w-[280px] group-hover/pip:h-[200px] group-hover/pip:rounded-[20px] group-hover/pip:shadow-[0_24px_48px_rgba(0,0,0,0.6)] group-hover/pip:border-white/40">

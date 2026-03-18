@@ -11,6 +11,18 @@ interface Settings {
     intro_media_url_mobile: string;
     intro_cta_link: string;
     intro_contact_phone: string;
+    
+    // Hero Settings
+    hero_title_line1: string;
+    hero_title_line2: string;
+    hero_car_name: string;
+    hero_description: string;
+    hero_button_text: string;
+    hero_button_link: string;
+    hero_stats_power: string;
+    hero_stats_status: string;
+    hero_color_badge: string;
+    hero_image_url: string;
 }
 
 export function SettingsEditor() {
@@ -18,7 +30,17 @@ export function SettingsEditor() {
         intro_media_url: '',
         intro_media_url_mobile: '',
         intro_cta_link: '',
-        intro_contact_phone: ''
+        intro_contact_phone: '',
+        hero_title_line1: '',
+        hero_title_line2: '',
+        hero_car_name: '',
+        hero_description: '',
+        hero_button_text: '',
+        hero_button_link: '',
+        hero_stats_power: '',
+        hero_stats_status: '',
+        hero_color_badge: '',
+        hero_image_url: ''
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -78,7 +100,7 @@ export function SettingsEditor() {
         return () => setOnSave(null);
     }, [settings, setDirty, setOnSave]);
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'desktop' | 'mobile') => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, settingKey: keyof Settings) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -115,7 +137,7 @@ export function SettingsEditor() {
 
             setSettings(prev => ({
                 ...prev,
-                [type === 'desktop' ? 'intro_media_url' : 'intro_media_url_mobile']: url
+                [settingKey]: url
             }));
             setDirty(true);
         } catch (err: any) {
@@ -151,7 +173,7 @@ export function SettingsEditor() {
                         />
                         <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-sm flex items-center justify-center transition-colors">
                             <Upload className="w-4 h-4" />
-                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'desktop')} accept="image/*,video/*" />
+                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'intro_media_url')} accept="image/*,video/*" />
                         </label>
                     </div>
                     {settings.intro_media_url && (
@@ -192,7 +214,7 @@ export function SettingsEditor() {
                         />
                         <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-sm flex items-center justify-center transition-colors">
                             <Upload className="w-4 h-4" />
-                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'mobile')} accept="image/*,video/*" />
+                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'intro_media_url_mobile')} accept="image/*,video/*" />
                         </label>
                     </div>
                     {settings.intro_media_url_mobile && (
@@ -232,6 +254,157 @@ export function SettingsEditor() {
                         className="w-full p-2 border border-gray-200 rounded-sm text-sm"
                         placeholder="+48 000 000 000"
                     />
+                </div>
+
+            </div>
+
+            <div className="w-full h-px bg-gray-200 my-10" />
+
+            <h2 className="text-xl font-bold mb-6">Sekcja Hero (Strona Główna)</h2>
+
+            <div className="space-y-6">
+                
+                {/* Hero Tło */}
+                <div className="space-y-2">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-gray-700">
+                        Hero Zdjęcie Tła
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={settings.hero_image_url}
+                            onChange={(e) => {
+                                setSettings({ ...settings, hero_image_url: e.target.value });
+                                setDirty(true);
+                            }}
+                            className="flex-1 p-2 border border-gray-200 rounded-sm text-sm"
+                            placeholder="https://images.unsplash.com/..."
+                        />
+                        <label className="cursor-pointer bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-sm flex items-center justify-center transition-colors font-semibold text-sm">
+                            <Upload className="w-4 h-4 mr-2" />
+                            Wgraj (Kompresja WebP)
+                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'hero_image_url')} accept="image/*" />
+                        </label>
+                    </div>
+                    {settings.hero_image_url && (
+                        <div className="mt-2 relative w-full h-40 bg-gray-100 rounded overflow-hidden">
+                            <img src={settings.hero_image_url} alt="Preview Hero" className="w-full h-full object-cover object-center" />
+                            <button
+                                onClick={() => {
+                                    setSettings({ ...settings, hero_image_url: '' });
+                                    setDirty(true);
+                                }}
+                                className="absolute top-2 right-2 bg-white rounded-full p-1.5 shadow-md hover:bg-red-50"
+                            >
+                                <X className="w-4 h-4 text-red-500" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Linia Tytułowa 1 */}
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-700 uppercase">Nagłówek - Linia 1 (Zwykła)</label>
+                        <input
+                            type="text"
+                            value={settings.hero_title_line1}
+                            onChange={(e) => { setSettings({ ...settings, hero_title_line1: e.target.value }); setDirty(true); }}
+                            className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                            placeholder="Definicja"
+                        />
+                    </div>
+
+                    {/* Linia Tytułowa 2 */}
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-700 uppercase">Nagłówek - Linia 2 (Gradient)</label>
+                        <input
+                            type="text"
+                            value={settings.hero_title_line2}
+                            onChange={(e) => { setSettings({ ...settings, hero_title_line2: e.target.value }); setDirty(true); }}
+                            className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                            placeholder="Premium."
+                        />
+                    </div>
+
+                    {/* Klasa / Model na karcie */}
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-700 uppercase">Nazwa na karcie (Model auta)</label>
+                        <input
+                            type="text"
+                            value={settings.hero_car_name}
+                            onChange={(e) => { setSettings({ ...settings, hero_car_name: e.target.value }); setDirty(true); }}
+                            className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                            placeholder="Nowy BMW M5"
+                        />
+                    </div>
+
+                    {/* Kolor (Badge Individual) */}
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-700 uppercase">Nazwa Lakieru (Badge BMW Individual)</label>
+                        <input
+                            type="text"
+                            value={settings.hero_color_badge}
+                            onChange={(e) => { setSettings({ ...settings, hero_color_badge: e.target.value }); setDirty(true); }}
+                            className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                            placeholder="Frozen Marina Bay Blue"
+                        />
+                    </div>
+                </div>
+
+                {/* Opis na karcie */}
+                <div className="space-y-2">
+                    <label className="block text-xs font-bold text-gray-700 uppercase">Opis pod nazwą auta</label>
+                    <textarea
+                        value={settings.hero_description}
+                        onChange={(e) => { setSettings({ ...settings, hero_description: e.target.value }); setDirty(true); }}
+                        className="w-full p-2 border border-gray-200 rounded-sm text-sm min-h-[80px]"
+                        placeholder="Odkryj esencję sportowej elegancji..."
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-700 uppercase">Tekst Przycisku CTA</label>
+                        <input
+                            type="text"
+                            value={settings.hero_button_text}
+                            onChange={(e) => { setSettings({ ...settings, hero_button_text: e.target.value }); setDirty(true); }}
+                            className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                            placeholder="Szczegóły oferty"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-700 uppercase">Odnośnik Przycisku CTA</label>
+                        <input
+                            type="text"
+                            value={settings.hero_button_link}
+                            onChange={(e) => { setSettings({ ...settings, hero_button_link: e.target.value }); setDirty(true); }}
+                            className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                            placeholder="/cars"
+                        />
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-700 uppercase">Pływająca Statystyka 1 (Moc)</label>
+                        <input
+                            type="text"
+                            value={settings.hero_stats_power}
+                            onChange={(e) => { setSettings({ ...settings, hero_stats_power: e.target.value }); setDirty(true); }}
+                            className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                            placeholder="600 KM"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-700 uppercase">Pływająca Statystyka 2 (Status)</label>
+                        <input
+                            type="text"
+                            value={settings.hero_stats_status}
+                            onChange={(e) => { setSettings({ ...settings, hero_stats_status: e.target.value }); setDirty(true); }}
+                            className="w-full p-2 border border-gray-200 rounded-sm text-sm"
+                            placeholder="Od ręki"
+                        />
+                    </div>
                 </div>
 
             </div>

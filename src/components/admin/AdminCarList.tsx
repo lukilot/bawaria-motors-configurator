@@ -336,6 +336,7 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
 
         // Search in Group Metadata + Unit VINs
         const matchesGroup =
+            group.id.toLowerCase().includes(query) ||
             group.model_code.toLowerCase().includes(query) ||
             group.color_code.toLowerCase().includes(query) ||
             (modelMap[group.model_code] || '').toLowerCase().includes(query);
@@ -381,7 +382,7 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <input
                         type="text"
-                        placeholder="Search VIN, Model, Color..."
+                        placeholder="Search UUID, Offer ID, VIN, Model, Color..."
                         className="w-full px-4 py-2 pl-9 border border-gray-200 rounded-sm text-sm focus:outline-none focus:border-black transition-colors"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}

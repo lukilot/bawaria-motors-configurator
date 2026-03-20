@@ -43,7 +43,7 @@ function parseOptionGroups(codes: string[], dictionaries: any, bodyGroup?: strin
     const childrenSet = new Set<string>();
 
     const getOptionData = (code: string) => {
-        return resolveDictionaryEntry(code, dictionaries, 'option', bodyGroup);
+        return resolveDictionaryEntry(code, dictionaries, 'option', bodyGroup, true);
     };
 
     codes.forEach(raw => {

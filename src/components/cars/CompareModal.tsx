@@ -23,6 +23,11 @@ const EMPTY_DICTS: Dicts = { model: {}, option: {}, color: {}, upholstery: {}, d
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function getOptionName(dicts: Dicts, code: string): string {
+    if (code === '337') return 'Pakiet sportowy M';
+    if (code === '300') return 'Koło zapasowe';
+    if (code === '490') return 'Regulacja szerokości oparcia foteli przednich';
+    if (code === '430') return 'Pakiet dodatkowych funkcji lusterek';
+
     const entry = dicts.option?.[code];
     if (!entry) return code;
     const name = Array.isArray(entry) ? entry[0]?.name : (entry as any)?.name;

@@ -24,20 +24,42 @@ export default function HiddenOptionsPage() {
 
     const fetchHiddenOptions = async () => {
         setIsLoading(true);
-        // Pobieramy opcje i filtrujemy lokalnie te, które mają wpis visible: false
-        const { data, error } = await supabase
-            .from('dictionaries')
-            .select('id, code, data')
-            .eq('type', 'option')
-            .limit(10000);
+        
+        let allData: any[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
 
-        if (!error && data) {
-            const hidden = data.filter(opt => opt.data?.visible === false);
+        while (hasMore) {
+            const { data, error } = await supabase
+                .from('dictionaries')
+                .select('id, code, data')
+                .eq('type', 'option')
+                .range(from, from + batchSize - 1);
+
+            if (error) {
+                console.error("Błąd pobierania słownika:", error);
+                break;
+            }
+
+            if (data && data.length > 0) {
+                allData.push(...data);
+            }
+            
+            if (!data || data.length < batchSize) {
+                hasMore = false;
+            } else {
+                from += batchSize;
+            }
+        }
+
+        if (allData.length > 0) {
+            const hidden = allData.filter(opt => opt.data?.visible === false);
             // Sortujemy alfabetycznie
             hidden.sort((a, b) => a.code.localeCompare(b.code));
             setOptions(hidden);
             
-            const visible = data.filter(opt => opt.data?.visible !== false);
+            const visible = allData.filter(opt => opt.data?.visible !== false);
             setAllOptions(visible);
         }
         setIsLoading(false);

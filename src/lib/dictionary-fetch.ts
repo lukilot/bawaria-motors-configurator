@@ -103,7 +103,10 @@ export function resolveDictionaryEntry(code: string, dictionaries: any, type: Di
                 v.body_groups && Array.isArray(v.body_groups) && v.body_groups.includes(bodyGroup)
             );
             // MERGE variation into base data to avoid losing name/marketing info
-            if (variant) return { ...baseData, ...variant };
+            if (variant) {
+                const merged = { ...baseData, ...variant };
+                return merged;
+            }
         }
 
         return baseData;
@@ -112,8 +115,21 @@ export function resolveDictionaryEntry(code: string, dictionaries: any, type: Di
     const bestData = findBestData(entry);
     if (!bestData) return undefined;
 
-    return {
+    const resolved = {
         ...bestData,
         image: bestData.image || bestData.image_url
     };
+
+    // Hardcode overrides for known BMW overlaps between Paint and Option codes
+    if (type === 'option') {
+        if (code === '337') {
+            resolved.name = 'Pakiet sportowy M';
+        } else if (code === '300') {
+            resolved.name = 'Koło zapasowe';
+        } else if (code === '490') {
+            resolved.name = 'Regulacja szerokości oparcia foteli przednich';
+        }
+    }
+
+    return resolved;
 }

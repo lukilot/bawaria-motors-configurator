@@ -16,9 +16,11 @@ interface OptionItem {
 export default function HiddenOptionsPage() {
     const router = useRouter();
     const [options, setOptions] = useState<OptionItem[]>([]);
+    const [allOptions, setAllOptions] = useState<OptionItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [newCode, setNewCode] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const fetchHiddenOptions = async () => {
         setIsLoading(true);
@@ -34,6 +36,9 @@ export default function HiddenOptionsPage() {
             // Sortujemy alfabetycznie
             hidden.sort((a, b) => a.code.localeCompare(b.code));
             setOptions(hidden);
+            
+            const visible = data.filter(opt => opt.data?.visible !== false);
+            setAllOptions(visible);
         }
         setIsLoading(false);
     };
@@ -42,9 +47,9 @@ export default function HiddenOptionsPage() {
         fetchHiddenOptions();
     }, []);
 
-    const handleAddHidden = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const code = newCode.trim().toUpperCase();
+    const handleAddHidden = async (e?: React.FormEvent, codeOverride?: string) => {
+        if (e) e.preventDefault();
+        const code = (codeOverride || newCode).trim().toUpperCase();
         if (!code) return;
 
         setIsSaving(true);
@@ -76,6 +81,7 @@ export default function HiddenOptionsPage() {
             }
 
             setNewCode('');
+            setIsDropdownOpen(false);
             await fetchHiddenOptions();
         } catch (err: any) {
             alert('Błąd dodawania: ' + err.message);
@@ -103,12 +109,30 @@ export default function HiddenOptionsPage() {
             setIsSaving(false);
         }
     };
+    
+    // Filtrowanie z myślą o kodzie oraz nazwie (różne formaty danych)
+    const getFilteredOptions = () => {
+        if (!newCode.trim()) return [];
+        const query = newCode.toLowerCase();
+        return allOptions.filter(opt => {
+            if (opt.code.toLowerCase().includes(query)) return true;
+            
+            // Spróbuj odnaleźć w nazwie. Option.data może być tablicą (różne body group).
+            const dataEntry = Array.isArray(opt.data) ? opt.data[0] : opt.data;
+            if (dataEntry?.name && dataEntry.name.toLowerCase().includes(query)) {
+                return true;
+            }
+            return false;
+        }).slice(0, 50); // Ogranicz wynik
+    };
+
+    const filteredSuggestions = getFilteredOptions();
 
     return (
         <AdminAuth>
             <main className="min-h-screen bg-white font-sans pt-20 pb-20">
                 <div className="max-w-[1200px] mx-auto px-8 md:px-12">
-                    {/* Header */}
+                    {/* ... (Reszta struktury zachowana) */}
                     <div className="mb-8 pt-6">
                         <button
                             onClick={() => router.push('/admin/options')}
@@ -135,16 +159,49 @@ export default function HiddenOptionsPage() {
                         <div className="md:col-span-1">
                             <div className="bg-gray-50/50 border border-gray-100 p-6 rounded-lg sticky top-28">
                                 <h2 className="text-sm font-bold uppercase tracking-widest text-gray-900 mb-4">Dodaj kod do ukrycia</h2>
-                                <form onSubmit={handleAddHidden} className="space-y-4">
-                                    <div>
+                                <form onSubmit={(e) => handleAddHidden(e)} className="space-y-4">
+                                    <div className="relative">
                                         <input
                                             type="text"
                                             value={newCode}
-                                            onChange={(e) => setNewCode(e.target.value)}
-                                            placeholder="np. 475 lub S0475"
-                                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-sm focus:outline-none focus:border-black transition-colors text-sm font-mono uppercase"
+                                            onChange={(e) => {
+                                                setNewCode(e.target.value);
+                                                setIsDropdownOpen(true);
+                                            }}
+                                            onFocus={() => setIsDropdownOpen(true)}
+                                            onBlur={() => setTimeout(() => setIsDropdownOpen(false), 200)}
+                                            placeholder="Wyszukaj po kodzie lub nazwie..."
+                                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-sm focus:outline-none focus:border-black transition-colors text-sm font-mono"
                                             required
                                         />
+                                        
+                                        {isDropdownOpen && newCode.trim().length > 0 && (
+                                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-sm shadow-lg max-h-60 overflow-y-auto left-0">
+                                                {filteredSuggestions.map(opt => {
+                                                    const name = Array.isArray(opt.data) ? opt.data[0]?.name : opt.data?.name;
+                                                    return (
+                                                        <button
+                                                            key={opt.id}
+                                                            type="button"
+                                                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex flex-col items-start gap-0.5 border-b border-gray-50 last:border-0"
+                                                            onMouseDown={(e) => {
+                                                                e.preventDefault();
+                                                                setNewCode(opt.code);
+                                                                setIsDropdownOpen(false);
+                                                                handleAddHidden(undefined, opt.code);
+                                                            }}
+                                                        >
+                                                            <span className="font-bold text-gray-900">{opt.code}</span>
+                                                            {name && <span className="text-[10px] text-gray-500 line-clamp-2 leading-tight">{name}</span>}
+                                                        </button>
+                                                    );
+                                                })}
+                                                {filteredSuggestions.length === 0 && (
+                                                    <div className="px-3 py-2 text-xs text-gray-500 italic">Nie znaleziono takiej opcji...</div>
+                                                )}
+                                            </div>
+                                        )}
+
                                         <p className="text-[10px] text-gray-500 mt-2 uppercase tracking-wide">
                                             Wpisz dokładny kod (np. S01CA). Zostanie on globalnie zablokowany we front-end.
                                         </p>
@@ -182,22 +239,25 @@ export default function HiddenOptionsPage() {
                                     </div>
                                 ) : (
                                     <ul className="divide-y divide-gray-50">
-                                        {options.map((opt) => (
-                                            <li key={opt.id} className="flex justify-between items-center p-4 hover:bg-gray-50/50 transition-colors">
-                                                <div className="flex flex-col">
-                                                    <span className="font-mono font-bold text-gray-900">{opt.code}</span>
-                                                    <span className="text-xs text-gray-500 mt-0.5">{opt.data?.name || "Brak nazwy (ukryta ręcznie)"}</span>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleRemoveHidden(opt)}
-                                                    disabled={isSaving}
-                                                    title="Usuń blokadę (Pokaż opcję)"
-                                                    className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-sm transition-all"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </li>
-                                        ))}
+                                        {options.map((opt) => {
+                                            const name = Array.isArray(opt.data) ? opt.data[0]?.name : opt.data?.name;
+                                            return (
+                                                <li key={opt.id || opt.code} className="flex justify-between items-center p-4 hover:bg-gray-50/50 transition-colors">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-mono font-bold text-gray-900">{opt.code}</span>
+                                                        <span className="text-xs text-gray-500 mt-0.5">{name || "Brak nazwy (ukryta ręcznie)"}</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleRemoveHidden(opt)}
+                                                        disabled={isSaving}
+                                                        title="Usuń blokadę (Pokaż opcję)"
+                                                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-sm transition-all"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </li>
+                                            );
+                                        })}
                                     </ul>
                                 )}
                             </div>

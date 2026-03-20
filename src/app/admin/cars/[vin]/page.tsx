@@ -412,6 +412,20 @@ export default function AdminCarEditor() {
                                 <p className="font-medium text-blue-600">{car.status_code} - {car.order_status}</p>
                             </div>
                             <div>
+                                <label className="block text-gray-700 text-[10px] uppercase font-bold mb-1">Pochodzenie</label>
+                                <p className="font-medium flex items-center gap-2">
+                                    {(car as any).source === 'BMW PL' ? (
+                                        <span title="Stok Centralny BMW PL" className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-sm bg-blue-50 border border-blue-100 text-[10px] font-bold text-blue-600 shadow-sm cursor-help">
+                                            BMW PL (Centralny)
+                                        </span>
+                                    ) : (
+                                        <span title="Stok Lokalny Bawaria Motors" className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-sm bg-gray-50 border border-gray-200 text-[10px] font-bold text-gray-600 shadow-sm cursor-help">
+                                            Bawaria Motors (Lokalnie)
+                                        </span>
+                                    )}
+                                </p>
+                            </div>
+                            <div>
                                 <label className="block text-gray-600 text-[10px] uppercase font-bold mb-1">Color</label>
                                 <p className="font-medium">{car.color_code}</p>
                             </div>

@@ -219,7 +219,18 @@ function ProductGroupRow({ group, modelMap }: { group: ProductGroup, modelMap: R
                                 <tbody className="divide-y divide-gray-100">
                                     {units.map(car => (
                                         <tr key={car.vin} className="hover:bg-gray-100/50">
-                                            <td className="px-6 py-3 pl-16 font-mono text-xs text-gray-700">{car.vin}</td>
+                                            <td className="px-6 py-3 pl-16 font-mono text-xs text-gray-700 flex items-center gap-2">
+                                                {car.vin}
+                                                {(car as any).source === 'BMW PL' ? (
+                                                    <span title="Pochodzi ze stoku centralnego BMW PL" className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-50 border border-blue-100 text-[9px] font-bold text-blue-600 shadow-sm cursor-help">
+                                                        PL
+                                                    </span>
+                                                ) : (
+                                                    <span title="Pochodzi z lokalnego stoku Bawaria Motors" className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-50 border border-gray-200 text-[9px] font-bold text-gray-500 shadow-sm cursor-help">
+                                                        BM
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td className="px-6 py-3">
                                                 <span className={cn(
                                                     "px-1.5 py-0.5 rounded-sm text-[10px] font-bold",

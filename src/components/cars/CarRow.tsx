@@ -118,9 +118,20 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
     const hasDiscount = rawEffectivePrice < car.list_price;
     
     // Resolve names for the main view and spec drawer
-    const colorOpt = resolveDictionaryEntry(car.color_code, dictionaries, 'option', car.body_group);
+    const individualColorOpt = car.color_code === '490' && car.individual_color
+        ? resolveDictionaryEntry(car.individual_color, dictionaries, 'option', car.body_group)
+        : null;
+
+    const colorOpt = (car.color_code === '490' && individualColorOpt)
+        ? individualColorOpt
+        : resolveDictionaryEntry(car.color_code, dictionaries, 'option', car.body_group);
+
+    const individualColorName = car.individual_color
+        ? (individualColorOpt?.name || dictionaries.color[car.individual_color]?.name || car.individual_color)
+        : undefined;
+
     const colorName = colorOpt?.name || (car.color_code === '490'
-        ? (dictionaries.color[car.individual_color || '']?.name || car.individual_color || 'BMW Individual')
+        ? (individualColorName || 'BMW Individual')
         : (dictionaries.color[car.color_code]?.name || car.color_code));
 
     const upholsteryOpt = resolveDictionaryEntry(car.upholstery_code, dictionaries, 'option', car.body_group);

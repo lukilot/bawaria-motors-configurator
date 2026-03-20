@@ -154,9 +154,21 @@ export default async function CarPage({ params }: PageProps) {
     const enrichedBodyGroup = staticAttrs.body_group || car.body_group;
 
     // Resolve Color & Upholstery with priority to dictionaries.option (which has marketing names)
-    const colorOpt = resolveDictionaryEntry(car.color_code, dictionaries, 'option', enrichedBodyGroup);
+    let individualColorOpt: any = null;
+    if (car.color_code === '490' && car.individual_color) {
+        individualColorOpt = resolveDictionaryEntry(car.individual_color, dictionaries, 'option', enrichedBodyGroup);
+    }
+
+    const colorOpt = (car.color_code === '490' && individualColorOpt) 
+        ? individualColorOpt 
+        : resolveDictionaryEntry(car.color_code, dictionaries, 'option', enrichedBodyGroup);
+
+    const individualColorName = car.individual_color 
+        ? (individualColorOpt?.name || dictionaries.color[car.individual_color]?.name || car.individual_color) 
+        : undefined;
+
     const colorName = colorOpt?.name || (car.color_code === '490'
-        ? (dictionaries.color[car.individual_color || '']?.name || car.individual_color || 'BMW Individual')
+        ? (individualColorName || 'BMW Individual')
         : (dictionaries.color[car.color_code]?.name || car.color_code));
 
     const upholsteryOpt = resolveDictionaryEntry(car.upholstery_code, dictionaries, 'option', enrichedBodyGroup);
@@ -321,8 +333,11 @@ export default async function CarPage({ params }: PageProps) {
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {variants.map(v => {
+                                                const vColorOpt = v.individual_color 
+                                                    ? resolveDictionaryEntry(v.individual_color, dictionaries, 'option', enrichedBodyGroup) 
+                                                    : null;
                                                 const vColor = v.color_code === '490'
-                                                    ? (dictionaries.color[v.individual_color || '']?.name || v.individual_color || 'BMW Individual')
+                                                    ? (vColorOpt?.name || dictionaries.color[v.individual_color || '']?.name || v.individual_color || 'BMW Individual')
                                                     : (dictionaries.color[v.color_code || '']?.name || v.color_code);
                                                 const vUpholstery = dictionaries.upholstery[v.upholstery_code || '']?.name || v.upholstery_code;
                                                 const exteriorImg = v.images?.[0]?.url;

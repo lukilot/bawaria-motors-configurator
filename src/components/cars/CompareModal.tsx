@@ -36,8 +36,11 @@ function getModelName(dicts: Dicts, modelCode: string): string {
 
 function getColorName(dicts: Dicts, car: any): string {
     if (car.color_code === '490') {
-        const entry = dicts.color?.[car.individual_color || ''] as any;
-        return entry?.name || car.individual_color || 'BMW Individual';
+        const optionEntry = dicts.option?.[car.individual_color || ''] as any;
+        const colorEntry = dicts.color?.[car.individual_color || ''] as any;
+        const optionName = Array.isArray(optionEntry) ? optionEntry[0]?.name : optionEntry?.name;
+        
+        return optionName || colorEntry?.name || car.individual_color || 'BMW Individual';
     }
     const entry = dicts.color?.[car.color_code] as any;
     return entry?.name || car.color_code || '—';

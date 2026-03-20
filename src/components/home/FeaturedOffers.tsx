@@ -5,6 +5,7 @@ import { CarCard } from '@/components/cars/CarCard';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { resolveDictionaryEntry } from '@/lib/dictionary-fetch';
 
 interface FeaturedOffersProps {
     cars: StockCar[];
@@ -67,9 +68,19 @@ export function FeaturedOffers({ cars, dictionaries }: FeaturedOffersProps) {
                             <CarCard
                                 car={car}
                                 modelName={dictionaries.model[car.model_code]?.name}
-                                colorName={dictionaries.color[car.color_code]?.name}
-                                upholsteryName={dictionaries.upholstery[car.upholstery_code]?.name}
-                                individualColorName={car.individual_color ? dictionaries.color[car.individual_color]?.name : undefined}
+                                colorName={
+                                    resolveDictionaryEntry(car.color_code, dictionaries, 'option', car.body_group)?.name || 
+                                    dictionaries.color[car.color_code]?.name
+                                }
+                                upholsteryName={
+                                    resolveDictionaryEntry(car.upholstery_code, dictionaries, 'option', car.body_group)?.name || 
+                                    dictionaries.upholstery[car.upholstery_code]?.name
+                                }
+                                individualColorName={
+                                    car.individual_color 
+                                    ? (resolveDictionaryEntry(car.individual_color, dictionaries, 'option', car.body_group)?.name || dictionaries.color[car.individual_color]?.name || car.individual_color)
+                                    : undefined
+                                }
                             />
                         </motion.div>
                     ))}

@@ -174,6 +174,9 @@ export default async function CarPage({ params }: PageProps) {
     const upholsteryOpt = resolveDictionaryEntry(car.upholstery_code, dictionaries, 'option', enrichedBodyGroup);
     const upholsteryName = upholsteryOpt?.name || (dictionaries.upholstery[car.upholstery_code]?.name || car.upholstery_code);
 
+    const allImages = [...(group.images || []), ...(car.images || [])];
+    const uniqueImages = Array.from(new Map(allImages.map(img => [img.url, img])).values());
+
     const enrichedCar = {
         ...car,
         model_name: modelName,
@@ -186,15 +189,13 @@ export default async function CarPage({ params }: PageProps) {
         max_speed: modelDict.max_speed,
         trunk_capacity: modelDict.trunk_capacity,
         body_group: enrichedBodyGroup,
-        special_price: getCarDiscountedPrice(car, bulletins) || car.special_price
+        special_price: getCarDiscountedPrice(car, bulletins) || car.special_price,
+        images: uniqueImages
     };
 
     const reservationStr = (car.reservation_details || '').trim();
     const restrictedCodes = new Set(servicePkgs.map(p => p.code));
     const optionGroups = parseOptionGroups(car.option_codes, dictionaries, enrichedBodyGroup, restrictedCodes);
-
-    const allImages = [...(group.images || []), ...(car.images || [])];
-    const uniqueImages = Array.from(new Map(allImages.map(img => [img.url, img])).values());
 
     const allStock = await getAvailableCars();
     const siblings = group.available_units || [];

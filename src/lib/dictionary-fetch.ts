@@ -96,6 +96,16 @@ export function resolveDictionaryEntry(
     strictOptionContext: boolean = false
 ) {
     if (!code) return undefined;
+
+    // Jeżeli pytamy o opcję, ale nie w ścisłym kontekście (strictOptionContext = false)
+    // to dla kodów które w BMW występują podwójnie (szczególnie jako lakiery, np. 300 - Biel Alpejska vs 300 - Koło zapasowe)
+    // wymuszamy undefined, aby mechanizm spadł (fallback) do szukania w słowniku 'color'.
+    if (type === 'option' && !strictOptionContext) {
+        if (['300', '337', '490', '430'].includes(code)) {
+            return undefined;
+        }
+    }
+
     const entry = dictionaries[type]?.[code];
     if (!entry) return undefined;
 

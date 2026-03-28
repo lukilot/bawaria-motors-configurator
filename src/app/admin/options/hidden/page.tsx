@@ -136,7 +136,7 @@ export default function HiddenOptionsPage() {
     const getFilteredOptions = () => {
         if (!newCode.trim()) return [];
         const query = newCode.toLowerCase();
-        return allOptions.filter(opt => {
+        const matches = allOptions.filter(opt => {
             if (opt.code.toLowerCase().includes(query)) return true;
             
             // Spróbuj odnaleźć w nazwie. Option.data może być tablicą (różne body group).
@@ -145,7 +145,15 @@ export default function HiddenOptionsPage() {
                 return true;
             }
             return false;
-        }).slice(0, 50); // Ogranicz wynik
+        });
+
+        matches.sort((a, b) => {
+            if (a.code.toLowerCase() === query) return -1;
+            if (b.code.toLowerCase() === query) return 1;
+            return 0;
+        });
+
+        return matches.slice(0, 50); // Ogranicz wynik
     };
 
     const filteredSuggestions = getFilteredOptions();
@@ -219,7 +227,9 @@ export default function HiddenOptionsPage() {
                                                     );
                                                 })}
                                                 {filteredSuggestions.length === 0 && (
-                                                    <div className="px-3 py-2 text-xs text-gray-500 italic">Nie znaleziono takiej opcji...</div>
+                                                    <div className="px-3 py-3 text-xs text-gray-500 bg-gray-50 border-t border-gray-100">
+                                                        Kod <strong className="text-black">{newCode.toUpperCase()}</strong> nie figuruje obecnie w zapisanych opcjach. Możesz go ręcznie dodać wpisując w pole i klikając <strong>Zablokuj Opcję</strong>. Opcja zostanie zablokowana.
+                                                    </div>
                                                 )}
                                             </div>
                                         )}

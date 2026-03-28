@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Warehouse, Scale, X } from 'lucide-react';
@@ -47,9 +47,24 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
 
     const [clientMounted, setClientMounted] = useState(false);
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+    const [isNavigating, setIsNavigating] = useState(false);
     useEffect(() => { setClientMounted(true); }, []);
 
     const router = useRouter();
+    const pathname = usePathname();
+
+    useEffect(() => {
+        setIsNavigating(false);
+    }, [pathname]);
+
+    const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
+        if (isSold) {
+            e.preventDefault();
+            return;
+        }
+        if (e.metaKey || e.ctrlKey || e.button !== 0) return;
+        setIsNavigating(true);
+    };
 
     const saved = clientMounted && isCarSaved;
     const compared = clientMounted && isCarCompared;
@@ -166,7 +181,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                     onMouseLeave={handleMouseLeave}
                 >
                     {/* Images */}
-                    <Link href={`/cars/${car.product_group_id!.slice(0, 8).toUpperCase()}`} className={cn("absolute inset-0 z-0", isSold && "cursor-default pointer-events-none")} prefetch={false}>
+                    <Link href={`/cars/${car.product_group_id!.slice(0, 8).toUpperCase()}`} onClick={handleLinkClick} className={cn("absolute inset-0 z-0", isSold && "cursor-default pointer-events-none")} prefetch={false}>
                         {displayImages.length > 0 ? (
                             <>
                                 {/* Desktop Hover Scrubbing Images */}
@@ -226,6 +241,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                             {/* Desktop: hover-expand link to VDP */}
                             <Link
                                 href={`/cars/${car.product_group_id!.slice(0, 8).toUpperCase()}`}
+                                onClick={handleLinkClick}
                                 className="hidden md:block absolute bottom-5 right-5 z-40 group/pip w-16 h-16 sm:w-[72px] sm:h-[72px] cursor-pointer"
                             >
                                 <div className="absolute bottom-0 right-0 overflow-hidden w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-[32px] sm:rounded-[36px] border border-white/30 shadow-[0_4px_12px_rgba(0,0,0,0.4)] bg-black/40 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover/pip:w-[280px] sm:group-hover/pip:w-[320px] group-hover/pip:h-[200px] sm:group-hover/pip:h-[220px] group-hover/pip:rounded-[20px] group-hover/pip:shadow-[0_24px_48px_rgba(0,0,0,0.6)] group-hover/pip:border-white/40">
@@ -301,7 +317,10 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                                 >
                                     {/* Primary: Detale button */}
                                     <button
-                                        onClick={() => router.push(`/cars/${car.product_group_id!.slice(0, 8).toUpperCase()}`)}
+                                        onClick={(e) => {
+                                            handleLinkClick(e);
+                                            router.push(`/cars/${car.product_group_id!.slice(0, 8).toUpperCase()}`);
+                                        }}
                                         className="flex-1 flex items-center justify-center gap-2 bg-white text-black rounded-2xl py-4 text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] transition-transform"
                                     >
                                         <span>Detale</span>
@@ -324,7 +343,7 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                 )}
 
                 {/* Right Info Pane */}
-                <Link href={`/cars/${car.product_group_id}`} className={cn("flex-1 p-5 lg:p-8 flex flex-col justify-between md:justify-end relative overflow-hidden", isSold && "cursor-default pointer-events-none")}>
+                <Link href={`/cars/${car.product_group_id}`} onClick={handleLinkClick} className={cn("flex-1 p-5 lg:p-8 flex flex-col justify-between md:justify-end relative overflow-hidden", isSold && "cursor-default pointer-events-none")}>
 
                     {/* Minimalist Action Buttons — Desktop only (hidden on mobile, shown in gallery instead) */}
                     <div className="hidden md:flex absolute top-5 left-5 lg:top-8 lg:left-8 z-30 flex-row items-center gap-5">
@@ -478,6 +497,77 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                     )}
                 </Link>
 
+                {/* Navigation Loading Overlay */}
+                {clientMounted && createPortal(
+                    <AnimatePresence>
+                        {isNavigating && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-[#000000]/60 backdrop-blur-xl"
+                            >
+                                <motion.div
+                                    initial={{ scale: 0.8, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ delay: 0.1, duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+                                    className="flex flex-col items-center gap-6"
+                                >
+                                    <div className="relative w-24 h-24">
+                                        <div className={cn(
+                                            "absolute inset-0 rounded-full blur-xl opacity-60 animate-pulse",
+                                            isMSeries ? "bg-gradient-to-r from-[#53A0DE] via-[#02256E] to-[#E40424]" :
+                                            isElectric ? "bg-gradient-to-r from-[#0653B6] to-[#2E95D3]" :
+                                            "bg-white/50"
+                                        )} />
+                                        
+                                        <div className="absolute inset-0 rounded-full border border-white/10" />
+                                        <motion.div
+                                            animate={{ rotate: 360 }}
+                                            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                                            className="absolute inset-0 rounded-full"
+                                        >
+                                            <div className="w-full h-full rounded-full [mask-image:linear-gradient(transparent_50%,black)]">
+                                                <div className={cn(
+                                                    "absolute inset-0 rounded-full border-[3px] border-transparent",
+                                                    isMSeries ? "border-b-[#E40424] border-l-[#53A0DE]" :
+                                                    isElectric ? "border-b-[#2E95D3] border-l-[#0653B6]" :
+                                                    "border-b-white border-l-white/50"
+                                                )} />
+                                            </div>
+                                        </motion.div>
+
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white">
+                                                BMW
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2 }}
+                                        className="flex flex-col items-center"
+                                    >
+                                        <div className="text-[11px] font-bold uppercase tracking-[0.3em] text-white mb-1">
+                                            Przygotowuję ofertę
+                                        </div>
+                                        <div className={cn("text-[9px] uppercase tracking-widest",
+                                            isMSeries ? "text-[#53A0DE]" : 
+                                            isElectric ? "text-[#2E95D3]" : 
+                                            "text-white/40"
+                                        )}>
+                                            {displayedModelName}
+                                        </div>
+                                    </motion.div>
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>,
+                    document.body
+                )}
             </div>
         </div>
     );

@@ -105,14 +105,33 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (!car) return { title: 'Pojazd niedostępny' };
     const name = dictionaries.model[car.model_code]?.name || car.model_name || `BMW ${car.model_code}`;
     const price = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(car.special_price || car.list_price);
-    const mainImage = car.images?.[0]?.url || 'https://stock.bawariamotors.pl/images/car-cover.png';
+    
+    // Upewniamy się, że zaciągamy zdjęcia grupowe (często to one zawierają główną sesję)
+    const allImages = [...(group.images || []), ...(car.images || [])];
+    const mainImage = allImages[0]?.url || 'https://stock.bawariamotors.pl/images/car-cover.png';
+    const description = `Nowe BMW ${name} za ${price}. Samochód dostępny od ręki w Bawaria Motors. Pełna specyfikacja i zdjęcia.`;
+
     return {
         title: `${name} - Od ręki`,
-        description: `Sprawdź BMW ${name} za ${price}. Samochód dostępny od ręki w Bawaria Motors. Pełna specyfikacja i zdjęcia.`,
+        description: description,
         openGraph: {
-            title: `${name} | Bawaria Motors`,
-            description: `Nowe BMW ${name} dostępne od ręki. Cena: ${price}. Kliknij po szczegóły!`,
-            images: [{ url: mainImage }],
+            title: `${name} | Bawaria Motors - Dostępny od ręki`,
+            description: description,
+            images: [
+                {
+                    url: mainImage,
+                    width: 1200,
+                    height: 630,
+                    alt: `Bawaria Motors - BMW ${name}`,
+                }
+            ],
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: `${name} | Bawaria Motors - Dostępny od ręki`,
+            description: description,
+            images: [mainImage],
         }
     };
 }

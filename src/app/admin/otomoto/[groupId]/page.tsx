@@ -156,22 +156,25 @@ export default function OtomotoGeneratorPage() {
         const engineDesc = `${modelDict.fuel || car.fuel_type || 'benzyna/diesel'} ${modelDict.power || car.power || 'b.d.'} KM, skrzynia automatyczna, ${modelDict.drivetrain || car.drivetrain || 'napęd b.d.'}`;
         
         // Colors
-        let paintName = group.color_code;
-        if (dictionaries.paint[group.color_code]) {
-            paintName = dictionaries.paint[group.color_code].name;
+        let paintName = group.color_code || '';
+        if (dictionaries.color?.[group.color_code]) {
+            paintName = dictionaries.color[group.color_code].name;
             if (paintName.toLowerCase() === 'brak nazwy' && car.individual_color) {
                 paintName = car.individual_color;
             }
         }
+        const paintDisplay = paintName && paintName !== group.color_code ? paintName : '';
 
-        let upholsteryName = group.upholstery_code;
-        if (dictionaries.upholstery[group.upholstery_code]) {
+        let upholsteryName = group.upholstery_code || '';
+        if (dictionaries.upholstery?.[group.upholstery_code]) {
             upholsteryName = dictionaries.upholstery[group.upholstery_code].name;
         }
 
         // Prices
-        const listPrice = car.list_price;
-        const discountPrice = car.special_price || listPrice; // In real scenario, discount could come from bulletins, but we use spe        // Options separation
+        const listPrice = car.list_price || group.manual_price || group.min_price || 0;
+        const discountPrice = car.special_price || listPrice; 
+        
+        // Options separation
         const stdOptions: string[] = [];
         const optOptions: string[] = [];
         const serviceOptions: string[] = [];
@@ -186,7 +189,7 @@ export default function OtomotoGeneratorPage() {
         });
 
         const getOptionName = (code: string) => {
-            let opt = dictionaries.option[code];
+            let opt = dictionaries.option?.[code];
             if (!opt) {
                 // Hardcoded fallback for some common BMW options if missing in DB
                 if (code === '2PA') return 'Śruby zabezpieczające';
@@ -197,10 +200,10 @@ export default function OtomotoGeneratorPage() {
                 if (code === '6AF') return 'Połączenie alarmowe';
                 if (code === '6AK') return 'Usługi ConnectedDrive';
                 if (code === '6C4') return 'Pakiet Connected Professional';
-                return `Opcja ${code}`;
+                return ''; // Return empty string for completely unknown options to hide them
             }
             if (Array.isArray(opt)) opt = opt[0];
-            return opt.name || `Opcja ${code}`;
+            return opt.name || '';
         };
 
         let wheelsStr = 'b.d.';
@@ -208,15 +211,17 @@ export default function OtomotoGeneratorPage() {
 
         Array.from(allCodes).forEach(code => {
             const name = getOptionName(code);
-            const line = `${code} ${name}`;
+            if (!name) return; // Skip "Opcja XYZ" completely
+            
+            const line = `- ${code} ${name}`;
 
             if (code.startsWith('7N') || code.startsWith('7C')) {
                 serviceOptions.push(line);
             } else if (code.startsWith('1') || code.startsWith('3G') || name.toLowerCase().includes('obręcze') || name.toLowerCase().includes('koła')) {
-                if (wheelsStr === 'b.d.') wheelsStr = line;
+                if (wheelsStr === 'b.d.') wheelsStr = `${code} ${name}`;
                 else optOptions.push(line); 
             } else if (code.startsWith('43') || code.startsWith('4M') || name.toLowerCase().includes('listwy ozdobne') || code === '4F4' || code === '4KN') {
-                if (interiorTrim === 'b.d.') interiorTrim = line;
+                if (interiorTrim === 'b.d.') interiorTrim = `${code} ${name}`;
                 else optOptions.push(line);
             } else {
                 const standardCodes = ['2PA', '2VB', '428', '302', '6AE', '6AF', '6AK', '6C4', '2TE', '2VV', '488', '4T2', '4U8', '4U9', '4UR', '4V1', '552', '654', '674', '6NX', '6PA'];
@@ -228,40 +233,40 @@ export default function OtomotoGeneratorPage() {
         // Formatting currency explicitly to PLN
         const fmtPLN = (v: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(v).replace('PLN', ' PLN');
 
-        return `BMW ${modelName}
+        return `**BMW ${modelName}**
 
 Silnik ${engineDesc}
 
-Numer oferty: ${group.id.split('-')[0].toUpperCase()}
+**Numer oferty:** ${group.id.split('-')[0].toUpperCase()}
 
-AUTO DOSTĘPNE OD RĘKI
+**AUTO DOSTĘPNE OD RĘKI**
 
-- cena katalogowa ${fmtPLN(listPrice)} brutto
-- cena promocyjna ${fmtPLN(discountPrice)} brutto
+- **cena katalogowa** ${fmtPLN(listPrice)} brutto
+- **cena promocyjna** ${fmtPLN(discountPrice)} brutto
 
 ─────────────────────────────────────────────────────────────
 
 Zapraszamy do bezpośredniego kontaktu:
 
-Łukasz Łotoszyński
+**Łukasz Łotoszyński**
 lotoszynski_l(at)bmw-bawariamotors.pl
 +48 508-020-612
 
 ─────────────────────────────────────────────────────────────
 
-Lakier: ${group.color_code} ${paintName}
-Tapicerka: ${group.upholstery_code} ${upholsteryName}
-Listwy: ${interiorTrim}
-Koła (opony letnie): ${wheelsStr}
+**Lakier:** ${group.color_code} ${paintDisplay}
+**Tapicerka:** ${group.upholstery_code} ${upholsteryName}
+**Listwy:** ${interiorTrim}
+**Koła (opony letnie):** ${wheelsStr}
 
-Wyposażenie standardowe:
-${stdOptions.length > 0 ? stdOptions.sort().join('\\n') : 'Brak danych'}
+**Wyposażenie standardowe:**
+${stdOptions.length > 0 ? stdOptions.sort().join('\n') : 'Brak danych'}
 
-Wyposażenie opcjonalne:
-${optOptions.length > 0 ? optOptions.sort().join('\\n') : 'Brak danych'}
+**Wyposażenie opcjonalne:**
+${optOptions.length > 0 ? optOptions.sort().join('\n') : 'Brak danych'}
 
-Usługi:
-${serviceOptions.length > 0 ? serviceOptions.sort().join('\\n') : 'Brak usług w pakiecie'}
+**Usługi:**
+${serviceOptions.length > 0 ? serviceOptions.sort().join('\n') : 'Brak usług w pakiecie'}
 
 ─────────────────────────────────────────────────────────────
 Szukasz innej wersji lub modelu? Zadzwoń do nas lub napisz! Przygotujemy ofertę indywidualną!
@@ -275,13 +280,35 @@ Nasz zespół specjalistów jest zawsze gotowy, aby sprostać wymaganiom i potrz
 
 Nasze wieloletnie doświadczenie na rynku motoryzacyjnym oraz wykorzystanie najnowszych technologii gwarantują najwyższą jakość i niezawodność usług. Pragniemy, aby nasze salony były miejscem, gdzie klienci czują się mile widziani i zawsze mogą liczyć na profesjonalną obsługę.
 
-Niniejsze ogłoszenie jest wyłącznie informacją handlową i nie stanowi oferty w myśl art. 66, § 1. Kodeksu Cywilnego. Sprzedający nie odpowiada za ewentualne błędy lub nieaktualność ogłoszenia.`;
+**Niniejsze ogłoszenie jest wyłącznie informacją handlową i nie stanowi oferty w myśl art. 66, § 1. Kodeksu Cywilnego. Sprzedający nie odpowiada za ewentualne błędy lub nieaktualność ogłoszenia.**`;
     };
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(generateOtomotoText());
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+    const handleCopy = async () => {
+        const text = generateOtomotoText();
+        
+        try {
+            // Zamiana znaczników ** na <b> dla kopiowania jako Rich Text HTML do edytora Otomoto
+            const htmlText = text
+                .replace(/\\*\\*(.*?)\\*\\*/g, '<b>$1</b>')
+                .replace(/\\n/g, '<br/>');
+                
+            const blobText = new Blob([text], { type: 'text/plain' });
+            const blobHtml = new Blob([htmlText], { type: 'text/html' });
+            
+            const clipboardItem = new ClipboardItem({
+                'text/plain': blobText,
+                'text/html': blobHtml
+            });
+            
+            await navigator.clipboard.write([clipboardItem]);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            // Fallback for older browsers
+            navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
     };
 
     if (loading) {

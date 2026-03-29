@@ -6,7 +6,6 @@ import { useGarageStore } from '@/store/garageStore';
 import { useCompareStore } from '@/store/compareStore';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
-import { useHaptics } from '@/hooks/useHaptics';
 
 interface CarActionButtonsProps {
     car: StockCar;
@@ -16,7 +15,6 @@ interface CarActionButtonsProps {
 export function CarActionButtons({ car, className }: CarActionButtonsProps) {
     const { addCar: addGarageCar, removeCar: removeGarageCar } = useGarageStore();
     const { compareCars, addCar: addCompareCar, removeCar: removeCompareCar } = useCompareStore();
-    const haptics = useHaptics();
 
     // Direct selectors — Zustand tracks these precisely and re-renders on change
     const isCarSaved = useGarageStore(state => state.savedCars.some(c => c.vin === car.vin));
@@ -32,25 +30,20 @@ export function CarActionButtons({ car, className }: CarActionButtonsProps) {
     const toggleGarage = () => {
         if (saved) {
             removeGarageCar(car.vin);
-            haptics.medium();
         } else {
             addGarageCar(car);
-            haptics.success();
         }
     };
 
     const toggleCompare = () => {
         if (compared) {
             removeCompareCar(car.vin);
-            haptics.medium();
         } else {
             if (compareCars.length >= 3) {
-                haptics.error();
                 alert('Możesz porównywać maksymalnie 3 samochody jednocześnie.');
                 return;
             }
             addCompareCar(car);
-            haptics.success();
         }
     };
 

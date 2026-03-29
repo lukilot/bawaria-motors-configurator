@@ -8,7 +8,6 @@ import { ArrowRight, Warehouse, Scale, X } from 'lucide-react';
 import { BMWIndividualBadge } from './BMWIndividualBadge';
 import { useGarageStore } from '@/store/garageStore';
 import { useCompareStore } from '@/store/compareStore';
-import { useHaptics } from '@/hooks/useHaptics';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -70,17 +69,13 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
     const saved = clientMounted && isCarSaved;
     const compared = clientMounted && isCarCompared;
 
-    const haptics = useHaptics();
-
     const toggleGarage = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         if (saved) {
             removeGarageCar(car.product_group_id!);
-            haptics.medium();
         } else {
             addGarageCar(car);
-            haptics.success();
         }
     };
 
@@ -89,15 +84,12 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
         e.stopPropagation();
         if (compared) {
             removeCompareCar(car.product_group_id!);
-            haptics.medium();
         } else {
             if (compareCars.length >= 3) {
-                haptics.error();
                 alert("Możesz porównywać maksymalnie 3 samochody jednocześnie.");
                 return;
             }
             addCompareCar(car);
-            haptics.success();
         }
     };
 

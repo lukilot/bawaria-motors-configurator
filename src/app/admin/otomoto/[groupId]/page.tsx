@@ -226,18 +226,19 @@ export default function OtomotoGeneratorPage() {
             if (!name || name === '[HIDDEN]') return;
             
             const line = `- ${code} ${name}`;
+            const normalizedCode = code.startsWith('0') ? code.substring(1) : code;
 
-            if (code.startsWith('7N') || code.startsWith('7C')) {
+            if (normalizedCode.startsWith('7N') || normalizedCode.startsWith('7C')) {
                 serviceOptions.push(line);
-            } else if (code.startsWith('1') || code.startsWith('3G') || name.toLowerCase().includes('obręcze') || name.toLowerCase().includes('koła')) {
+            } else if (normalizedCode.startsWith('1') || normalizedCode.startsWith('3G') || name.toLowerCase().includes('obręcze') || name.toLowerCase().includes('koła')) {
                 if (wheelsStr === 'b.d.') wheelsStr = `${code} ${name}`;
                 else optOptions.push(line); 
-            } else if (code.startsWith('43') || code.startsWith('4M') || name.toLowerCase().includes('listwy ozdobne') || code === '4F4' || code === '4KN') {
+            } else if (normalizedCode.startsWith('43') || normalizedCode.startsWith('4M') || name.toLowerCase().includes('listwy ozdobne') || normalizedCode === '4F4' || normalizedCode === '4KN') {
                 if (interiorTrim === 'b.d.') interiorTrim = `${code} ${name}`;
                 else optOptions.push(line);
             } else {
                 const standardCodes = ['2PA', '2VB', '428', '302', '6AE', '6AF', '6AK', '6C4', '2TE', '2VV', '488', '4T2', '4U8', '4U9', '4UR', '4V1', '552', '654', '674', '6NX', '6PA'];
-                if (standardCodes.includes(code)) stdOptions.push(line);
+                if (standardCodes.includes(normalizedCode)) stdOptions.push(line);
                 else optOptions.push(line);
             }
         });

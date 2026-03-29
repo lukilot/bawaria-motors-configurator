@@ -57,6 +57,8 @@ export interface ProductGroup {
   images?: { url: string; id: string; sort_order: number }[];
   description?: string;
   manual_price?: number;
+  otomoto_listed?: boolean;
+  otomoto_url?: string;
   created_at?: string;
   // Virtual / Computed
   available_units?: StockCar[];

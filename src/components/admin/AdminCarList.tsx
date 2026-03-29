@@ -14,6 +14,8 @@ import { Trash2, AlertTriangle, CheckCircle } from 'lucide-react';
 
 function SoldCarsList({ cars, onRefresh }: { cars: StockCar[], onRefresh: () => void }) {
     const [processing, setProcessing] = useState<string | null>(null); // VIN or 'ALL'
+    // To handle Otomoto safeguards, track which cars were listed and confirmed removed
+    const [otomotoConfirmed, setOtomotoConfirmed] = useState<Set<string>>(new Set());
 
     const handleDelete = async (vin: string) => {
         if (!confirm('Are you sure you want to permanently delete this car and its images?')) return;
@@ -29,6 +31,11 @@ function SoldCarsList({ cars, onRefresh }: { cars: StockCar[], onRefresh: () => 
     };
 
     const handleDeleteAll = async () => {
+        const unconfirmedOtomotoCars = cars.filter(c => (c as any).otomoto_listed && !otomotoConfirmed.has(c.vin));
+        if (unconfirmedOtomotoCars.length > 0) {
+            alert(`Musisz potwierdzić usunięcie ogłoszeń z Otomoto dla ${unconfirmedOtomotoCars.length} aut.`);
+            return;
+        }
         if (!confirm(`Are you sure you want to PERMANENTLY DELETE ALL ${cars.length} sold cars? This cannot be undone.`)) return;
         setProcessing('ALL');
         try {
@@ -63,10 +70,10 @@ function SoldCarsList({ cars, onRefresh }: { cars: StockCar[], onRefresh: () => 
 
                 <button
                     onClick={handleDeleteAll}
-                    disabled={!!processing}
+                    disabled={!!processing || cars.some(c => (c as any).otomoto_listed && !otomotoConfirmed.has(c.vin))}
                     className={cn(
                         "flex items-center gap-2 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors rounded-sm text-sm font-medium shadow-sm whitespace-nowrap",
-                        processing && "opacity-75 cursor-wait"
+                        (processing || cars.some(c => (c as any).otomoto_listed && !otomotoConfirmed.has(c.vin))) && "opacity-50 cursor-not-allowed"
                     )}
                 >
                     {processing === 'ALL' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
@@ -78,34 +85,62 @@ function SoldCarsList({ cars, onRefresh }: { cars: StockCar[], onRefresh: () => 
                 <table className="w-full text-sm text-left">
                     <thead className="bg-orange-50/50 text-orange-900 uppercase text-xs font-semibold tracking-wider">
                         <tr>
-                            <th className="px-6 py-3">VIN</th>
-                            <th className="px-6 py-3">Model</th>
+                            <th className="px-6 py-3">VIN / Model</th>
                             <th className="px-6 py-3">Marked Sold At</th>
+                            <th className="px-6 py-3">Platform Check</th>
                             <th className="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-orange-100">
-                        {cars.map((car) => (
-                            <tr key={car.vin} className="hover:bg-orange-100/50 transition-colors">
-                                <td className="px-6 py-4 font-mono text-xs text-orange-900">{car.vin}</td>
-                                <td className="px-6 py-4 text-orange-900 font-medium">{car.model_name || car.model_code}</td>
-                                <td className="px-6 py-4 text-xs text-orange-800">
-                                    {(car as any).last_synced_at ? new Date((car as any).last_synced_at).toLocaleDateString() : 'Unknown'}
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <button
-                                        onClick={() => handleDelete(car.vin)}
-                                        disabled={!!processing}
-                                        className={cn(
-                                            "text-red-600 hover:text-red-800 font-medium text-xs uppercase tracking-wide disabled:opacity-50",
-                                            processing === car.vin && "cursor-wait"
+                        {cars.map((car) => {
+                            const isOtomoto = (car as any).otomoto_listed;
+                            const confirmed = otomotoConfirmed.has(car.vin);
+                            return (
+                                <tr key={car.vin} className="hover:bg-orange-100/50 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="font-mono text-xs text-orange-900">{car.vin}</div>
+                                        <div className="text-orange-900 font-medium">{car.model_name || car.model_code}</div>
+                                    </td>
+                                    <td className="px-6 py-4 text-xs text-orange-800">
+                                        {(car as any).last_synced_at ? new Date((car as any).last_synced_at).toLocaleDateString() : 'Unknown'}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {isOtomoto ? (
+                                            <div className="flex items-center gap-2 text-xs">
+                                                <input 
+                                                    type="checkbox" 
+                                                    id={`otomoto-${car.vin}`}
+                                                    checked={confirmed}
+                                                    onChange={(e) => {
+                                                        const newSet = new Set(otomotoConfirmed);
+                                                        e.target.checked ? newSet.add(car.vin) : newSet.delete(car.vin);
+                                                        setOtomotoConfirmed(newSet);
+                                                    }}
+                                                    className="w-4 h-4 rounded text-red-600 focus:ring-red-500"
+                                                />
+                                                <label htmlFor={`otomoto-${car.vin}`} className="text-red-700 font-bold uppercase cursor-pointer">
+                                                    Removed from Otomoto
+                                                </label>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-gray-500">—</span>
                                         )}
-                                    >
-                                        {processing === car.vin ? 'Deleting...' : 'Delete Permanently'}
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button
+                                            onClick={() => handleDelete(car.vin)}
+                                            disabled={!!processing || (isOtomoto && !confirmed)}
+                                            className={cn(
+                                                "text-red-600 hover:text-red-800 font-medium text-xs uppercase tracking-wide disabled:opacity-50",
+                                                processing === car.vin && "cursor-wait"
+                                            )}
+                                        >
+                                            {processing === car.vin ? 'Deleting...' : 'Delete Permanently'}
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
@@ -144,15 +179,38 @@ function ProductGroupRow({ group, modelMap }: { group: ProductGroup, modelMap: R
         priceDisplay = '—';
     }
 
+    // Combine images to find best thumbnail
+    const thumbnailImg = group.images?.[0]?.url || units.find(u => u.images && u.images.length > 0)?.images?.[0]?.url;
+
     return (
         <>
             <tr className={cn("hover:bg-gray-50 transition-colors cursor-pointer", expanded && "bg-gray-50")} onClick={() => setExpanded(!expanded)}>
+                <td className="px-6 py-4 w-[60px] pr-0">
+                    <div className="w-16 h-10 bg-gray-100 rounded overflow-hidden shrink-0 border border-gray-200">
+                        {thumbnailImg ? (
+                            <img src={thumbnailImg} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                            <ImageIcon className="w-4 h-4 text-gray-300 m-auto mt-3" />
+                        )}
+                    </div>
+                </td>
                 <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                         {expanded ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronRight className="w-4 h-4 text-gray-500" />}
                         <div>
-                            <div className="font-medium text-gray-900">
+                            <div className="font-medium text-gray-900 flex items-center gap-2">
                                 {displayName}
+                                {group.otomoto_listed && (
+                                    <a 
+                                        href={group.otomoto_url || '#'} 
+                                        target="_blank" 
+                                        className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-sm bg-[#E10514] text-white text-[9px] font-bold uppercase tracking-wider hover:bg-red-700 hover:opacity-90"
+                                        title="Otwórz na Otomoto"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        Otomoto
+                                    </a>
+                                )}
                             </div>
                             <div className="text-xs text-gray-600 font-mono mt-0.5 flex gap-2">
                                 <span>{group.color_code}</span>
@@ -193,13 +251,25 @@ function ProductGroupRow({ group, modelMap }: { group: ProductGroup, modelMap: R
                 <td className="px-6 py-4 font-mono text-xs">
                     {priceDisplay}
                 </td>
-                <td className="px-6 py-4 text-right">
+                <td className="px-6 py-4 text-right flex items-center justify-end gap-2 h-full py-5">
                     <Link
-                        href={`/admin/groups/${group.id}`}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black transition-all text-xs font-medium uppercase tracking-wide rounded-sm shadow-sm"
+                        href={`/admin/otomoto/${group.id}`}
+                        className={cn(
+                            "inline-flex items-center gap-2 px-3 py-1.5 border text-xs font-medium uppercase tracking-wide rounded-sm shadow-sm transition-all",
+                            group.otomoto_listed 
+                                ? "bg-white border-[#E10514] text-[#E10514] hover:bg-red-50" 
+                                : "bg-white border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
+                        )}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <Edit2 className="w-3 h-3" /> Edit Group
+                        Otomoto Generator
+                    </Link>
+                    <Link
+                        href={`/admin/groups/${group.id}`}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-black border border-black text-white hover:bg-gray-800 transition-all text-xs font-medium uppercase tracking-wide rounded-sm shadow-sm"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Edit2 className="w-3 h-3" /> Edit
                     </Link>
                 </td>
             </tr>
@@ -327,7 +397,11 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
     // --- Derived State ---
 
     // Flatten all units for specific filtered views
-    const allUnits = groups.flatMap(g => g.available_units || []);
+    const allUnits = groups.flatMap(g => (g.available_units || []).map(u => ({
+        ...u, 
+        otomoto_listed: g.otomoto_listed, 
+        otomoto_url: g.otomoto_url 
+    })));
 
     // 0. Sold Cars (Status 500)
     const soldCars = allUnits.filter(car => car.status_code === 500);
@@ -421,6 +495,7 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
                         <table className="w-full text-sm text-left">
                             <thead className="bg-orange-50/50 text-orange-900 uppercase text-xs font-semibold tracking-wider">
                                 <tr>
+                                    <th className="px-6 py-3 w-[60px] pr-0">Img</th>
                                     <th className="px-6 py-3">Model / Specs</th>
                                     <th className="px-6 py-3">Inventory</th>
                                     <th className="px-6 py-3">Images</th>
@@ -450,6 +525,7 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-500 uppercase text-xs font-semibold tracking-wider">
                             <tr>
+                                <th className="px-6 py-3 w-[60px] pr-0">Img</th>
                                 <th className="px-6 py-3">Model / Specs</th>
                                 <th className="px-6 py-3">Inventory</th>
                                 <th className="px-6 py-3">Images</th>
@@ -495,6 +571,7 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-purple-50/50 text-purple-900 uppercase text-xs font-semibold tracking-wider">
                                     <tr>
+                                        <th className="px-6 py-3 w-[60px] pr-0">Img</th>
                                         <th className="px-6 py-3">Model / Specs</th>
                                         <th className="px-6 py-3">Inventory</th>
                                         <th className="px-6 py-3">Images</th>

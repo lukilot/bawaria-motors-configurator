@@ -181,18 +181,17 @@ export default function OtomotoGeneratorPage() {
         const enrichedCar = { ...car, list_price: listPrice };
         let discountPrice = getCarDiscountedPrice(enrichedCar, bulletins) || car.special_price || listPrice;
         
-        // Options separation
-        const stdOptions: string[] = [];
-        const optOptions: string[] = [];
-        const serviceOptions: string[] = [];
-        
-        // Extract 3 and 4 character alphanumeric codes perfectly
-        const allCodes = new Set<string>();
+        // Extract all individual codes for wheels/trims lookup
+        const allFlatCodes = new Set<string>();
         (group.option_codes || []).forEach(oc => {
             const raw = oc.trim();
-            const match = raw.match(/^([A-Z0-9]{3,4})/);
-            if (match) {
-                allCodes.add(match[1]);
+            const matchPkg = raw.match(/^([A-Z0-9]+)\s*\((.+)\)$/);
+            if (matchPkg) {
+                allFlatCodes.add(matchPkg[1]);
+                matchPkg[2].trim().split(/[\s,]+/).filter(Boolean).forEach(k => allFlatCodes.add(k));
+            } else {
+                const cleanCode = raw.match(/^([A-Z0-9]+)/)?.[1];
+                if (cleanCode) allFlatCodes.add(cleanCode);
             }
         });
 
@@ -214,32 +213,77 @@ export default function OtomotoGeneratorPage() {
                 if (code === '6AF') return 'Połączenie alarmowe';
                 if (code === '6AK') return 'Usługi ConnectedDrive';
                 if (code === '6C4') return 'Pakiet Connected Professional';
-                return `Opcja ${code}`; // Return "Opcja XYZ" so it is still printed
+                return `Opcja ${code}`; // Return dummy so it doesn't break
             }
             return opt.name;
         };
 
         let wheelsStr = 'b.d.';
         let interiorTrim = 'b.d.';
-        Array.from(allCodes).forEach(code => {
+        Array.from(allFlatCodes).forEach(code => {
             const name = getOptionName(code);
             if (!name || name === '[HIDDEN]') return;
             
-            const line = `- ${code} ${name}`;
             const normalizedCode = code.startsWith('0') ? code.substring(1) : code;
-
-            if (normalizedCode.startsWith('7N') || normalizedCode.startsWith('7C')) {
-                serviceOptions.push(line);
-            } else if (normalizedCode.startsWith('1') || normalizedCode.startsWith('3G') || name.toLowerCase().includes('obręcze') || name.toLowerCase().includes('koła')) {
+            if (normalizedCode.startsWith('1') || normalizedCode.startsWith('3G') || name.toLowerCase().includes('obręcze') || name.toLowerCase().includes('koła')) {
                 if (wheelsStr === 'b.d.') wheelsStr = `${code} ${name}`;
-                else optOptions.push(line); 
-            } else if (normalizedCode.startsWith('43') || normalizedCode.startsWith('4M') || name.toLowerCase().includes('listwy ozdobne') || normalizedCode === '4F4' || normalizedCode === '4KN') {
+            }
+            if (normalizedCode.startsWith('43') || normalizedCode.startsWith('4M') || name.toLowerCase().includes('listwy ozdobne') || normalizedCode === '4F4' || normalizedCode === '4KN') {
                 if (interiorTrim === 'b.d.') interiorTrim = `${code} ${name}`;
-                else optOptions.push(line);
+            }
+        });
+
+        const stdLines: string[] = [];
+        const optLines: string[] = [];
+        const pkgLines: string[] = [];
+        const serviceLines: string[] = [];
+        
+        const standardCodes = ['2PA', '2VB', '428', '302', '6AE', '6AF', '6AK', '6C4', '2TE', '2VV', '488', '4T2', '4U8', '4U9', '4UR', '4V1', '552', '654', '674', '6NX', '6PA'];
+
+        (group.option_codes || []).forEach(oc => {
+            const raw = oc.trim();
+            const matchPkg = raw.match(/^([A-Z0-9]+)\s*\((.+)\)$/);
+            
+            if (matchPkg) {
+                const pkgCode = matchPkg[1];
+                const pkgName = getOptionName(pkgCode);
+                if (!pkgName || pkgName === '[HIDDEN]') return;
+                
+                const kidsCodes = matchPkg[2].trim().split(/[\s,]+/).filter(Boolean);
+                const childrenNames: string[] = [];
+                kidsCodes.forEach(k => {
+                     const kn = getOptionName(k);
+                     if (kn && kn !== '[HIDDEN]') childrenNames.push(`  - ${k} ${kn}`);
+                });
+                
+                let block = `- ${pkgCode} ${pkgName}`;
+                if (childrenNames.length > 0) {
+                     block += '\n' + childrenNames.join('\n');
+                }
+                
+                const normalizedPkgCode = pkgCode.startsWith('0') ? pkgCode.substring(1) : pkgCode;
+                if (normalizedPkgCode.startsWith('7N') || normalizedPkgCode.startsWith('7C')) {
+                    serviceLines.push(block);
+                } else {
+                    pkgLines.push(block);
+                }
             } else {
-                const standardCodes = ['2PA', '2VB', '428', '302', '6AE', '6AF', '6AK', '6C4', '2TE', '2VV', '488', '4T2', '4U8', '4U9', '4UR', '4V1', '552', '654', '674', '6NX', '6PA'];
-                if (standardCodes.includes(normalizedCode)) stdOptions.push(line);
-                else optOptions.push(line);
+                const codeMatch = raw.match(/^([A-Z0-9]+)/);
+                if (!codeMatch) return;
+                const code = codeMatch[1];
+                const name = getOptionName(code);
+                if (!name || name === '[HIDDEN]') return;
+                
+                const normalizedCode = code.startsWith('0') ? code.substring(1) : code;
+                const line = `- ${code} ${name}`;
+                
+                if (normalizedCode.startsWith('7N') || normalizedCode.startsWith('7C')) {
+                    serviceLines.push(line);
+                } else if (standardCodes.includes(normalizedCode)) {
+                    stdLines.push(line);
+                } else {
+                    optLines.push(line);
+                }
             }
         });
 
@@ -273,13 +317,14 @@ lotoszynski_l(at)bmw-bawariamotors.pl
 <b>Koła (opony letnie):</b> ${wheelsStr}
 
 <b>Wyposażenie standardowe:</b>
-${stdOptions.length > 0 ? stdOptions.sort().join('\n') : 'Brak danych'}
+${stdLines.length > 0 ? stdLines.join('\n') : 'Brak danych'}
 
 <b>Wyposażenie opcjonalne:</b>
-${optOptions.length > 0 ? optOptions.sort().join('\n') : 'Brak danych'}
+${pkgLines.length > 0 ? pkgLines.join('\n') : ''}
+${optLines.length > 0 ? optLines.join('\n') : ''}
 
 <b>Usługi:</b>
-${serviceOptions.length > 0 ? serviceOptions.sort().join('\n') : 'Brak usług w pakiecie'}
+${serviceLines.length > 0 ? serviceLines.join('\n') : 'Brak usług w pakiecie'}
 
 ─────────────────────────────────────────────────────────────
 Szukasz innej wersji lub modelu? Zadzwoń do nas lub napisz! Przygotujemy ofertę indywidualną!

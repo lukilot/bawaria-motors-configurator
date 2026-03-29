@@ -8,7 +8,7 @@ import { Loader2, ArrowLeft, Download, CheckCircle, Copy, ExternalLink, RefreshC
 import Link from 'next/link';
 import JSZip from 'jszip';
 import { getActiveBulletins, getCarDiscountedPrice, Bulletin } from '@/lib/bulletin-fetch';
-import { resolveDictionaryEntry } from '@/lib/dictionary-fetch';
+import { resolveDictionaryEntry, getAllDictionaries } from '@/lib/dictionary-fetch';
 import { getChassisCode } from '@/lib/chassis-mapping';
 
 // Basic helper to format price
@@ -52,17 +52,9 @@ export default function OtomotoGeneratorPage() {
                 setOtomotoUrl(mappedGroup.otomoto_url || '');
             }
 
-            // 2. Fetch Dictionaries
-            const { data: dictsData } = await supabase.from('dictionaries').select('*');
-            if (dictsData) {
-                const formattedDicts: any = { model: {}, color: {}, upholstery: {}, option: {} };
-                dictsData.forEach(d => {
-                    if (formattedDicts[d.type]) {
-                        formattedDicts[d.type][d.code] = d.data;
-                    }
-                });
-                setDictionaries(formattedDicts);
-            }
+            // 2. Fetch Dictionaries (Using shared helper to avoid 1000-row limit)
+            const dicts = await getAllDictionaries();
+            setDictionaries(dicts);
 
             // 3. Fetch Bulletins
             const b = await getActiveBulletins();
@@ -184,20 +176,9 @@ export default function OtomotoGeneratorPage() {
         }
 
         // Prices
-        // VDP Exact Logic Sync: Use car.list_price if valid, otherwise group max/min limits
-        const listPrice = car.list_price > 0 ? car.list_price : (group.max_price || group.manual_price || group.min_price || 0);
-        
-        const hasManualDiscount = car.special_price && car.special_price < listPrice;
-        const bulletinDiscountedPrice = getCarDiscountedPrice(car, bulletins);
-        const hasBulletinDiscount = !hasManualDiscount && bulletinDiscountedPrice && bulletinDiscountedPrice < listPrice;
-        
-        let discountPrice = hasManualDiscount 
-            ? car.special_price! 
-            : hasBulletinDiscount 
-                ? bulletinDiscountedPrice! 
-                : (group.min_price && group.min_price < listPrice) 
-                    ? group.min_price 
-                    : listPrice;
+        // Identical mapping as the VDP interface - no custom overriding logic here
+        const listPrice = car.list_price || group.manual_price || group.max_price || group.min_price || 0;
+        let discountPrice = getCarDiscountedPrice(car, bulletins) || car.special_price || listPrice;
         
         // Options separation
         const stdOptions: string[] = [];

@@ -8,6 +8,7 @@ import { ArrowRight, Warehouse, Scale, X } from 'lucide-react';
 import { BMWIndividualBadge } from './BMWIndividualBadge';
 import { useGarageStore } from '@/store/garageStore';
 import { useCompareStore } from '@/store/compareStore';
+import { useHaptics } from '@/hooks/useHaptics';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -69,13 +70,17 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
     const saved = clientMounted && isCarSaved;
     const compared = clientMounted && isCarCompared;
 
+    const haptics = useHaptics();
+
     const toggleGarage = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         if (saved) {
             removeGarageCar(car.product_group_id!);
+            haptics.medium();
         } else {
             addGarageCar(car);
+            haptics.success();
         }
     };
 
@@ -84,12 +89,15 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
         e.stopPropagation();
         if (compared) {
             removeCompareCar(car.product_group_id!);
+            haptics.medium();
         } else {
             if (compareCars.length >= 3) {
+                haptics.error();
                 alert("Możesz porównywać maksymalnie 3 samochody jednocześnie.");
                 return;
             }
             addCompareCar(car);
+            haptics.success();
         }
     };
 
@@ -514,35 +522,51 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                                     transition={{ delay: 0.1, duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
                                     className="flex flex-col items-center gap-6"
                                 >
-                                    <div className="relative w-24 h-24">
+                                    <div className="relative w-32 h-32 flex items-center justify-center mb-4">
                                         <div className={cn(
-                                            "absolute inset-0 rounded-full blur-xl opacity-60 animate-pulse",
-                                            isMSeries ? "bg-gradient-to-r from-[#53A0DE] via-[#02256E] to-[#E40424]" :
-                                            isElectric ? "bg-gradient-to-r from-[#0653B6] to-[#2E95D3]" :
-                                            "bg-white/50"
+                                            "absolute inset-0 blur-[32px] opacity-40 animate-pulse",
+                                            isMSeries ? "bg-gradient-to-tr from-[#53A0DE] via-[#02256E] to-[#E40424]" :
+                                            isElectric ? "bg-gradient-to-tr from-[#0653B6] to-[#2E95D3]" :
+                                            "bg-white"
                                         )} />
                                         
-                                        <div className="absolute inset-0 rounded-full border border-white/10" />
-                                        <motion.div
-                                            animate={{ rotate: 360 }}
-                                            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                                            className="absolute inset-0 rounded-full"
-                                        >
-                                            <div className="w-full h-full rounded-full [mask-image:linear-gradient(transparent_50%,black)]">
-                                                <div className={cn(
-                                                    "absolute inset-0 rounded-full border-[3px] border-transparent",
-                                                    isMSeries ? "border-b-[#E40424] border-l-[#53A0DE]" :
-                                                    isElectric ? "border-b-[#2E95D3] border-l-[#0653B6]" :
-                                                    "border-b-white border-l-white/50"
-                                                )} />
-                                            </div>
-                                        </motion.div>
-
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white">
-                                                BMW
-                                            </span>
-                                        </div>
+                                        <svg width="84" height="64" viewBox="0 0 100 80" className={cn(
+                                            "relative z-10 drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]",
+                                            isMSeries ? "text-[#E40424]" : 
+                                            isElectric ? "text-[#2E95D3]" : "text-white"
+                                        )}>
+                                            {/* Left Kidney */}
+                                            <motion.path 
+                                                d="M 45 5 L 15 10 L 5 40 L 12 70 L 45 75 Z" 
+                                                stroke="currentColor" 
+                                                strokeWidth="3.5" 
+                                                fill="transparent" 
+                                                strokeLinejoin="round"
+                                                initial={{ pathLength: 0, opacity: 0 }}
+                                                animate={{ pathLength: 1, opacity: 1 }}
+                                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", repeatType: "reverse" }}
+                                            />
+                                            {/* Right Kidney */}
+                                            <motion.path 
+                                                d="M 55 5 L 85 10 L 95 40 L 88 70 L 55 75 Z" 
+                                                stroke="currentColor" 
+                                                strokeWidth="3.5" 
+                                                fill="transparent" 
+                                                strokeLinejoin="round"
+                                                initial={{ pathLength: 0, opacity: 0 }}
+                                                animate={{ pathLength: 1, opacity: 1 }}
+                                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", repeatType: "reverse", delay: 0.15 }}
+                                            />
+                                            {/* Inner Vertical Slats */}
+                                            <motion.g 
+                                                initial={{ opacity: 0 }} 
+                                                animate={{ opacity: 0.4 }} 
+                                                transition={{ duration: 1.2, delay: 0.6, repeat: Infinity, repeatType: "reverse" }}
+                                            >
+                                                <path d="M 23 15 L 18 64 M 34 10 L 32 72" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                <path d="M 77 15 L 82 64 M 66 10 L 68 72" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                            </motion.g>
+                                        </svg>
                                     </div>
                                     
                                     <motion.div

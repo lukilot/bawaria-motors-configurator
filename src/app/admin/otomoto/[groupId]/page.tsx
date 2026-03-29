@@ -7,6 +7,9 @@ import { ProductGroup, StockCar } from '@/types/stock';
 import { Loader2, ArrowLeft, Download, CheckCircle, Copy, ExternalLink, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import JSZip from 'jszip';
+import { getActiveBulletins, getCarDiscountedPrice, Bulletin } from '@/lib/bulletin-fetch';
+import { resolveDictionaryEntry } from '@/lib/dictionary-fetch';
+import { getChassisCode } from '@/lib/chassis-mapping';
 
 // Basic helper to format price
 const formatPrice = (price: number) => {
@@ -20,6 +23,7 @@ export default function OtomotoGeneratorPage() {
 
     const [group, setGroup] = useState<ProductGroup | null>(null);
     const [dictionaries, setDictionaries] = useState<any>({});
+    const [bulletins, setBulletins] = useState<Bulletin[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     
@@ -51,7 +55,7 @@ export default function OtomotoGeneratorPage() {
             // 2. Fetch Dictionaries
             const { data: dictsData } = await supabase.from('dictionaries').select('*');
             if (dictsData) {
-                const formattedDicts: any = { model: {}, paint: {}, upholstery: {}, option: {} };
+                const formattedDicts: any = { model: {}, color: {}, upholstery: {}, option: {} };
                 dictsData.forEach(d => {
                     if (formattedDicts[d.type]) {
                         formattedDicts[d.type][d.code] = d.data;
@@ -59,6 +63,10 @@ export default function OtomotoGeneratorPage() {
                 });
                 setDictionaries(formattedDicts);
             }
+
+            // 3. Fetch Bulletins
+            const b = await getActiveBulletins();
+            setBulletins(b);
 
             setLoading(false);
         };
@@ -150,6 +158,8 @@ export default function OtomotoGeneratorPage() {
         const car = group.available_units?.[0]; // Base the text on the first available unit for VIN/Prices
         if (!car) return 'Brak aut w grupie (grupa całkowicie wyprzedana). Ogłoszenie niemożliwe.';
 
+        const bodyGroup = car.body_group || getChassisCode(car.model_code);
+
         // Car core data
         const modelDict = dictionaries.model[car.model_code] || {};
         const modelName = modelDict.name || car.model_name || `BMW ${car.model_code}`;
@@ -157,8 +167,10 @@ export default function OtomotoGeneratorPage() {
         
         // Colors
         let paintName = group.color_code || '';
-        if (dictionaries.color?.[group.color_code]) {
-            paintName = dictionaries.color[group.color_code].name;
+        const dictColorOpt = resolveDictionaryEntry(group.color_code, dictionaries, 'color', bodyGroup);
+
+        if (dictColorOpt) {
+            paintName = dictColorOpt.name || group.color_code;
             if (paintName.toLowerCase() === 'brak nazwy' && car.individual_color) {
                 paintName = car.individual_color;
             }
@@ -166,13 +178,22 @@ export default function OtomotoGeneratorPage() {
         const paintDisplay = paintName && paintName !== group.color_code ? paintName : '';
 
         let upholsteryName = group.upholstery_code || '';
-        if (dictionaries.upholstery?.[group.upholstery_code]) {
-            upholsteryName = dictionaries.upholstery[group.upholstery_code].name;
+        const dictUpholsteryOpt = resolveDictionaryEntry(group.upholstery_code, dictionaries, 'upholstery', bodyGroup);
+        if (dictUpholsteryOpt) {
+            upholsteryName = dictUpholsteryOpt.name || group.upholstery_code;
         }
 
         // Prices
         const listPrice = car.list_price || group.manual_price || group.min_price || 0;
-        const discountPrice = car.special_price || listPrice; 
+        let discountPrice = listPrice;
+        
+        // Try bulletin discount first, fallback to standard logic if bulletin is worse
+        const bulletinDiscountedPrice = getCarDiscountedPrice(car, bulletins);
+        if (bulletinDiscountedPrice && bulletinDiscountedPrice < listPrice) {
+            discountPrice = bulletinDiscountedPrice;
+        } else if (car.special_price && car.special_price < listPrice) {
+            discountPrice = car.special_price;
+        }
         
         // Options separation
         const stdOptions: string[] = [];
@@ -189,8 +210,8 @@ export default function OtomotoGeneratorPage() {
         });
 
         const getOptionName = (code: string) => {
-            let opt = dictionaries.option?.[code];
-            if (!opt) {
+            let opt = resolveDictionaryEntry(code, dictionaries, 'option', bodyGroup);
+            if (!opt || !opt.name) {
                 // Hardcoded fallback for some common BMW options if missing in DB
                 if (code === '2PA') return 'Śruby zabezpieczające';
                 if (code === '2VB') return 'System monitorowania ciśnienia opon';
@@ -200,10 +221,9 @@ export default function OtomotoGeneratorPage() {
                 if (code === '6AF') return 'Połączenie alarmowe';
                 if (code === '6AK') return 'Usługi ConnectedDrive';
                 if (code === '6C4') return 'Pakiet Connected Professional';
-                return ''; // Return empty string for completely unknown options to hide them
+                return `Opcja ${code}`; // Return "Opcja XYZ" so it is still printed
             }
-            if (Array.isArray(opt)) opt = opt[0];
-            return opt.name || '';
+            return opt.name;
         };
 
         let wheelsStr = 'b.d.';
@@ -211,7 +231,7 @@ export default function OtomotoGeneratorPage() {
 
         Array.from(allCodes).forEach(code => {
             const name = getOptionName(code);
-            if (!name) return; // Skip "Opcja XYZ" completely
+            if (!name) return;
             
             const line = `- ${code} ${name}`;
 
@@ -233,39 +253,39 @@ export default function OtomotoGeneratorPage() {
         // Formatting currency explicitly to PLN
         const fmtPLN = (v: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(v).replace('PLN', ' PLN');
 
-        return `**BMW ${modelName}**
+        return `<b>BMW ${modelName}</b>
 
 Silnik ${engineDesc}
 
-**Numer oferty:** ${group.id.split('-')[0].toUpperCase()}
+<b>Numer oferty:</b> ${group.id.split('-')[0].toUpperCase()}
 
-**AUTO DOSTĘPNE OD RĘKI**
+<b>AUTO DOSTĘPNE OD RĘKI</b>
 
-- **cena katalogowa** ${fmtPLN(listPrice)} brutto
-- **cena promocyjna** ${fmtPLN(discountPrice)} brutto
+- <b>cena katalogowa</b> ${fmtPLN(listPrice)} brutto
+- <b>cena promocyjna</b> ${fmtPLN(discountPrice)} brutto
 
 ─────────────────────────────────────────────────────────────
 
 Zapraszamy do bezpośredniego kontaktu:
 
-**Łukasz Łotoszyński**
+<b>Łukasz Łotoszyński</b>
 lotoszynski_l(at)bmw-bawariamotors.pl
 +48 508-020-612
 
 ─────────────────────────────────────────────────────────────
 
-**Lakier:** ${group.color_code} ${paintDisplay}
-**Tapicerka:** ${group.upholstery_code} ${upholsteryName}
-**Listwy:** ${interiorTrim}
-**Koła (opony letnie):** ${wheelsStr}
+<b>Lakier:</b> ${group.color_code} ${paintDisplay}
+<b>Tapicerka:</b> ${group.upholstery_code} ${upholsteryName}
+<b>Listwy:</b> ${interiorTrim}
+<b>Koła (opony letnie):</b> ${wheelsStr}
 
-**Wyposażenie standardowe:**
+<b>Wyposażenie standardowe:</b>
 ${stdOptions.length > 0 ? stdOptions.sort().join('\n') : 'Brak danych'}
 
-**Wyposażenie opcjonalne:**
+<b>Wyposażenie opcjonalne:</b>
 ${optOptions.length > 0 ? optOptions.sort().join('\n') : 'Brak danych'}
 
-**Usługi:**
+<b>Usługi:</b>
 ${serviceOptions.length > 0 ? serviceOptions.sort().join('\n') : 'Brak usług w pakiecie'}
 
 ─────────────────────────────────────────────────────────────
@@ -280,17 +300,15 @@ Nasz zespół specjalistów jest zawsze gotowy, aby sprostać wymaganiom i potrz
 
 Nasze wieloletnie doświadczenie na rynku motoryzacyjnym oraz wykorzystanie najnowszych technologii gwarantują najwyższą jakość i niezawodność usług. Pragniemy, aby nasze salony były miejscem, gdzie klienci czują się mile widziani i zawsze mogą liczyć na profesjonalną obsługę.
 
-**Niniejsze ogłoszenie jest wyłącznie informacją handlową i nie stanowi oferty w myśl art. 66, § 1. Kodeksu Cywilnego. Sprzedający nie odpowiada za ewentualne błędy lub nieaktualność ogłoszenia.**`;
+<b>Niniejsze ogłoszenie jest wyłącznie informacją handlową i nie stanowi oferty w myśl art. 66, § 1. Kodeksu Cywilnego. Sprzedający nie odpowiada za ewentualne błędy lub nieaktualność ogłoszenia.</b>`;
     };
 
     const handleCopy = async () => {
         const text = generateOtomotoText();
         
         try {
-            // Zamiana znaczników ** na <b> dla kopiowania jako Rich Text HTML do edytora Otomoto
-            const htmlText = text
-                .replace(/\\*\\*(.*?)\\*\\*/g, '<b>$1</b>')
-                .replace(/\\n/g, '<br/>');
+            // Zamiana znaczników nowej linii dla kopiowania jako Rich Text HTML do edytora Otomoto
+            const htmlText = text.replace(/\n/g, '<br/>');
                 
             const blobText = new Blob([text], { type: 'text/plain' });
             const blobHtml = new Blob([htmlText], { type: 'text/html' });

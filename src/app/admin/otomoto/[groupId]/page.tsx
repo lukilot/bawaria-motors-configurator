@@ -184,28 +184,33 @@ export default function OtomotoGeneratorPage() {
         }
 
         // Prices
-        const listPrice = car.list_price || group.manual_price || group.min_price || 0;
-        let discountPrice = listPrice;
+        // VDP Exact Logic Sync: Use car.list_price if valid, otherwise group max/min limits
+        const listPrice = car.list_price > 0 ? car.list_price : (group.max_price || group.manual_price || group.min_price || 0);
         
-        // Try bulletin discount first, fallback to standard logic if bulletin is worse
+        const hasManualDiscount = car.special_price && car.special_price < listPrice;
         const bulletinDiscountedPrice = getCarDiscountedPrice(car, bulletins);
-        if (bulletinDiscountedPrice && bulletinDiscountedPrice < listPrice) {
-            discountPrice = bulletinDiscountedPrice;
-        } else if (car.special_price && car.special_price < listPrice) {
-            discountPrice = car.special_price;
-        }
+        const hasBulletinDiscount = !hasManualDiscount && bulletinDiscountedPrice && bulletinDiscountedPrice < listPrice;
+        
+        let discountPrice = hasManualDiscount 
+            ? car.special_price! 
+            : hasBulletinDiscount 
+                ? bulletinDiscountedPrice! 
+                : (group.min_price && group.min_price < listPrice) 
+                    ? group.min_price 
+                    : listPrice;
         
         // Options separation
         const stdOptions: string[] = [];
         const optOptions: string[] = [];
         const serviceOptions: string[] = [];
         
-        // Extract plain 3-character codes and deduplicate
+        // Extract 3 and 4 character alphanumeric codes perfectly
         const allCodes = new Set<string>();
         (group.option_codes || []).forEach(oc => {
-            const matches = oc.match(/[A-Z0-9]{3}/g);
-            if (matches) {
-                matches.forEach(m => allCodes.add(m));
+            const raw = oc.trim();
+            const match = raw.match(/^([A-Z0-9]{3,4})/);
+            if (match) {
+                allCodes.add(match[1]);
             }
         });
 

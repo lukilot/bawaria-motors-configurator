@@ -31,9 +31,9 @@ function SoldCarsList({ cars, onRefresh }: { cars: StockCar[], onRefresh: () => 
     };
 
     const handleDeleteAll = async () => {
-        const unconfirmedOtomotoCars = cars.filter(c => (c as any).otomoto_listed && !otomotoConfirmed.has(c.vin));
+        const unconfirmedOtomotoCars = cars.filter(c => (c as any).is_otomoto_protected && !otomotoConfirmed.has(c.vin));
         if (unconfirmedOtomotoCars.length > 0) {
-            alert(`Musisz potwierdzić usunięcie ogłoszeń z Otomoto dla ${unconfirmedOtomotoCars.length} aut.`);
+            alert(`Musisz potwierdzić usunięcie ogłoszeń z Otomoto dla ${unconfirmedOtomotoCars.length} aut (ich grupy zostały całkowicie wyprzedane).`);
             return;
         }
         if (!confirm(`Are you sure you want to PERMANENTLY DELETE ALL ${cars.length} sold cars? This cannot be undone.`)) return;
@@ -70,10 +70,10 @@ function SoldCarsList({ cars, onRefresh }: { cars: StockCar[], onRefresh: () => 
 
                 <button
                     onClick={handleDeleteAll}
-                    disabled={!!processing || cars.some(c => (c as any).otomoto_listed && !otomotoConfirmed.has(c.vin))}
+                    disabled={!!processing || cars.some(c => (c as any).is_otomoto_protected && !otomotoConfirmed.has(c.vin))}
                     className={cn(
                         "flex items-center gap-2 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors rounded-sm text-sm font-medium shadow-sm whitespace-nowrap",
-                        (processing || cars.some(c => (c as any).otomoto_listed && !otomotoConfirmed.has(c.vin))) && "opacity-50 cursor-not-allowed"
+                        (processing || cars.some(c => (c as any).is_otomoto_protected && !otomotoConfirmed.has(c.vin))) && "opacity-50 cursor-not-allowed"
                     )}
                 >
                     {processing === 'ALL' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
@@ -93,13 +93,18 @@ function SoldCarsList({ cars, onRefresh }: { cars: StockCar[], onRefresh: () => 
                     </thead>
                     <tbody className="divide-y divide-orange-100">
                         {cars.map((car) => {
-                            const isOtomoto = (car as any).otomoto_listed;
+                            const isOtomoto = (car as any).is_otomoto_protected;
                             const confirmed = otomotoConfirmed.has(car.vin);
                             return (
                                 <tr key={car.vin} className="hover:bg-orange-100/50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="font-mono text-xs text-orange-900">{car.vin}</div>
                                         <div className="text-orange-900 font-medium">{car.model_name || car.model_code}</div>
+                                        {(car as any).otomoto_listed && !isOtomoto && (
+                                            <div className="text-[9px] text-green-700 mt-1 uppercase font-bold tracking-wider">
+                                                Inne sztuki na stoku (ogłoszenie aktywne)
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-xs text-orange-800">
                                         {(car as any).last_synced_at ? new Date((car as any).last_synced_at).toLocaleDateString() : 'Unknown'}
@@ -397,11 +402,15 @@ export function AdminCarList({ refreshTrigger = 0 }: { refreshTrigger?: number }
     // --- Derived State ---
 
     // Flatten all units for specific filtered views
-    const allUnits = groups.flatMap(g => (g.available_units || []).map(u => ({
-        ...u, 
-        otomoto_listed: g.otomoto_listed, 
-        otomoto_url: g.otomoto_url 
-    })));
+    const allUnits = groups.flatMap(g => {
+        const hasActiveUnits = (g.available_units || []).some(u => u.status_code !== 500);
+        return (g.available_units || []).map(u => ({
+            ...u, 
+            otomoto_listed: g.otomoto_listed, 
+            otomoto_url: g.otomoto_url,
+            is_otomoto_protected: g.otomoto_listed && !hasActiveUnits
+        }));
+    });
 
     // 0. Sold Cars (Status 500)
     const soldCars = allUnits.filter(car => car.status_code === 500);

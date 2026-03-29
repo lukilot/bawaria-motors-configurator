@@ -232,7 +232,7 @@ export default function OtomotoGeneratorPage() {
 
 Silnik ${engineDesc}
 
-Numer oferty: ${car.vin.slice(-7)}
+Numer oferty: ${group.id.split('-')[0].toUpperCase()}
 
 AUTO DOSTĘPNE OD RĘKI
 

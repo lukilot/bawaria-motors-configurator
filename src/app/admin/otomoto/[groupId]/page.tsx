@@ -178,7 +178,8 @@ export default function OtomotoGeneratorPage() {
         // Prices
         // Identical mapping as the VDP interface - no custom overriding logic here
         const listPrice = car.list_price || group.manual_price || group.max_price || group.min_price || 0;
-        let discountPrice = getCarDiscountedPrice(car, bulletins) || car.special_price || listPrice;
+        const enrichedCar = { ...car, list_price: listPrice };
+        let discountPrice = getCarDiscountedPrice(enrichedCar, bulletins) || car.special_price || listPrice;
         
         // Options separation
         const stdOptions: string[] = [];
@@ -254,8 +255,6 @@ Silnik ${engineDesc}
 
 - <b>cena katalogowa</b> ${fmtPLN(listPrice)} brutto
 - <b>cena promocyjna</b> ${fmtPLN(discountPrice)} brutto
-
-[DEV_TELEMETRY] L:${car.list_price} S:${car.special_price} GMIN:${group.min_price} GMAX:${group.max_price} BCNT:${bulletins.length} BDSC:${getCarDiscountedPrice(car, bulletins)}
 
 ─────────────────────────────────────────────────────────────
 

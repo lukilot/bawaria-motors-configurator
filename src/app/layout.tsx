@@ -3,6 +3,7 @@ import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { GarageDrawer } from '@/components/layout/GarageDrawer';
 import { InitialPreloader } from '@/components/layout/InitialPreloader';
+import { NavigationPreloader } from '@/components/layout/NavigationPreloader';
 import { CompareToolbar } from '@/components/cars/CompareToolbar';
 import { CompareModal } from '@/components/cars/CompareModal';
 import { SiteHeader } from '@/components/layout/SiteHeader';
@@ -51,6 +52,7 @@ export default function RootLayout({
         <CompareToolbar />
         <CompareModal />
         <InitialPreloader />
+        <NavigationPreloader />
       </body>
     </html>
   );

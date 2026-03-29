@@ -41,7 +41,6 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
     const isCarSaved = useGarageStore(state => state.savedCars?.some((c: any) => c.product_group_id === car.product_group_id));
 
     const [clientMounted, setClientMounted] = useState(false);
-    const [isNavigating, setIsNavigating] = useState(false);
     
     const router = useRouter();
     const pathname = usePathname();
@@ -49,10 +48,6 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
     useEffect(() => { 
         setClientMounted(true); 
     }, []);
-
-    useEffect(() => {
-        setIsNavigating(false);
-    }, [pathname]);
 
     const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
         if (!isAvailable) {
@@ -62,10 +57,10 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
         if (e.metaKey || e.ctrlKey || e.button !== 0) return;
         
         e.preventDefault();
-        setIsNavigating(true);
+        window.dispatchEvent(new Event('start-navigation'));
         setTimeout(() => {
             router.push(`/cars/${car.product_group_id!.slice(0, 8).toUpperCase()}`);
-        }, 300);
+        }, 150);
     };
 
     const saved = clientMounted && isCarSaved;
@@ -351,60 +346,6 @@ export function CarCard({ car, modelName, colorName, upholsteryName, individualC
                 )}
             </Link>
 
-            {/* Navigation Loading Overlay */}
-            {clientMounted && createPortal(
-                <AnimatePresence>
-                    {isNavigating && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.3, ease: 'easeOut' }}
-                            className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-[#000000]/60 backdrop-blur-xl"
-                        >
-                            <motion.div
-                                initial={{ scale: 0.8, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ delay: 0.1, duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
-                                className="flex flex-col items-center gap-6"
-                            >
-                                <div className="relative w-32 h-32 flex items-center justify-center mb-4">
-                                    <div className={cn(
-                                        "absolute inset-0 blur-[32px] opacity-40 animate-pulse",
-                                        isMSeries ? "bg-gradient-to-tr from-[#53A0DE] via-[#02256E] to-[#E40424]" :
-                                        isElectric ? "bg-gradient-to-tr from-[#0653B6] to-[#2E95D3]" :
-                                        "bg-white"
-                                    )} />
-                                    
-                                    <NeueKlasseGrille 
-                                        className="relative z-10 w-full max-w-[200px]" 
-                                        isDark={true} 
-                                    />
-                                </div>
-                                
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2 }}
-                                    className="flex flex-col items-center"
-                                >
-                                    <div className="text-[11px] font-bold uppercase tracking-[0.3em] text-white mb-1">
-                                        Przygotowuję ofertę
-                                    </div>
-                                    <div className={cn("text-[9px] uppercase tracking-widest",
-                                        isMSeries ? "text-[#53A0DE]" : 
-                                        isElectric ? "text-[#2E95D3]" : 
-                                        "text-white/40"
-                                    )}>
-                                        {modelName || `BMW ${car.model_code}`}
-                                    </div>
-                                </motion.div>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>,
-                document.body
-            )}
         </div>
     );
 }

@@ -196,7 +196,13 @@ export default function OtomotoGeneratorPage() {
         });
 
         const getOptionName = (code: string) => {
-            let opt = resolveDictionaryEntry(code, dictionaries, 'option', bodyGroup);
+            let opt = resolveDictionaryEntry(code, dictionaries, 'option', bodyGroup, true);
+            
+            // Hide globally hidden options from Otomoto
+            if (opt && (opt.hidden === true || opt.visible === false)) {
+                return '[HIDDEN]';
+            }
+
             if (!opt || !opt.name) {
                 // Hardcoded fallback for some common BMW options if missing in DB
                 if (code === '2PA') return 'Śruby zabezpieczające';
@@ -214,10 +220,9 @@ export default function OtomotoGeneratorPage() {
 
         let wheelsStr = 'b.d.';
         let interiorTrim = 'b.d.';
-
         Array.from(allCodes).forEach(code => {
             const name = getOptionName(code);
-            if (!name) return;
+            if (!name || name === '[HIDDEN]') return;
             
             const line = `- ${code} ${name}`;
 
@@ -249,6 +254,8 @@ Silnik ${engineDesc}
 
 - <b>cena katalogowa</b> ${fmtPLN(listPrice)} brutto
 - <b>cena promocyjna</b> ${fmtPLN(discountPrice)} brutto
+
+[DEV_TELEMETRY] L:${car.list_price} S:${car.special_price} GMIN:${group.min_price} GMAX:${group.max_price} BCNT:${bulletins.length} BDSC:${getCarDiscountedPrice(car, bulletins)}
 
 ─────────────────────────────────────────────────────────────
 

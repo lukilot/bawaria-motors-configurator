@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getColor } from '@/lib/colors';
 import { resolveDictionaryEntry } from '@/lib/dictionary-fetch';
 import { getPluralForm } from '@/lib/plurals';
+import { NeueKlasseGrille } from '@/components/animations/NeueKlasseGrille';
 
 interface CarRowProps {
     car: StockCar;
@@ -62,8 +63,15 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
             e.preventDefault();
             return;
         }
+        // Allow middle clicks or command+clicks to open new tabs normally
         if (e.metaKey || e.ctrlKey || e.button !== 0) return;
+        
+        // Prevent immediate navigation to let the overlay fade in
+        e.preventDefault();
         setIsNavigating(true);
+        setTimeout(() => {
+            router.push(`/cars/${car.product_group_id!.slice(0, 8).toUpperCase()}`);
+        }, 300);
     };
 
     const saved = clientMounted && isCarSaved;
@@ -522,43 +530,10 @@ export function CarRow({ car, modelName, dictionaries, discountedPrice }: CarRow
                                             "bg-white"
                                         )} />
                                         
-                                        <svg width="84" height="64" viewBox="0 0 100 80" className={cn(
-                                            "relative z-10 drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]",
-                                            isMSeries ? "text-[#E40424]" : 
-                                            isElectric ? "text-[#2E95D3]" : "text-white"
-                                        )}>
-                                            {/* Left Kidney */}
-                                            <motion.path 
-                                                d="M 45 5 L 15 10 L 5 40 L 12 70 L 45 75 Z" 
-                                                stroke="currentColor" 
-                                                strokeWidth="3.5" 
-                                                fill="transparent" 
-                                                strokeLinejoin="round"
-                                                initial={{ pathLength: 0, opacity: 0 }}
-                                                animate={{ pathLength: 1, opacity: 1 }}
-                                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", repeatType: "reverse" }}
-                                            />
-                                            {/* Right Kidney */}
-                                            <motion.path 
-                                                d="M 55 5 L 85 10 L 95 40 L 88 70 L 55 75 Z" 
-                                                stroke="currentColor" 
-                                                strokeWidth="3.5" 
-                                                fill="transparent" 
-                                                strokeLinejoin="round"
-                                                initial={{ pathLength: 0, opacity: 0 }}
-                                                animate={{ pathLength: 1, opacity: 1 }}
-                                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", repeatType: "reverse", delay: 0.15 }}
-                                            />
-                                            {/* Inner Vertical Slats */}
-                                            <motion.g 
-                                                initial={{ opacity: 0 }} 
-                                                animate={{ opacity: 0.4 }} 
-                                                transition={{ duration: 1.2, delay: 0.6, repeat: Infinity, repeatType: "reverse" }}
-                                            >
-                                                <path d="M 23 15 L 18 64 M 34 10 L 32 72" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                                <path d="M 77 15 L 82 64 M 66 10 L 68 72" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                            </motion.g>
-                                        </svg>
+                                        <NeueKlasseGrille 
+                                            className="relative z-10 w-full max-w-[200px]" 
+                                            isDark={true} 
+                                        />
                                     </div>
                                     
                                     <motion.div

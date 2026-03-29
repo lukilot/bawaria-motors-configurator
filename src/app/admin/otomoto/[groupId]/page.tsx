@@ -25,7 +25,6 @@ export default function OtomotoGeneratorPage() {
     
     // Otomoto state
     const [otomotoUrl, setOtomotoUrl] = useState('');
-    const [isListed, setIsListed] = useState(false);
     const [copied, setCopied] = useState(false);
     const [downloadingZip, setDownloadingZip] = useState(false);
 
@@ -47,7 +46,6 @@ export default function OtomotoGeneratorPage() {
                 };
                 setGroup(mappedGroup);
                 setOtomotoUrl(mappedGroup.otomoto_url || '');
-                setIsListed(!!mappedGroup.otomoto_listed);
             }
 
             // 2. Fetch Dictionaries
@@ -70,18 +68,14 @@ export default function OtomotoGeneratorPage() {
 
     const handleSaveStatus = async () => {
         setSaving(true);
-        // If they want to list it, URL is required
-        if (isListed && !otomotoUrl.trim()) {
-            alert('Proszę podać link do Otomoto, aby oznaczyć jako wystawione.');
-            setSaving(false);
-            return;
-        }
+        const urlStr = otomotoUrl.trim();
+        const isNowListed = urlStr.length > 0;
 
         const { error } = await supabase
             .from('product_groups')
             .update({
-                otomoto_listed: isListed,
-                otomoto_url: isListed ? otomotoUrl.trim() : null,
+                otomoto_listed: isNowListed,
+                otomoto_url: isNowListed ? urlStr : null,
                 updated_at: new Date().toISOString()
             })
             .eq('id', groupId);
@@ -115,8 +109,10 @@ export default function OtomotoGeneratorPage() {
                 return;
             }
 
-            // Folder in ZIP
-            const folderName = `Otomoto_${group.model_code}_${group.signature}`;
+            // Folder in ZIP - Safe name without special characters like |
+            const carVin = (units.length > 0 && units[0].vin) ? units[0].vin.slice(-7) : group.id.split('-')[0];
+            const safeModelCode = group.model_code.replace(/[^a-zA-Z0-9]/g, '');
+            const folderName = `Otomoto_${safeModelCode}_${carVin}`;
             const folder = zip.folder(folderName);
 
             // Fetch and append each image
@@ -175,45 +171,64 @@ export default function OtomotoGeneratorPage() {
 
         // Prices
         const listPrice = car.list_price;
-        const discountPrice = car.special_price || listPrice; // In real scenario, discount could come from bulletins, but we use special_price here.
-
-        // Options separation
-        // Just raw codes, we lookup from dictionaries.option
-        // This is a naive split: if code starts with 7N or 7C it's a SERVICE. 
-        // We put M Sport elements out. Wheels usually start with 1 or 2.
-        
+        const discountPrice = car.special_price || listPrice; // In real scenario, discount could come from bulletins, but we use spe        // Options separation
         const stdOptions: string[] = [];
         const optOptions: string[] = [];
         const serviceOptions: string[] = [];
+        
+        // Extract plain 3-character codes and deduplicate
+        const allCodes = new Set<string>();
+        (group.option_codes || []).forEach(oc => {
+            const matches = oc.match(/[A-Z0-9]{3}/g);
+            if (matches) {
+                matches.forEach(m => allCodes.add(m));
+            }
+        });
+
+        const getOptionName = (code: string) => {
+            let opt = dictionaries.option[code];
+            if (!opt) {
+                // Hardcoded fallback for some common BMW options if missing in DB
+                if (code === '2PA') return 'Śruby zabezpieczające';
+                if (code === '2VB') return 'System monitorowania ciśnienia opon';
+                if (code === '428') return 'Trójkąt ostrzegawczy / apteczka / gaśnica';
+                if (code === '302') return 'System alarmowy';
+                if (code === '6AE') return 'Teleserwis';
+                if (code === '6AF') return 'Połączenie alarmowe';
+                if (code === '6AK') return 'Usługi ConnectedDrive';
+                if (code === '6C4') return 'Pakiet Connected Professional';
+                return `Opcja ${code}`;
+            }
+            if (Array.isArray(opt)) opt = opt[0];
+            return opt.name || `Opcja ${code}`;
+        };
+
         let wheelsStr = 'b.d.';
         let interiorTrim = 'b.d.';
 
-        (group.option_codes || []).forEach(code => {
-            const optData = dictionaries.option[code];
-            const name = optData ? optData.name : `Opcja ${code}`;
+        Array.from(allCodes).forEach(code => {
+            const name = getOptionName(code);
             const line = `${code} ${name}`;
 
             if (code.startsWith('7N') || code.startsWith('7C')) {
                 serviceOptions.push(line);
-            } else if (code.startsWith('1') || code.startsWith('3G') || code.includes('obręcze') || code.includes('Obręcze')) {
-                // Heuristics for wheels
+            } else if (code.startsWith('1') || code.startsWith('3G') || name.toLowerCase().includes('obręcze') || name.toLowerCase().includes('koła')) {
                 if (wheelsStr === 'b.d.') wheelsStr = line;
-                else optOptions.push(line); // just put in regular if many
-            } else if (code.startsWith('43') || code.startsWith('4M') || code.includes('Listwy ozdobne')) {
-                // Heuristics for trims
+                else optOptions.push(line); 
+            } else if (code.startsWith('43') || code.startsWith('4M') || name.toLowerCase().includes('listwy ozdobne') || code === '4F4' || code === '4KN') {
                 if (interiorTrim === 'b.d.') interiorTrim = line;
                 else optOptions.push(line);
             } else {
-                // Check if standard vs optional. In Excel, standard options are usually 500-level codes or universally included, 
-                // but since we only have flat option_codes, we will just list them all as optional unless we know standard.
-                // For this demo, let's put typical mandatory options to standard roughly (often codes like 2PA, 2VB, 428).
-                const standardCodes = ['2PA', '2VB', '428', '302', '6AE', '6AF', '6AK', '6C4'];
+                const standardCodes = ['2PA', '2VB', '428', '302', '6AE', '6AF', '6AK', '6C4', '2TE', '2VV', '488', '4T2', '4U8', '4U9', '4UR', '4V1', '552', '654', '674', '6NX', '6PA'];
                 if (standardCodes.includes(code)) stdOptions.push(line);
                 else optOptions.push(line);
             }
         });
 
-        return `${modelName}
+        // Formatting currency explicitly to PLN
+        const fmtPLN = (v: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(v).replace('PLN', ' PLN');
+
+        return `BMW ${modelName}
 
 Silnik ${engineDesc}
 
@@ -221,32 +236,32 @@ Numer oferty: ${car.vin.slice(-7)}
 
 AUTO DOSTĘPNE OD RĘKI
 
-- cena katalogowa ${formatPrice(listPrice)} brutto
-- cena promocyjna ${formatPrice(discountPrice)} brutto
+- cena katalogowa ${fmtPLN(listPrice)} brutto
+- cena promocyjna ${fmtPLN(discountPrice)} brutto
 
 ─────────────────────────────────────────────────────────────
 
 Zapraszamy do bezpośredniego kontaktu:
 
-Doradca ds. Sprzedaży Bawaria Motors
-kontakt@bmw-bawariamotors.pl
-+48 22 123 45 67
+Łukasz Łotoszyński
+lotoszynski_l(at)bmw-bawariamotors.pl
++48 508-020-612
 
 ─────────────────────────────────────────────────────────────
 
-Lakier: ${paintName}
-Tapicerka: ${upholsteryName}
+Lakier: ${group.color_code} ${paintName}
+Tapicerka: ${group.upholstery_code} ${upholsteryName}
 Listwy: ${interiorTrim}
 Koła (opony letnie): ${wheelsStr}
 
 Wyposażenie standardowe:
-${stdOptions.length > 0 ? stdOptions.join('\\n') : 'Brak danych'}
+${stdOptions.length > 0 ? stdOptions.sort().join('\\n') : 'Brak danych'}
 
 Wyposażenie opcjonalne:
-${optOptions.length > 0 ? optOptions.join('\\n') : 'Brak danych'}
+${optOptions.length > 0 ? optOptions.sort().join('\\n') : 'Brak danych'}
 
 Usługi:
-${serviceOptions.length > 0 ? serviceOptions.join('\\n') : 'Brak usług w pakiecie'}
+${serviceOptions.length > 0 ? serviceOptions.sort().join('\\n') : 'Brak usług w pakiecie'}
 
 ─────────────────────────────────────────────────────────────
 Szukasz innej wersji lub modelu? Zadzwoń do nas lub napisz! Przygotujemy ofertę indywidualną!
@@ -316,43 +331,26 @@ Niniejsze ogłoszenie jest wyłącznie informacją handlową i nie stanowi ofert
                         </h2>
                         
                         <div className="space-y-5">
-                            <div>
-                                <label className="flex items-center gap-3 cursor-pointer">
-                                    <input 
-                                        type="checkbox" 
-                                        className="w-5 h-5 rounded border-gray-300 text-[#E10514] focus:ring-[#E10514]"
-                                        checked={isListed}
-                                        onChange={(e) => setIsListed(e.target.checked)}
-                                    />
-                                    <span className="text-sm font-medium text-gray-900">
-                                        Oznacz jako wystawione na Otomoto
-                                    </span>
+                            <div className="animate-in slide-in-from-top-2">
+                                <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                                    URL Ogłoszenia na Otomoto
                                 </label>
-                                <p className="text-xs text-gray-500 pl-8 mt-1">
-                                    Zaznaczenie tej opcji zapobiegnie przypadkowemu usunięciu auta ze stoku (np. przy synchronizacji), zanim ręcznie nie ściągniesz ogłoszenia.
+                                <input 
+                                    type="url" 
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-sm text-sm focus:outline-none focus:border-[#E10514] transition-colors bg-gray-50"
+                                    placeholder="https://www.otomoto.pl/osobowe/oferta/bmw..."
+                                    value={otomotoUrl}
+                                    onChange={(e) => setOtomotoUrl(e.target.value)}
+                                />
+                                <p className="text-[10px] text-gray-500 mt-1">
+                                    Wypełnienie tego pola automatycznie zabezpieczy grupę aut przed przypadkowym usunięciem w trakcie synchronizacji.
                                 </p>
+                                {otomotoUrl && (
+                                    <a href={otomotoUrl} target="_blank" className="text-[10px] text-blue-600 font-bold uppercase mt-2 inline-flex items-center gap-1 hover:underline">
+                                        Skocz do ogłoszenia <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                )}
                             </div>
-
-                            {isListed && (
-                                <div className="pl-8 animate-in slide-in-from-top-2">
-                                    <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">
-                                        URL Ogłoszenia (wymagane)
-                                    </label>
-                                    <input 
-                                        type="url" 
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-sm text-sm focus:outline-none focus:border-[#E10514] transition-colors bg-gray-50"
-                                        placeholder="https://www.otomoto.pl/osobowe/oferta/bmw..."
-                                        value={otomotoUrl}
-                                        onChange={(e) => setOtomotoUrl(e.target.value)}
-                                        required
-                                    />
-                                    {otomotoUrl && (
-                                        <a href={otomotoUrl} target="_blank" className="text-[10px] text-blue-600 font-bold uppercase mt-2 inline-flex items-center gap-1 hover:underline">
-                                            Skocz do ogłoszenia <ExternalLink className="w-3 h-3" />
-                                        </a>
-                                    )}
-                                </div>
-                            )}
 
                             <button
                                 onClick={handleSaveStatus}
@@ -365,9 +363,8 @@ Niniejsze ogłoszenie jest wyłącznie informacją handlową i nie stanowi ofert
                         </div>
                     </div>
 
-                    {/* Media Download */}
                     <div className="bg-white border rounded-sm p-6 shadow-sm">
-                        <h2 className="text-sm font-bold uppercase tracking-wider text-gray-900 mb-2">Multkimedia</h2>
+                        <h2 className="text-sm font-bold uppercase tracking-wider text-gray-900 mb-2">Multimedia</h2>
                         <p className="text-xs text-gray-500 mb-5">
                             Pobierz wszystkie połączone zdjęcia tego auta (z paczek firmowych oraz dealerowych) zoptymalizowane jako jeden plik `.zip`, gotowy do wgrania na Otomoto.
                         </p>

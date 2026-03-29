@@ -7,7 +7,6 @@ import { useCompareStore } from '@/store/compareStore';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
 import { useHaptics } from '@/hooks/useHaptics';
-import { MagneticWrapper } from '@/components/animations/MagneticWrapper';
 
 interface CarActionButtonsProps {
     car: StockCar;
@@ -57,37 +56,33 @@ export function CarActionButtons({ car, className }: CarActionButtonsProps) {
 
     return (
         <div className={cn('flex items-center gap-4', className)}>
-            <MagneticWrapper strength={0.15} className="flex-1">
-                <button
-                    onClick={toggleGarage}
-                    className={cn(
-                        'w-full flex items-center justify-center gap-3 px-4 py-4 rounded-xl border transition-all duration-300 text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer active:scale-95 shadow-sm',
-                        saved
-                            ? 'bg-black text-white border-black shadow-lg shadow-black/10'
-                            : 'bg-white text-gray-900 border-gray-100 hover:border-black/20 hover:shadow-md'
-                    )}
-                    title={saved ? 'Usuń z garażu' : 'Dodaj do garażu'}
-                >
-                    <Warehouse className={cn("w-4 h-4", saved ? "text-white" : "text-gray-400")} />
-                    {saved ? 'W Garażu' : 'Do Garażu'}
-                </button>
-            </MagneticWrapper>
+            <button
+                onClick={toggleGarage}
+                className={cn(
+                    'flex flex-1 items-center justify-center gap-3 px-4 py-4 rounded-xl border transition-all duration-300 text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer active:scale-95 shadow-sm',
+                    saved
+                        ? 'bg-black text-white border-black shadow-lg shadow-black/10'
+                        : 'bg-white text-gray-900 border-gray-100 hover:border-black/20 hover:shadow-md'
+                )}
+                title={saved ? 'Usuń z garażu' : 'Dodaj do garażu'}
+            >
+                <Warehouse className={cn("w-4 h-4", saved ? "text-white" : "text-gray-400")} />
+                {saved ? 'W Garażu' : 'Do Garażu'}
+            </button>
             
-            <MagneticWrapper strength={0.15} className="flex-1">
-                <button
-                    onClick={toggleCompare}
-                    className={cn(
-                        'w-full flex items-center justify-center gap-3 px-4 py-4 rounded-xl border transition-all duration-300 text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer active:scale-95 shadow-sm',
-                        compared
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20'
-                            : 'bg-white text-gray-900 border-gray-100 hover:border-black/20 hover:shadow-md'
-                    )}
-                    title={compared ? 'Usuń z porównania' : 'Porównaj'}
-                >
-                    <Scale className={cn("w-4 h-4", compared ? "text-white" : "text-gray-400")} />
-                    {compared ? 'Wybrane' : 'Porównaj'}
-                </button>
-            </MagneticWrapper>
+            <button
+                onClick={toggleCompare}
+                className={cn(
+                    'flex flex-1 items-center justify-center gap-3 px-4 py-4 rounded-xl border transition-all duration-300 text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer active:scale-95 shadow-sm',
+                    compared
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20'
+                        : 'bg-white text-gray-900 border-gray-100 hover:border-black/20 hover:shadow-md'
+                )}
+                title={compared ? 'Usuń z porównania' : 'Porównaj'}
+            >
+                <Scale className={cn("w-4 h-4", compared ? "text-white" : "text-gray-400")} />
+                {compared ? 'Wybrane' : 'Porównaj'}
+            </button>
         </div>
     );
 }

@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { Camera } from 'lucide-react';
+import { NeueKlasseGrille } from '@/components/animations/NeueKlasseGrille';
 
 export function CarCardSkeleton({ view = 'grid' }: { view?: 'grid' | 'list' }) {
     if (view === 'list') {
@@ -7,7 +8,7 @@ export function CarCardSkeleton({ view = 'grid' }: { view?: 'grid' | 'list' }) {
             <div className="flex flex-col md:flex-row bg-white overflow-hidden shadow-sm border border-gray-100 rounded-sm">
                 {/* Image Skeleton */}
                 <div className="w-full md:w-[320px] aspect-[4/3] relative shrink-0 bg-gray-100 animate-pulse flex items-center justify-center">
-                    <Camera className="w-8 h-8 text-gray-200" />
+                    <NeueKlasseGrille className="w-16 h-16 opacity-30" isDark={false} />
                 </div>
 
                 {/* Details Skeleton */}
@@ -56,7 +57,7 @@ export function CarCardSkeleton({ view = 'grid' }: { view?: 'grid' | 'list' }) {
         <div className="flex flex-col bg-white overflow-hidden shadow-sm border border-gray-100 group rounded-sm">
             {/* Image Skeleton */}
             <div className="relative aspect-[4/3] bg-gray-100 animate-pulse flex items-center justify-center">
-                <Camera className="w-8 h-8 text-gray-200" />
+                <NeueKlasseGrille className="w-16 h-16 opacity-30" isDark={false} />
             </div>
 
             {/* Details Skeleton */}

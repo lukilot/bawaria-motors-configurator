@@ -21,8 +21,6 @@ import { FadeInUp } from '@/components/animations/FadeInUp';
 import { PerformanceBar } from '@/components/cars/PerformanceBar';
 import { getPluralForm } from '@/lib/plurals';
 import { SoldLeadGenerator } from '@/components/cars/SoldLeadGenerator';
-import { SalesRepresentativeCard } from '@/components/cars/SalesRepresentativeCard';
-
 export const revalidate = 60;
 
 interface OptionItem {
@@ -261,8 +259,47 @@ export default async function CarPage({ params }: PageProps) {
                                 />
                             </div>
 
-                            {/* MOBILE ONLY: Action Buttons (under gallery) */}
-                            <div className="lg:hidden px-0">
+                            {/* MOBILE ONLY: Identity, Pricing & Action Buttons (under gallery) */}
+                            <div className="flex lg:hidden flex-col gap-6 px-0">
+                                {/* Badges */}
+                                <div className="flex flex-wrap gap-2">
+                                    {showReady && (
+                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+                                            <div className="w-1 h-1 rounded-full bg-green-500" />
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-green-600">Od ręki</span>
+                                        </div>
+                                    )}
+                                    {totalAvailable > 1 && (
+                                        <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-blue-600">{totalAvailable} {getPluralForm(totalAvailable, 'sztuka', 'sztuki', 'sztuk')}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Title & Identity */}
+                                <div className="space-y-2">
+                                    <h4 className="text-[10px] text-gray-500 uppercase tracking-widest font-mono font-bold">
+                                        Numer oferty: {offerNumber}
+                                    </h4>
+                                    <h1 className={cn("text-3xl font-bold tracking-tight leading-none", theme.text)}>
+                                        {modelName}
+                                    </h1>
+                                    <div className="pt-2">
+                                        <GroupAvailability totalAvailable={totalAvailable} inProduction={inProduction} isDark={isMSeries} />
+                                    </div>
+                                </div>
+
+                                {/* Pricing & Sales Rep */}
+                                <DynamicPricingSection 
+                                    car={car} 
+                                    seriesCode={enrichedCar.body_group || ''} 
+                                    isDark={isMSeries} 
+                                    fuelType={enrichedCar.fuel_type} 
+                                    bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)} 
+                                    offerNumber={offerNumber} 
+                                />
+
+                                {/* Action Buttons */}
                                 <CarActionButtons car={enrichedCar} />
                             </div>
 
@@ -476,7 +513,6 @@ export default async function CarPage({ params }: PageProps) {
                             <div className="space-y-4">
                                 <DynamicPricingSection car={car} seriesCode={enrichedCar.body_group || ''} isDark={isMSeries} fuelType={enrichedCar.fuel_type} bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)} offerNumber={offerNumber} />
                                 <CarActionButtons car={enrichedCar} />
-                                <SalesRepresentativeCard isDark={isMSeries} />
                             </div>
                         </div>
                     </div>

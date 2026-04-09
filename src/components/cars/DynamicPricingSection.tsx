@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
-import { ContactOverlay } from './ContactOverlay';
 import { useVdpStore } from '@/store/vdpStore';
+import Image from 'next/image';
+import { Phone, Mail } from 'lucide-react';
 
 interface DynamicPricingSectionProps {
     car: StockCar;
@@ -17,7 +17,6 @@ interface DynamicPricingSectionProps {
 
 export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelType, bulletinDiscountedPrice, offerNumber }: DynamicPricingSectionProps) {
     const { additionalCost } = useVdpStore();
-    const [isContactOpen, setIsContactOpen] = useState(false);
 
     const formatPrice = (price: number) =>
         new Intl.NumberFormat('pl-PL', { style: 'currency', currency: car.currency }).format(price);
@@ -31,21 +30,17 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
     const finalPrice = basePrice + additionalCost;
     const hasDiscount = hasManualDiscount || hasBulletinDiscount;
 
-    const handleContactClick = () => {
-        setIsContactOpen(true);
-    };
-
     return (
         <div className="space-y-4">
             {/* Price Card - Premium Glassmorphism */}
             <div className={cn(
-                "p-5 lg:p-6 rounded-3xl border shadow-xl transition-all duration-700 backdrop-blur-md",
+                "p-5 lg:p-6 rounded-3xl border shadow-xl transition-all duration-700 backdrop-blur-md flex flex-col",
                 isDark
                     ? "bg-black/40 border-white/10 shadow-black/50"
                     : "bg-white/60 border-black/[0.03] shadow-black/[0.02]"
             )}>
                 {car.list_price > 0 && (
-                    <div className="flex flex-col gap-1 mb-4 lg:mb-5">
+                    <div className="flex flex-col gap-1 mb-5">
                         <div className="flex items-center gap-2 mb-0.5">
                             <span className={cn(
                                 "text-[9px] uppercase tracking-[0.3em] font-black opacity-30",
@@ -92,37 +87,82 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
                                 </span>
                             </div>
                         )}
+                        <p className={cn(
+                            "text-[8px] font-bold uppercase tracking-widest mt-1 opacity-30 leading-loose",
+                            isDark ? "text-white" : "text-black"
+                        )}>
+                            *Cena brutto zawiera VAT.
+                        </p>
                     </div>
                 )}
 
-                <button
-                    disabled={isSold}
-                    onClick={handleContactClick}
-                    className={cn(
-                        "w-full py-3.5 text-[10px] font-black uppercase tracking-[0.25em] transition-all rounded-xl",
-                        isSold
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : isDark
-                                ? "bg-white text-black hover:bg-white/90 hover:scale-[1.02] active:scale-95 shadow-lg shadow-white/5"
-                                : "bg-black text-white hover:bg-gray-900 hover:scale-[1.02] active:scale-95 shadow-xl shadow-black/10"
-                    )}
-                >
-                    {isSold ? 'Pojazd Sprzedany' : 'Jestem zainteresowany'}
-                </button>
+                {/* Divider */}
+                <div className={cn("h-px w-full my-1", isDark ? "bg-white/5" : "bg-black/5")} />
 
-                <p className={cn(
-                    "text-center text-[8px] font-bold uppercase tracking-widest mt-3 opacity-30 leading-loose mx-2",
-                    isDark ? "text-white" : "text-black"
-                )}>
-                    *Cena brutto zawiera VAT.
-                </p>
+                {/* Unified Sales Representative & Contact Section */}
+                <div className="flex flex-col pt-4 gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className={cn(
+                            "relative w-11 h-11 rounded-full overflow-hidden shrink-0 border-2 shadow-sm",
+                            isDark ? "border-white/10" : "border-white"
+                        )}>
+                            <Image 
+                                src="/images/avatar.png" 
+                                alt="Łukasz Łotoszyński" 
+                                fill 
+                                className="object-cover"
+                            />
+                        </div>
+                        <div className="flex flex-col justify-center min-w-0">
+                            <span className={cn(
+                                "text-[8px] uppercase tracking-[0.2em] font-black opacity-40 mb-0.5",
+                                isDark ? "text-white" : "text-black"
+                            )}>
+                                Opiekun Oferty
+                            </span>
+                            <span className={cn(
+                                "text-sm font-bold truncate",
+                                isDark ? "text-white" : "text-gray-900"
+                            )}>
+                                Łukasz Łotoszyński
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                        <a
+                            href={isSold ? undefined : "tel:+48508020612"}
+                            className={cn(
+                                "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-[0.15em] transition-all",
+                                isSold 
+                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                    : isDark
+                                        ? "bg-white text-black hover:bg-white/90 hover:scale-[1.02] active:scale-95 shadow-lg shadow-white/5"
+                                        : "bg-black text-white hover:bg-gray-900 hover:scale-[1.02] active:scale-95 shadow-xl shadow-black/10"
+                            )}
+                        >
+                            <Phone className="w-3.5 h-3.5 shrink-0" />
+                            <span className="truncate">Zadzwoń</span>
+                        </a>
+                        
+                        <a
+                            href={isSold ? undefined : `mailto:lotoszynski_l@bmw-bawariamotors.pl?subject=Pytanie o ofertę: ${offerNumber} (${car.model_name})`}
+                            className={cn(
+                                "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl border transition-all text-[10px] sm:text-[11px] font-black uppercase tracking-[0.15em]",
+                                isSold
+                                    ? "bg-transparent border-gray-100 text-gray-400 cursor-not-allowed"
+                                    : isDark
+                                        ? "bg-transparent border-white/20 text-white hover:bg-white/5 hover:border-white/30 hover:scale-[1.02] active:scale-95"
+                                        : "bg-transparent border-gray-200 text-gray-900 hover:border-black/20 hover:bg-gray-50 hover:scale-[1.02] active:scale-95 hover:shadow-sm"
+                            )}
+                        >
+                            <Mail className="w-4 h-4 shrink-0" />
+                            <span className="truncate">Napisz</span>
+                        </a>
+                    </div>
+                </div>
+
             </div>
-
-            <ContactOverlay
-                isOpen={isContactOpen}
-                onClose={() => setIsContactOpen(false)}
-                offerNumber={offerNumber}
-            />
         </div>
     );
 }

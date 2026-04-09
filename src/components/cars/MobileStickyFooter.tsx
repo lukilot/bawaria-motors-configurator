@@ -3,8 +3,7 @@
 import { StockCar } from '@/types/stock';
 import { cn } from '@/lib/utils';
 import { useVdpStore } from '@/store/vdpStore';
-import { useState } from 'react';
-import { ContactOverlay } from './ContactOverlay';
+import { Phone } from 'lucide-react';
 
 interface MobileStickyFooterProps {
     car?: StockCar; // Optional now, can pull from store
@@ -14,7 +13,6 @@ interface MobileStickyFooterProps {
 
 export function MobileStickyFooter({ car: propCar, isDark: propIsDark, bulletinDiscountedPrice }: MobileStickyFooterProps) {
     const { currentCar, additionalCost } = useVdpStore();
-    const [isContactOpen, setIsContactOpen] = useState(false);
 
     // Merge prop with store
     const car = propCar || currentCar;
@@ -80,23 +78,21 @@ export function MobileStickyFooter({ car: propCar, isDark: propIsDark, bulletinD
                     </div>
                 </div>
 
-                <button
-                    disabled={isSold}
-                    onClick={() => setIsContactOpen(true)}
+                <a
+                    href={isSold ? undefined : "tel:+48508020612"}
                     className={cn(
-                        "w-[140px] h-14 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all active:scale-95 shadow-lg shrink-0",
+                        "w-[140px] h-14 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all active:scale-95 shadow-lg shrink-0",
                         isSold
-                            ? "bg-gray-100 text-gray-400"
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none"
                             : isDark
                                 ? "bg-white text-black shadow-white/5"
                                 : "bg-black text-white shadow-black/10"
                     )}
                 >
-                    {isSold ? 'Sprzedany' : 'Sprawdź ofertę'}
-                </button>
+                    <Phone className="w-4 h-4 shrink-0" />
+                    {isSold ? 'Sprzedany' : 'Zadzwoń'}
+                </a>
             </div>
-
-            <ContactOverlay isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
         </div>
     );
 }

@@ -21,6 +21,7 @@ import { FadeInUp } from '@/components/animations/FadeInUp';
 import { PerformanceBar } from '@/components/cars/PerformanceBar';
 import { getPluralForm } from '@/lib/plurals';
 import { SoldLeadGenerator } from '@/components/cars/SoldLeadGenerator';
+import { SalesRepresentativeCard } from '@/components/cars/SalesRepresentativeCard';
 
 export const revalidate = 60;
 
@@ -237,6 +238,8 @@ export default async function CarPage({ params }: PageProps) {
         accentText: isMSeries ? 'text-white' : isElectric ? 'text-[#0653B6]' : 'text-black',
         accordionTitle: isMSeries ? 'text-white group-hover:text-blue-400' : isElectric ? 'text-gray-900 group-hover:text-[#0653B6]' : 'text-gray-900 group-hover:text-black',
     };
+
+    const offerNumber = decodedGroupId.slice(0, 8).toUpperCase();
 
     return (
         <>
@@ -457,7 +460,7 @@ export default async function CarPage({ params }: PageProps) {
                                 {/* Title & Vin Selector */}
                                 <div className="space-y-3">
                                     <h4 className="text-[10px] text-gray-500 uppercase tracking-widest font-mono font-bold mb-1">
-                                        Numer oferty: {decodedGroupId.slice(0, 8).toUpperCase()}
+                                        Numer oferty: {offerNumber}
                                     </h4>
                                     <h1 className={cn("text-4xl lg:text-5xl font-bold tracking-tight leading-none", theme.text)}>
                                         {modelName}
@@ -466,13 +469,14 @@ export default async function CarPage({ params }: PageProps) {
                                 </div>
                             </div>
 
-                            {/* Controlled Dynamic Spacer: Distinct gap, but strictly limited to avoid extreme separation */}
-                            <div className="h-[15vh] min-h-[100px] max-h-[250px]" />
+                            {/* Controlled Dynamic Spacer: Restricted to avoid extreme separation on small height viewports */}
+                            <div className="h-[max(5vh,40px)] min-h-[40px] max-h-[100px]" />
 
                             {/* BOTTOM: Pricing & Action */}
-                            <div className="space-y-6">
-                                <DynamicPricingSection car={car} seriesCode={enrichedCar.body_group || ''} isDark={isMSeries} fuelType={enrichedCar.fuel_type} bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)} />
+                            <div className="space-y-4">
+                                <DynamicPricingSection car={car} seriesCode={enrichedCar.body_group || ''} isDark={isMSeries} fuelType={enrichedCar.fuel_type} bulletinDiscountedPrice={getCarDiscountedPrice(car, bulletins)} offerNumber={offerNumber} />
                                 <CarActionButtons car={enrichedCar} />
+                                <SalesRepresentativeCard isDark={isMSeries} />
                             </div>
                         </div>
                     </div>

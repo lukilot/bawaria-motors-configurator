@@ -12,9 +12,10 @@ interface DynamicPricingSectionProps {
     isDark?: boolean;
     fuelType?: string;
     bulletinDiscountedPrice?: number | null;
+    offerNumber?: string;
 }
 
-export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelType, bulletinDiscountedPrice }: DynamicPricingSectionProps) {
+export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelType, bulletinDiscountedPrice, offerNumber }: DynamicPricingSectionProps) {
     const { additionalCost } = useVdpStore();
     const [isContactOpen, setIsContactOpen] = useState(false);
 
@@ -35,16 +36,16 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Price Card - Premium Glassmorphism */}
             <div className={cn(
-                "p-6 rounded-3xl border shadow-xl transition-all duration-700 backdrop-blur-md",
+                "p-5 lg:p-6 rounded-3xl border shadow-xl transition-all duration-700 backdrop-blur-md",
                 isDark
                     ? "bg-black/40 border-white/10 shadow-black/50"
                     : "bg-white/60 border-black/[0.03] shadow-black/[0.02]"
             )}>
                 {car.list_price > 0 && (
-                    <div className="flex flex-col gap-1.5 mb-6">
+                    <div className="flex flex-col gap-1 mb-4 lg:mb-5">
                         <div className="flex items-center gap-2 mb-0.5">
                             <span className={cn(
                                 "text-[9px] uppercase tracking-[0.3em] font-black opacity-30",
@@ -62,7 +63,7 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
                                 </span>
                                 <div className="flex items-baseline gap-3">
                                     <span className={cn(
-                                        "text-3xl font-black tracking-tight",
+                                        "text-[28px] lg:text-3xl font-black tracking-tight",
                                         isDark ? "text-white" : "text-black"
                                     )}>
                                         {formatPrice(finalPrice)}
@@ -76,7 +77,7 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
                             </div>
                         ) : (
                             <span className={cn(
-                                "text-3xl font-black tracking-tight",
+                                "text-[28px] lg:text-3xl font-black tracking-tight",
                                 isDark ? "text-white" : "text-black"
                             )}>
                                 {formatPrice(finalPrice)}
@@ -98,7 +99,7 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
                     disabled={isSold}
                     onClick={handleContactClick}
                     className={cn(
-                        "w-full py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all rounded-xl",
+                        "w-full py-3.5 text-[10px] font-black uppercase tracking-[0.25em] transition-all rounded-xl",
                         isSold
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                             : isDark
@@ -110,7 +111,7 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
                 </button>
 
                 <p className={cn(
-                    "text-center text-[8px] font-bold uppercase tracking-widest mt-4 opacity-30 leading-loose mx-2",
+                    "text-center text-[8px] font-bold uppercase tracking-widest mt-3 opacity-30 leading-loose mx-2",
                     isDark ? "text-white" : "text-black"
                 )}>
                     *Cena brutto zawiera VAT.
@@ -120,6 +121,7 @@ export function DynamicPricingSection({ car, seriesCode, isDark = false, fuelTyp
             <ContactOverlay
                 isOpen={isContactOpen}
                 onClose={() => setIsContactOpen(false)}
+                offerNumber={offerNumber}
             />
         </div>
     );

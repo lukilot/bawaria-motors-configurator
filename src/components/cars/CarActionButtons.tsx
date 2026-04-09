@@ -48,11 +48,11 @@ export function CarActionButtons({ car, className }: CarActionButtonsProps) {
     };
 
     return (
-        <div className={cn('flex items-center gap-4', className)}>
+        <div className={cn('flex items-center gap-3', className)}>
             <button
                 onClick={toggleGarage}
                 className={cn(
-                    'flex flex-1 items-center justify-center gap-3 px-4 py-4 rounded-xl border transition-all duration-300 text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer active:scale-95 shadow-sm',
+                    'flex flex-1 items-center justify-center gap-2 px-3 py-3.5 rounded-xl border transition-all duration-300 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer active:scale-95 shadow-sm',
                     saved
                         ? 'bg-black text-white border-black shadow-lg shadow-black/10'
                         : 'bg-white text-gray-900 border-gray-100 hover:border-black/20 hover:shadow-md'
@@ -60,13 +60,13 @@ export function CarActionButtons({ car, className }: CarActionButtonsProps) {
                 title={saved ? 'Usuń z garażu' : 'Dodaj do garażu'}
             >
                 <Warehouse className={cn("w-4 h-4", saved ? "text-white" : "text-gray-400")} />
-                {saved ? 'W Garażu' : 'Do Garażu'}
+                <span className="truncate">{saved ? 'W Garażu' : 'Do Garażu'}</span>
             </button>
             
             <button
                 onClick={toggleCompare}
                 className={cn(
-                    'flex flex-1 items-center justify-center gap-3 px-4 py-4 rounded-xl border transition-all duration-300 text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer active:scale-95 shadow-sm',
+                    'flex flex-1 items-center justify-center gap-2 px-3 py-3.5 rounded-xl border transition-all duration-300 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer active:scale-95 shadow-sm',
                     compared
                         ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20'
                         : 'bg-white text-gray-900 border-gray-100 hover:border-black/20 hover:shadow-md'
@@ -74,7 +74,7 @@ export function CarActionButtons({ car, className }: CarActionButtonsProps) {
                 title={compared ? 'Usuń z porównania' : 'Porównaj'}
             >
                 <Scale className={cn("w-4 h-4", compared ? "text-white" : "text-gray-400")} />
-                {compared ? 'Wybrane' : 'Porównaj'}
+                <span className="truncate">{compared ? 'Wybrane' : 'Porównaj'}</span>
             </button>
         </div>
     );

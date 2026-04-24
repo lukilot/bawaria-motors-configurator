@@ -696,7 +696,7 @@ export async function POST(req: NextRequest) {
         const n = cars.length;
         const filename = `Bawaria-Motors-Zestawienie-${n}-aut-${new Date().toISOString().slice(0, 10)}.pdf`;
 
-        return new NextResponse(pdfBuffer, {
+        return new NextResponse(pdfBuffer as any, {
             status: 200,
             headers: {
                 'Content-Type': 'application/pdf',

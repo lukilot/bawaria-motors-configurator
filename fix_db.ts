@@ -10,7 +10,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PU
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function fetchAll(table: string, select = '*') {
-    const all = [];
+    const all: any[] = [];
     let page = 0;
     while (true) {
         const { data, error } = await supabase.from(table).select(select).range(page * 1000, (page + 1) * 1000 - 1);

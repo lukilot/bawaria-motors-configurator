@@ -171,7 +171,7 @@ function buildHtml(body: ComparePdfBody): string {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Zestawienie pojazdów — Bawaria Motors</title>
+<title>Zestawienie porównawcze pojazdów</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -218,27 +218,63 @@ function buildHtml(body: ComparePdfBody): string {
     /* ── HEADER ── */
     .header {
         display: flex;
-        align-items: flex-end;
+        align-items: center;
         justify-content: space-between;
         padding-bottom: 5mm;
         border-bottom: 0.5px solid var(--gray-300);
     }
-    .header-left { display: flex; flex-direction: column; gap: 1mm; }
-    .brand-name {
-        font-size: 13pt;
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        color: var(--black);
-        text-transform: uppercase;
-        line-height: 1;
+    /* Wizytówka — lewa strona nagłówka */
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 3.5mm;
     }
-    .brand-sub {
-        font-size: 7pt;
-        font-weight: 500;
+    .agent-avatar {
+        width: 11mm;
+        height: 11mm;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 0.5px solid var(--gray-200);
+        display: block;
+        flex-shrink: 0;
+    }
+    .agent-info { display: flex; flex-direction: column; gap: 0.7mm; }
+    .agent-role {
+        font-size: 5.5pt;
+        font-weight: 700;
         color: var(--gray-400);
         letter-spacing: 0.25em;
         text-transform: uppercase;
+        line-height: 1;
     }
+    .agent-name {
+        font-size: 10pt;
+        font-weight: 800;
+        color: var(--black);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+    .agent-contacts {
+        display: flex;
+        align-items: center;
+        gap: 3mm;
+        margin-top: 0.5mm;
+    }
+    .agent-contact-item {
+        display: flex;
+        align-items: center;
+        gap: 1mm;
+        font-size: 6.5pt;
+        font-weight: 500;
+        color: var(--gray-500);
+        text-decoration: none;
+    }
+    .contact-icon {
+        width: 2.5mm;
+        height: 2.5mm;
+        opacity: 0.45;
+    }
+    /* Prawa strona nagłówka */
     .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 1mm; }
     .header-title {
         font-size: 9pt;
@@ -251,20 +287,6 @@ function buildHtml(body: ComparePdfBody): string {
         font-size: 7pt;
         color: var(--gray-400);
         font-weight: 400;
-    }
-    .header-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 1mm;
-        padding: 1mm 2.5mm;
-        background: var(--gray-900);
-        color: var(--white);
-        border-radius: 20px;
-        font-size: 6.5pt;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        margin-top: 1mm;
     }
 
     /* ── CAR CARDS ── */
@@ -408,6 +430,11 @@ function buildHtml(body: ComparePdfBody): string {
         vertical-align: middle;
         border-bottom: 0.5px solid var(--gray-100);
     }
+    /* Zapobiegaj łamaniu wierszy między stronami */
+    tr {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
     .th-label {
         width: ${labelWidth}%;
         text-align: left;
@@ -519,27 +546,14 @@ function buildHtml(body: ComparePdfBody): string {
         padding-top: 4mm;
         border-top: 0.5px solid var(--gray-200);
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: flex-end;
-    }
-    .footer-left { display: flex; flex-direction: column; gap: 1mm; }
-    .footer-brand {
-        font-size: 7pt;
-        font-weight: 700;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        color: var(--gray-900);
-    }
-    .footer-contact {
-        font-size: 6.5pt;
-        color: var(--gray-400);
-        line-height: 1.6;
     }
     .footer-disclaimer {
         font-size: 5.5pt;
         color: var(--gray-300);
         text-align: right;
-        max-width: 80mm;
+        max-width: 100mm;
         line-height: 1.5;
     }
     .footer-page {
@@ -570,15 +584,29 @@ function buildHtml(body: ComparePdfBody): string {
     <!-- HEADER -->
     <div class="header">
         <div class="header-left">
-            <div class="brand-name">Bawaria Motors</div>
-            <div class="brand-sub">Autoryzowany Dealer BMW</div>
+            <img
+                class="agent-avatar"
+                src="https://stock.bawariamotors.pl/images/avatar.png"
+                alt="Łukasz Łotoszyński"
+            />
+            <div class="agent-info">
+                <div class="agent-role">Opiekun oferty</div>
+                <div class="agent-name">Łukasz Łotoszyński</div>
+                <div class="agent-contacts">
+                    <span class="agent-contact-item">
+                        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12a19.79 19.79 0 0 1-3-8.59A2 2 0 0 1 3.28 1.5h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 9.91a16 16 0 0 0 5.61 5.61l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></svg>
+                        +48 508 020 612
+                    </span>
+                    <span class="agent-contact-item">
+                        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        lotoszynski_l@bmw-bawariamotors.pl
+                    </span>
+                </div>
+            </div>
         </div>
         <div class="header-right">
             <div class="header-title">Zestawienie porównawcze</div>
             <div class="header-date">${today}</div>
-            <div class="header-badge">
-                ${n} ${n === 1 ? 'pojazd' : n <= 4 ? 'pojazdy' : 'pojazdów'} · Tylko różnice
-            </div>
         </div>
     </div>
 
@@ -639,19 +667,12 @@ function buildHtml(body: ComparePdfBody): string {
 
     <!-- FOOTER -->
     <div class="footer">
-        <div class="footer-left">
-            <div class="footer-brand">Bawaria Motors</div>
-            <div class="footer-contact">
-                ul. Wołoska 28, 02-675 Warszawa<br/>
-                tel. +48 22 000 00 00 · kontakt@bawariamotors.pl
-            </div>
-        </div>
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 1mm;">
             <div class="footer-disclaimer">
-                Dokument informacyjny. Ceny brutto w PLN z VAT. Wyposażenie wg danych z systemu dealerskiego. 
+                Dokument informacyjny. Ceny brutto w PLN z VAT. Wyposażenie wg danych z systemu dealerskiego.
                 Dealer zastrzega sobie prawo do zmian bez uprzedzenia.
             </div>
-            <div class="footer-page">Bawaria Motors · Wirtualny Salon · ${today}</div>
+            <div class="footer-page">${today}</div>
         </div>
     </div>
 

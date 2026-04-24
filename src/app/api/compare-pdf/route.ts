@@ -610,6 +610,27 @@ function buildHtml(body: ComparePdfBody): string {
         </div>
     </div>
 
+    <!-- INFO BANNER -->
+    <div style="
+        display: flex;
+        align-items: center;
+        gap: 3mm;
+        padding: 2.5mm 4mm;
+        background: #F8FAFC;
+        border: 0.5px solid #E2E8F0;
+        border-left: 2px solid #64748B;
+        border-radius: 2mm;
+    ">
+        <svg style="width: 3.5mm; height: 3.5mm; flex-shrink: 0; opacity: 0.5;" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span style="font-size: 6.5pt; font-weight: 500; color: #475569; line-height: 1.4;">
+            <strong style="font-weight: 700; color: #1E293B;">Uwaga:</strong>
+            Dokument przedstawia wyłącznie parametry i wyposażenie, które <strong style="font-weight: 700; color: #1E293B;">różnią się</strong> między porównywanymi pojazdami.
+            Pozycje wspólne dla wszystkich aut zostały pominięte. Pełna specyfikacja dostępna na stronie lub u opiekuna oferty.
+        </span>
+    </div>
+
     <!-- CAR CARDS -->
     <div class="cars-row">
         ${carCards}

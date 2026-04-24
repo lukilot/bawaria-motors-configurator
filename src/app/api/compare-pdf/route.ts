@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { launchBrowser } from '@/lib/browser-launcher';
+import fs from 'fs';
+import path from 'path';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface CompareCarPayload {
@@ -75,7 +77,7 @@ function getFlattenedCodes(car: CompareCarPayload): string[] {
 }
 
 // ── HTML Template ─────────────────────────────────────────────────────────────
-function buildHtml(body: ComparePdfBody): string {
+function buildHtml(body: ComparePdfBody, avatarDataUri: string): string {
     const { cars, dicts, diffCodes, specRows } = body;
     const n = cars.length;
     const today = new Date().toLocaleDateString('pl-PL', {
@@ -586,7 +588,7 @@ function buildHtml(body: ComparePdfBody): string {
         <div class="header-left">
             <img
                 class="agent-avatar"
-                src="https://stock.bawariamotors.pl/images/avatar.png"
+                src="${avatarDataUri}"
                 alt="Łukasz Łotoszyński"
             />
             <div class="agent-info">
@@ -610,25 +612,23 @@ function buildHtml(body: ComparePdfBody): string {
         </div>
     </div>
 
-    <!-- INFO BANNER -->
-    <div style="
-        display: flex;
-        align-items: center;
-        gap: 3mm;
-        padding: 2.5mm 4mm;
-        background: #F8FAFC;
-        border: 0.5px solid #E2E8F0;
-        border-left: 2px solid #64748B;
-        border-radius: 2mm;
-    ">
-        <svg style="width: 3.5mm; height: 3.5mm; flex-shrink: 0; opacity: 0.5;" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <span style="font-size: 6.5pt; font-weight: 500; color: #475569; line-height: 1.4;">
-            <strong style="font-weight: 700; color: #1E293B;">Uwaga:</strong>
-            Dokument przedstawia wyłącznie parametry i wyposażenie, które <strong style="font-weight: 700; color: #1E293B;">różnią się</strong> między porównywanymi pojazdami.
-            Pozycje wspólne dla wszystkich aut zostały pominięte. Pełna specyfikacja dostępna na stronie lub u opiekuna oferty.
-        </span>
+    <!-- SCOPE NOTE -->
+    <div style="display: flex; align-items: center; gap: 5mm;">
+        <div style="flex: 1; height: 0.5px; background: var(--gray-200);"></div>
+        <div style="
+            display: flex;
+            align-items: center;
+            gap: 2mm;
+            padding: 1.5mm 3.5mm;
+            background: var(--gray-50);
+            border: 0.5px solid var(--gray-200);
+            border-radius: 20px;
+        ">
+            <span style="font-size: 6pt; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.2em; white-space: nowrap;">Tylko różnice</span>
+            <span style="width: 0.5px; height: 2.5mm; background: var(--gray-300);"></span>
+            <span style="font-size: 6pt; font-weight: 400; color: var(--gray-400); white-space: nowrap;">parametry i wyposażenie wspólne dla wszystkich aut zostały pominięte</span>
+        </div>
+        <div style="flex: 1; height: 0.5px; background: var(--gray-200);"></div>
     </div>
 
     <!-- CAR CARDS -->
@@ -713,7 +713,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'No cars provided' }, { status: 400 });
         }
 
-        const html = buildHtml({ cars, dicts, diffCodes, specRows });
+        // Read avatar and encode as base64 so Puppeteer can render it without network access
+        let avatarDataUri = '';
+        try {
+            const avatarPath = path.join(process.cwd(), 'public', 'images', 'avatar.png');
+            const avatarBuffer = fs.readFileSync(avatarPath);
+            avatarDataUri = `data:image/png;base64,${avatarBuffer.toString('base64')}`;
+        } catch {
+            // avatar missing — leave empty, CSS will show a placeholder circle
+        }
+
+        const html = buildHtml({ cars, dicts, diffCodes, specRows }, avatarDataUri);
 
         browser = await launchBrowser();
         const page = await browser.newPage();

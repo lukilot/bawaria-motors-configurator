@@ -3,8 +3,8 @@
 import { useCompareStore } from '@/store/compareStore';
 import { useGarageStore } from '@/store/garageStore';
 import { cn } from '@/lib/utils';
-import { X, Check, Minus, ChevronDown, ChevronUp, Loader2, Scale, ArrowLeft, Warehouse } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { X, Check, Minus, ChevronDown, ChevronUp, Loader2, Scale, ArrowLeft, Warehouse, FileDown } from 'lucide-react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -94,6 +94,7 @@ export function CompareModal() {
     const [mounted, setMounted] = useState(false);
     const [dicts, setDicts] = useState<Dicts | null>(null);
     const [showAll, setShowAll] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -127,6 +128,114 @@ export function CompareModal() {
     }, [pathname, closeModal]);
 
     const d = dicts ?? EMPTY_DICTS;
+
+    // ── PDF Export ─────────────────────────────────────────────────────────────
+    const handleExportPdf = useCallback(async () => {
+        if (isExporting || compareCars.length === 0) return;
+        setIsExporting(true);
+        try {
+            // Ensure dicts are loaded
+            const activeDicts = dicts ?? EMPTY_DICTS;
+
+            // Build spec rows with resolved string values
+            const specRowDefs = [
+                { label: 'Rodzaj paliwa', fn: (c: any) => c.fuel_type || '—' },
+                { label: 'Moc silnika', fn: (c: any) => c.power ? `${c.power} KM` : '—' },
+                {
+                    label: 'Układ napędowy',
+                    fn: (c: any) => (activeDicts.drivetrain?.[c.drivetrain] as any)?.name || c.drivetrain || '—'
+                },
+                {
+                    label: 'Lakier',
+                    fn: (c: any) => {
+                        if (c.color_code === '490') {
+                            const optEntry = activeDicts.option?.[c.individual_color || ''] as any;
+                            const colEntry = activeDicts.color?.[c.individual_color || ''] as any;
+                            const n = Array.isArray(optEntry) ? optEntry[0]?.name : optEntry?.name;
+                            return n || colEntry?.name || c.individual_color || 'BMW Individual';
+                        }
+                        return (activeDicts.color?.[c.color_code] as any)?.name || c.color_code || '—';
+                    }
+                },
+                {
+                    label: 'Tapicerka',
+                    fn: (c: any) => (activeDicts.upholstery?.[c.upholstery_code] as any)?.name || c.upholstery_code || '—'
+                },
+            ];
+
+            const specRowsPayload = specRowDefs.map(row => ({
+                label: row.label,
+                values: compareCars.map(c => String(row.fn(c))),
+            }));
+
+            // Build flattened diff codes (same logic as component)
+            const getFlatCodes = (car: any) => {
+                const codes = new Set<string>();
+                car.option_codes?.forEach((raw: string) => {
+                    const match = raw.match(/^([A-Z0-9]+)\s*\((.+)\)$/);
+                    if (match) {
+                        match[2].trim().split(/[\s,]+/).filter(Boolean).forEach((k: string) => codes.add(k.trim()));
+                    } else {
+                        codes.add(raw.trim());
+                    }
+                });
+                return Array.from(codes);
+            };
+
+            const carOptionMapsExport = compareCars.map(car => new Set(
+                getFlatCodes(car).filter(code => {
+                    const entry = activeDicts.option?.[code] as any;
+                    if (Array.isArray(entry)) return !entry.some((e: any) => e.hidden === true);
+                    return entry?.hidden !== true;
+                })
+            ));
+
+            const allExportCodes = carOptionMapsExport.reduce((set, m) => {
+                m.forEach(c => set.add(c));
+                return set;
+            }, new Set<string>());
+
+            const diffCodesPayload = Array.from(allExportCodes)
+                .filter(code =>
+                    carOptionMapsExport.some(m => m.has(code)) &&
+                    !carOptionMapsExport.every(m => m.has(code))
+                )
+                .sort((a, b) => {
+                    const nameA = (() => { const e = activeDicts.option?.[a]; const nm = Array.isArray(e) ? e[0]?.name : (e as any)?.name; return nm || a; })();
+                    const nameB = (() => { const e = activeDicts.option?.[b]; const nm = Array.isArray(e) ? e[0]?.name : (e as any)?.name; return nm || b; })();
+                    return nameA.localeCompare(nameB);
+                });
+
+            const resp = await fetch('/api/compare-pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cars: compareCars,
+                    dicts: activeDicts,
+                    diffCodes: diffCodesPayload,
+                    specRows: specRowsPayload,
+                }),
+            });
+
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+            const blob = await resp.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const n = compareCars.length;
+            a.href = url;
+            a.download = `Bawaria-Motors-Zestawienie-${n}-aut-${new Date().toISOString().slice(0, 10)}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('[PDF Export]', err);
+            alert('Nie udało się wygenerować PDF. Spróbuj ponownie.');
+        } finally {
+            setIsExporting(false);
+        }
+    }, [compareCars, dicts, isExporting]);
 
     // Spec definitions for difference counting
     const specRows = useMemo(() => [
@@ -249,6 +358,30 @@ export function CompareModal() {
                         <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest leading-none">Status</span>
                         <span className="text-[10px] font-bold text-gray-900 uppercase tracking-widest mt-1">Aktywne zestawienie</span>
                     </div>
+
+                    {/* PDF Export Button */}
+                    <button
+                        id="compare-export-pdf-btn"
+                        onClick={handleExportPdf}
+                        disabled={isExporting || isLoading}
+                        className={cn(
+                            "group flex items-center gap-2.5 px-5 py-2.5 rounded-full border transition-all duration-300 select-none",
+                            isExporting
+                                ? "bg-gray-100 border-gray-100 text-gray-400 cursor-wait"
+                                : isLoading
+                                ? "bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed"
+                                : "bg-gray-900 border-gray-900 text-white hover:bg-black hover:shadow-lg hover:shadow-black/10 active:scale-95"
+                        )}
+                        title={isLoading ? 'Ładowanie danych...' : 'Eksportuj zestawienie do PDF'}
+                    >
+                        {isExporting
+                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            : <FileDown className="w-3.5 h-3.5 transition-transform group-hover:-translate-y-0.5" />
+                        }
+                        <span className="text-[10px] font-bold uppercase tracking-[0.15em] whitespace-nowrap">
+                            {isExporting ? 'Generowanie...' : 'Eksportuj PDF'}
+                        </span>
+                    </button>
                 </div>
             </div>
 
